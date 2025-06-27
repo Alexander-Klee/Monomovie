@@ -1,4 +1,4 @@
-package de.amklee
+package de.amklee.monomovie
 
 val bannedTypes = setOf("BUY", "RENT")
 
