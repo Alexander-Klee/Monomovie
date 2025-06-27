@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
 }
 
 group = "de.amklee"
@@ -17,7 +18,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:3.2.0")
     implementation("io.ktor:ktor-client-cio:3.2.0")
     implementation("io.ktor:ktor-client-content-negotiation:3.2.0")
-    implementation("io.ktor:ktor-serialization-gson:3.2.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.0")
 }
 
 tasks.test {

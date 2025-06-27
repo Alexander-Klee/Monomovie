@@ -20,7 +20,9 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.gson.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 class JustWatch(
     private val country: String = "US",
@@ -28,9 +30,10 @@ class JustWatch(
 ) {
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
-            gson {
-                setPrettyPrinting()
-            }
+            json(Json {
+                prettyPrint = true
+                ignoreUnknownKeys = true
+            })
         }
         defaultRequest {
             url("https://apis.justwatch.com/graphql")
@@ -43,49 +46,86 @@ class JustWatch(
         count: Int = 4,
         bestOnly: Boolean = true
     ): List<MediaEntry> {
-        val requestBody = mapOf(
-            "operationName" to "GetSearchTitles",
-            "variables" to mapOf(
-                "first" to count,
-                "searchTitlesFilter" to mapOf("searchQuery" to title),
-                "language" to language,
-                "country" to country.uppercase(),
-                "formatPoster" to "JPG",
-                "formatOfferIcon" to "PNG",
-                "profile" to "S718",
-                "backdropProfile" to "S1920",
-                "filter" to mapOf("bestOnly" to bestOnly)
-            ),
-            "query" to SEARCH_QUERY
-        )
         val response: SearchResponse = client.post {
-            setBody(requestBody)
+            setBody(SearchRequestBody(
+                operationName = "GetSearchTitles",
+                variables = SearchRequestBody.SearchVariables(
+                    first = count,
+                    searchTitlesFilter = mapOf("searchQuery" to title),
+                    language = language,
+                    country = country.uppercase(),
+                    formatPoster = "JPG",
+                    formatOfferIcon = "PNG",
+                    profile = "S718",
+                    backdropProfile = "S1920",
+                    filter = mapOf("bestOnly" to bestOnly)
+                ),
+                query = SEARCH_QUERY
+            ))
         }.body()
         return response.data.popularTitles.edges.map { it.node }
+    }
+
+    @Serializable
+    private data class SearchRequestBody(
+        val operationName: String,
+        val variables: SearchVariables,
+        val query: String
+    ) {
+        @Serializable
+        data class SearchVariables(
+            val first: Int,
+            val searchTitlesFilter: Map<String, String>,
+            val language: String,
+            val country: String,
+            val formatPoster: String,
+            val formatOfferIcon: String,
+            val profile: String,
+            val backdropProfile: String,
+            val filter: Map<String, Boolean>
+        )
     }
 
     suspend fun details(
         nodeId: String,
         bestOnly: Boolean = true
     ): MediaEntry? {
-        val requestBody = mapOf(
-            "operationName" to "GetTitleNode",
-            "variables" to mapOf(
-                "nodeId" to nodeId,
-                "language" to language,
-                "country" to country.uppercase(),
-                "formatPoster" to "JPG",
-                "formatOfferIcon" to "PNG",
-                "profile" to "S718",
-                "backdropProfile" to "S1920",
-                "filter" to mapOf("bestOnly" to bestOnly)
-            ),
-            "query" to DETAILS_QUERY
-        )
         val response: DetailsResponse = client.post {
-            setBody(requestBody)
+            setBody(DetailsRequestBody(
+                operationName = "GetTitleNode",
+                variables = DetailsRequestBody.DetailsVariables(
+                    nodeId = nodeId,
+                    language = language,
+                    country = country.uppercase(),
+                    formatPoster = "JPG",
+                    formatOfferIcon = "PNG",
+                    profile = "S718",
+                    backdropProfile = "S1920",
+                    filter = mapOf("bestOnly" to bestOnly)
+                ),
+                query = DETAILS_QUERY
+            ))
         }.body()
         return response.data.node
+    }
+
+    @Serializable
+    private data class DetailsRequestBody(
+        val operationName: String,
+        val variables: DetailsVariables,
+        val query: String
+    ) {
+        @Serializable
+        data class DetailsVariables(
+            val nodeId: String,
+            val language: String,
+            val country: String,
+            val formatPoster: String,
+            val formatOfferIcon: String,
+            val profile: String,
+            val backdropProfile: String,
+            val filter: Map<String, Boolean>
+        )
     }
 
     suspend fun offersForCountries(
@@ -95,29 +135,46 @@ class JustWatch(
     ): Map<String, List<Offer>> {
         if (countries.isEmpty()) return emptyMap()
         val countryEntries = countries.joinToString("\n") { code ->
-            "${'$'}{code.uppercase()}: offers(country: ${'$'}{code.uppercase()}, platform: WEB, filter: \$filter) { ...TitleOffer __typename }"
+            $$"${code.uppercase()}: offers(country: ${code.uppercase()}, platform: WEB, filter: $filter) { ...TitleOffer __typename }"
         }
         val query = OFFERS_BY_COUNTRY_QUERY.replace("{country_entries}", countryEntries) + OFFER_FRAGMENT
-        val requestBody = mapOf(
-            "operationName" to "GetTitleOffers",
-            "variables" to mapOf(
-                "nodeId" to nodeId,
-                "language" to language,
-                "formatPoster" to "JPG",
-                "formatOfferIcon" to "PNG",
-                "profile" to "S718",
-                "backdropProfile" to "S1920",
-                "filter" to mapOf("bestOnly" to bestOnly)
-            ),
-            "query" to query
-        )
         val response: OffersByCountryResponse = client.post {
-            setBody(requestBody)
+            setBody(OffersByCountryRequestBody(
+                operationName = "GetTitleOffers",
+                variables = OffersByCountryRequestBody.OffersByCountryVariables(
+                    nodeId = nodeId,
+                    language = language,
+                    formatPoster = "JPG",
+                    formatOfferIcon = "PNG",
+                    profile = "S718",
+                    backdropProfile = "S1920",
+                    filter = mapOf("bestOnly" to bestOnly)
+                ),
+                query = query
+            ))
         }.body()
         val offersNode = response.data.node
         return countries.associateWith { code ->
             offersNode[code.uppercase()] ?: emptyList()
         }
+    }
+
+    @Serializable
+    private data class OffersByCountryRequestBody(
+        val operationName: String,
+        val variables: OffersByCountryVariables,
+        val query: String
+    ) {
+        @Serializable
+        data class OffersByCountryVariables(
+            val nodeId: String,
+            val language: String,
+            val formatPoster: String,
+            val formatOfferIcon: String,
+            val profile: String,
+            val backdropProfile: String,
+            val filter: Map<String, Boolean>
+        )
     }
 
     companion object {
@@ -281,92 +338,111 @@ class JustWatch(
     }
 }
 
+@Serializable
 data class SearchResponse(val data: SearchData)
+@Serializable
 data class SearchData(val popularTitles: PopularTitles)
+@Serializable
 data class PopularTitles(val edges: List<Edge>)
+@Serializable
 data class Edge(val node: MediaEntry)
 
+@Serializable
 data class MediaEntry(
-    val id: String?,
-    val objectId: Int?,
-    val objectType: String?,
-    val content: Content?,
+    val id: String? = null,
+    val objectId: Int? = null,
+    val objectType: String? = null,
+    val content: Content? = null,
     val streamingCharts: StreamingChartsWrapper? = null,
     val offers: List<Offer>? = null
 )
 
+@Serializable
 data class Content(
-    val title: String?,
-    val fullPath: String?,
-    val originalReleaseYear: Int?,
-    val originalReleaseDate: String?,
-    val runtime: Int?,
-    val shortDescription: String?,
-    val genres: List<Genre>?,
-    val externalIds: ExternalIds?,
-    val posterUrl: String?,
-    val backdrops: List<Backdrop>?,
-    val ageCertification: String?,
-    val scoring: Scoring?,
-    val interactions: Interactions?
+    val title: String? = null,
+    val fullPath: String? = null,
+    val originalReleaseYear: Int? = null,
+    val originalReleaseDate: String? = null,
+    val runtime: Int? = null,
+    val shortDescription: String? = null,
+    val genres: List<Genre>? = null,
+    val externalIds: ExternalIds? = null,
+    val posterUrl: String? = null,
+    val backdrops: List<Backdrop>? = null,
+    val ageCertification: String? = null,
+    val scoring: Scoring? = null,
+    val interactions: Interactions? = null
 )
 
-data class Genre(val shortName: String?)
-data class ExternalIds(val imdbId: String?, val tmdbId: String?)
-data class Backdrop(val backdropUrl: String?)
+@Serializable
+data class Genre(val shortName: String? = null)
+@Serializable
+data class ExternalIds(val imdbId: String? = null, val tmdbId: String? = null)
+@Serializable
+data class Backdrop(val backdropUrl: String? = null)
+@Serializable
 data class Scoring(
-    val imdbScore: Float?,
-    val imdbVotes: Int?,
-    val tmdbPopularity: Float?,
-    val tmdbScore: Float?,
-    val tomatoMeter: Int?,
-    val certifiedFresh: Boolean?,
-    val jwRating: Float?
+    val imdbScore: Float? = null,
+    val imdbVotes: Int? = null,
+    val tmdbPopularity: Float? = null,
+    val tmdbScore: Float? = null,
+    val tomatoMeter: Int? = null,
+    val certifiedFresh: Boolean? = null,
+    val jwRating: Float? = null
 )
-data class Interactions(val likelistAdditions: Int?, val dislikelistAdditions: Int?)
-data class StreamingChartsWrapper(val edges: List<StreamingChartEdge>?)
-data class StreamingChartEdge(val streamingChartInfo: StreamingChartInfo?)
+@Serializable
+data class Interactions(val likelistAdditions: Int? = null, val dislikelistAdditions: Int? = null)
+@Serializable
+data class StreamingChartsWrapper(val edges: List<StreamingChartEdge>? = null)
+@Serializable
+data class StreamingChartEdge(val streamingChartInfo: StreamingChartInfo? = null)
+@Serializable
 data class StreamingChartInfo(
-    val rank: Int?,
-    val trend: String?,
-    val trendDifference: Int?,
-    val daysInTop3: Int?,
-    val daysInTop10: Int?,
-    val daysInTop100: Int?,
-    val daysInTop1000: Int?,
-    val topRank: Int?,
-    val updatedAt: String?
+    val rank: Int? = null,
+    val trend: String? = null,
+    val trendDifference: Int? = null,
+    val daysInTop3: Int? = null,
+    val daysInTop10: Int? = null,
+    val daysInTop100: Int? = null,
+    val daysInTop1000: Int? = null,
+    val topRank: Int? = null,
+    val updatedAt: String? = null
 )
+@Serializable
 data class Offer(
-    val id: String?,
-    val monetizationType: String?,
-    val presentationType: String?,
-    val retailPrice: String?,
-    val retailPriceValue: Float?,
-    val currency: String?,
-    val lastChangeRetailPriceValue: Float?,
-    val type: String?,
-    val `package`: OfferPackage?,
-    val standardWebURL: String?,
-    val elementCount: Int?,
-    val availableTo: String?,
-    val deeplinkRoku: String?,
-    val subtitleLanguages: List<String>?,
-    val videoTechnology: List<String>?,
-    val audioTechnology: List<String>?,
-    val audioLanguages: List<String>?
+    val id: String? = null,
+    val monetizationType: String? = null,
+    val presentationType: String? = null,
+    val retailPrice: String? = null,
+    val retailPriceValue: Float? = null,
+    val currency: String? = null,
+    val lastChangeRetailPriceValue: Float? = null,
+    val type: String? = null,
+    val `package`: OfferPackage? = null,
+    val standardWebURL: String? = null,
+    val elementCount: Int? = null,
+    val availableTo: String? = null,
+    val deeplinkRoku: String? = null,
+    val subtitleLanguages: List<String>? = null,
+    val videoTechnology: List<String>? = null,
+    val audioTechnology: List<String>? = null,
+    val audioLanguages: List<String>? = null
 )
+@Serializable
 data class OfferPackage(
-    val id: String?,
-    val packageId: Int?,
-    val clearName: String?,
-    val technicalName: String?,
-    val icon: String?
+    val id: String? = null,
+    val packageId: Int? = null,
+    val clearName: String? = null,
+    val technicalName: String? = null,
+    val icon: String? = null
 )
 
+@Serializable
 data class DetailsResponse(val data: DetailsData)
-data class DetailsData(val node: MediaEntry?)
+@Serializable
+data class DetailsData(val node: MediaEntry? = null)
 
+@Serializable
 data class OffersByCountryResponse(val data: OffersByCountryData)
-data class OffersByCountryData(val node: Map<String, List<Offer>>)
-
+@Serializable
+data class OffersByCountryData(val node: Map<String, List<Offer>> = emptyMap())
