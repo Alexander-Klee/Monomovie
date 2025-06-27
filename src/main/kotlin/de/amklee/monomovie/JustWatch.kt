@@ -383,7 +383,7 @@ data class Backdrop(val backdropUrl: String? = null)
 @Serializable
 data class Scoring(
     val imdbScore: Float? = null,
-    val imdbVotes: Int? = null,
+    val imdbVotes: Float? = null,
     val tmdbPopularity: Float? = null,
     val tmdbScore: Float? = null,
     val tomatoMeter: Int? = null,
