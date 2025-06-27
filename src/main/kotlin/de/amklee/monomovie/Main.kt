@@ -54,12 +54,12 @@ suspend fun searchForMovie(title: String?): String {
         val offers = movie.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
         val offerHtml = offers.joinToString("\n") { offer ->
-            val iconUrl = "https://images.justwatch.com${offer.`package`?.icon?.escapeHTML()}"
+            val iconUrl = "https://images.justwatch.com${offer.`package`?.icon}"
             val altText = offer.`package`?.clearName ?: "Unknown"
 
             """
             <li class="offer-item">
-                <img src="$iconUrl" alt="$altText" class="offer-icon"/>
+                <img src="${iconUrl.escapeHTML()}" alt="${altText.escapeHTML()}" class="offer-icon"/>
             </li>
             """.trimIndent()
         }
@@ -90,7 +90,6 @@ suspend fun searchForMovie(title: String?): String {
             """.trimIndent()
     }
 
-    // TODO; this is a trivial XSS
     return """
         <div class="search-bar">
             <form action="/search" method="get">
