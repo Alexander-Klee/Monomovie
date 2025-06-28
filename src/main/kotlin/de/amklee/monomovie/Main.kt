@@ -6,7 +6,8 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.escapeHTML
+import io.ktor.util.*
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -15,7 +16,7 @@ object Resources {
         Resources::class.java.getResource("/style.css")?.readText()
             ?: throw FileNotFoundException("style.css not found in resources")
     }
-    private val stylePath = "src/main/resources/style.css" // or the full path to your style.css
+    private const val stylePath = "src/main/resources/style.css" // or the full path to your style.css
 
     val styleAutoUpdate: String
         get() = File(stylePath).takeIf { it.exists() }?.readText()
@@ -27,15 +28,36 @@ object CachedMovies {
 
     private val cache = mutableMapOf<String, Movie>()
 
+    private val bookmarksFile = File("bookmarks.json")
+    private var bookmarks: MutableSet<String> = loadBookmarks()
+
+
+    // Load bookmarks from file at startup
+    private fun loadBookmarks(): MutableSet<String> {
+        return if (bookmarksFile.exists()) {
+            try {
+                Json.decodeFromString<Set<String>>(bookmarksFile.readText()).toMutableSet()
+            } catch (e: Exception) {
+                mutableSetOf()
+            }
+        } else {
+            mutableSetOf()
+        }
+    }
+
+    private fun saveBookmarks() {
+        bookmarksFile.writeText(Json.encodeToString(bookmarks))
+    }
+
     suspend fun get(id: String): Movie?{
         // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
         return cache[id] ?: run {
             val jw = JustWatch(country = "DE", language = "en")
             val details = jw.details(id)
             if (details != null) {
-                val movie = Movie(mediaEntry = details, isBookmarked = false, cacheDate = System.currentTimeMillis())
+                val movie = Movie(mediaEntry = details, isBookmarked = id in bookmarks, cacheDate = System.currentTimeMillis())
                 cache[id] = movie
-                movie
+                return@run movie
             }
             null
         }
@@ -44,6 +66,12 @@ object CachedMovies {
     fun toggleBookmark(id: String): Movie? {
         val movie = cache[id] ?: return null
         movie.isBookmarked = !movie.isBookmarked
+        if (movie.isBookmarked) {
+            bookmarks.add(id)
+        } else {
+            bookmarks.remove(id)
+        }
+        saveBookmarks()
         return movie
     }
 
@@ -60,9 +88,7 @@ object CachedMovies {
         }
     }
 
-    fun getBookmarkedMovies(): List<Movie> {
-        return cache.values.filter { it.isBookmarked }
-    }
+    suspend fun getBookmarkedMovies(): List<Movie> = bookmarks.mapNotNull { id -> get(id) }
 }
 
 val bannedTypes = setOf("BUY", "RENT")
@@ -223,8 +249,6 @@ fun Route.miscRoutes() {
 
         CachedMovies.toggleBookmark(movieId)
 
-        // TODO: add a navbar or topbar
-
         call.respond(HttpStatusCode.OK)
     }
 
@@ -263,6 +287,5 @@ fun hostServer() {
 }
 
 fun main() {
-////    println(justWatch.details(bestFitMovie.id!!) == bestFitMovie)
     hostServer()
 }
