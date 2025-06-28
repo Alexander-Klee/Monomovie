@@ -135,7 +135,7 @@ fun displayMovieList(movies: List<CachedMovies.Movie>): String {
         """
         <li class="movie-item bookmark-container">
             <span class="movie-poster">
-                <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id}', this)"></span>
+                <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
                 <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
             </span>
             
