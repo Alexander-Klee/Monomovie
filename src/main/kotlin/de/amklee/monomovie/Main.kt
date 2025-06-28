@@ -22,6 +22,49 @@ object Resources {
             ?: throw FileNotFoundException("style.css not found at path: $stylePath")
 }
 
+object CachedMovies {
+    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
+
+    private val cache = mutableMapOf<String, Movie>()
+
+    suspend fun get(id: String): Movie?{
+        // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
+        return cache[id] ?: run {
+            val jw = JustWatch(country = "DE", language = "en")
+            val details = jw.details(id)
+            if (details != null) {
+                val movie = Movie(mediaEntry = details, isBookmarked = false, cacheDate = System.currentTimeMillis())
+                cache[id] = movie
+                movie
+            }
+            null
+        }
+    }
+
+    fun toggleBookmark(id: String): Movie? {
+        val movie = cache[id] ?: return null
+        movie.isBookmarked = !movie.isBookmarked
+        return movie
+    }
+
+    suspend fun search(title: String): List<Movie> {
+        val jw = JustWatch(country = "DE", language = "en")
+        val searchResults = jw.search(title = title)
+        return searchResults.map { mediaEntry ->
+            val isBookmarked = cache[mediaEntry.id]?.isBookmarked ?: false
+
+            val movie = Movie(mediaEntry = mediaEntry, isBookmarked = isBookmarked, cacheDate = System.currentTimeMillis())
+            if (mediaEntry.id != null) cache[mediaEntry.id] = movie
+
+            movie
+        }
+    }
+
+    fun getBookmarkedMovies(): List<Movie> {
+        return cache.values.filter { it.isBookmarked }
+    }
+}
+
 val bannedTypes = setOf("BUY", "RENT")
 
 fun htmlTemplate(title: String, body: String, nav: String): String {
@@ -36,22 +79,20 @@ fun htmlTemplate(title: String, body: String, nav: String): String {
             </style>
         </head>
         <body>
-            <nav>
-                $nav
-            </nav>
             <main>
                 $body
             </main>
         </body>
         </html>
         """.trimIndent()
+//            <nav>
+//                $nav
+//            </nav>
 }
 
-suspend fun searchForMovie(title: String?): String {
-    println("Title: $title")
-
-    fun getOffers(movie: MediaEntry): String {
-        val offers = movie.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
+fun displayMovieList(movies: List<CachedMovies.Movie>): String {
+    fun getOffers(movie: CachedMovies.Movie): String {
+        val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
         val offerHtml = offers.joinToString("\n") { offer ->
             val iconUrl = "https://images.justwatch.com${offer.`package`?.icon}"
@@ -71,26 +112,54 @@ suspend fun searchForMovie(title: String?): String {
             """.trimIndent()
     }
 
-    val justWatch = JustWatch(country = "DE", language = "en")
-    val searchResult = if (title.isNullOrBlank()) emptyList() else justWatch.search(title = title)
+    if (movies.isEmpty()) return "<p>No movies found.</p>"
 
-    val list = searchResult.joinToString("\n") { movie ->
-            """
-            <li class="movie-item">
-                <img src="https://images.justwatch.com${movie.content?.posterUrl?.escapeHTML()}" alt="${movie.content?.title?.escapeHTML()}" class="movie-poster"/>
-                <div class="movie-details">
-                    <p class="movie-title">${movie.content?.title?.escapeHTML()}</p>
-                    <p class="movie-year">${movie.content?.originalReleaseYear}</p>
-                    <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.content?.shortDescription?.escapeHTML()}</p>
-                </div>
-                <div class="movie-offers">
-                    ${getOffers(movie)}
-                </div>
-            </li>
-            """.trimIndent()
+    val bookmarkJS = $$"""
+        <script>
+        function setBookmark(movieId, el) {
+            fetch(`/bookmark/${movieId}`, {
+                method: 'GET',
+            })
+            .then(() => {
+                console.log("Bookmarking movie with ID: " + movieId);
+                el.classList.toggle('bookmarked');
+            })
+            .catch(error => {
+                 console.error("Bookmark error:", error);
+            });
+        }
+        </script>
+    """.trimIndent()
+
+    return bookmarkJS + movies.joinToString("\n") { movie ->
+        """
+        <li class="movie-item bookmark-container">
+            <span class="movie-poster">
+                <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id}', this)"></span>
+                <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
+            </span>
+            
+            <div class="movie-details">
+                <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
+                <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
+                <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
+            </div>
+            
+            <div class="movie-offers">
+                ${getOffers(movie)}
+            </div>
+        </li>
+        """.trimIndent()
     }
+}
 
-    return """
+suspend fun searchForMovie(title: String?): String {
+
+    val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title)
+
+    val list = displayMovieList(searchResult)
+
+    return $$"""
         <div class="search-bar">
             <form action="/search" method="get">
             <button type="submit" class="search-button">
@@ -99,11 +168,11 @@ suspend fun searchForMovie(title: String?): String {
                   <path d="M12.2 13.6a7 7 0 1 1 1.4-1.4l5.4 5.4-1.4 1.4zM3 8a5 5 0 1 0 10 0A5 5 0 0 0 3 8"/>
                 </svg>
             </button>
-            <input type="text" name="title" placeholder="Search for a movie..." value="${title?.escapeHTML() ?: ""}"/>
+            <input type="text" name="title" placeholder="Search for a movie..." value="$${title?.escapeHTML() ?: ""}"/>
             </form>
         </div>
-        ${if (list.isNotEmpty()) "<h4>Search results:</h4>" else ""}
-        <ul class="movie-list">$list</ul>
+        $${if (list.isNotEmpty()) "<h4>Search results:</h4>" else ""}
+        <ul class="movie-list">$$list</ul>
     """.trimIndent()
 }
 
@@ -126,6 +195,47 @@ fun Route.miscRoutes() {
                 title = "Search",
                 body = searchForMovie(call.request.queryParameters["title"]),
                 nav = "<p>empty</p>",
+            )
+        )
+    }
+    get("/bookmark/{movieId}") {
+        val movieId = call.parameters["movieId"]
+
+        println("Bookmarking movie with ID: $movieId")
+
+        if (movieId == null) {
+            call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
+            return@get
+        }
+
+        CachedMovies.toggleBookmark(movieId)
+
+        // TODO: add a navbar or topbar
+
+        call.respond(HttpStatusCode.OK)
+    }
+
+    get("/bookmarks") {
+        val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
+        val list = displayMovieList(bookmarkedMovies)
+
+        val body = if (bookmarkedMovies.isEmpty()) {
+            "<p>No bookmarked movies</p>"
+        } else {
+            """
+                <h1>Bookmarked Movies</h1>
+                <ul class="movie-list">
+                    $list
+                </ul>
+            """.trimIndent()
+        }
+
+        call.respondText(
+            contentType = ContentType.parse("text/html"),
+            text = htmlTemplate(
+                title = "Bookmarked Movies",
+                body = body,
+                nav = "<p>empty</p>"
             )
         )
     }
