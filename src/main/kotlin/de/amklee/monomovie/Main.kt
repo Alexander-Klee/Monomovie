@@ -79,18 +79,31 @@ fun htmlTemplate(title: String, body: String, nav: String): String {
             </style>
         </head>
         <body>
+            <nav>
+                $nav
+            </nav>
             <main>
                 $body
             </main>
         </body>
         </html>
         """.trimIndent()
-//            <nav>
-//                $nav
-//            </nav>
 }
 
-fun displayMovieList(movies: List<CachedMovies.Movie>): String {
+fun renderNavBar(): String {
+    return """
+        <nav>
+            <h1>Movies</h1>
+            <ul class="nav-list">
+                <li><a href="/">Home</a></li>
+                <li><a href="/search">Search</a></li>
+                <li><a href="/bookmarks">Bookmarks</a></li>
+            </ul>
+        </nav>
+    """.trimIndent()
+}
+
+fun renderMovieList(movies: List<CachedMovies.Movie>): String {
     fun getOffers(movie: CachedMovies.Movie): String {
         val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
@@ -157,7 +170,7 @@ suspend fun searchForMovie(title: String?): String {
 
     val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title)
 
-    val list = displayMovieList(searchResult)
+    val list = renderMovieList(searchResult)
 
     return $$"""
         <div class="search-bar">
@@ -183,7 +196,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Welcome",
                 body = "<p>Not much to see here yet</p>",
-                nav = "<p>empty</p>"
+                nav = renderNavBar()
             )
         )
     }
@@ -194,7 +207,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Search",
                 body = searchForMovie(call.request.queryParameters["title"]),
-                nav = "<p>empty</p>",
+                nav = renderNavBar(),
             )
         )
     }
@@ -217,7 +230,7 @@ fun Route.miscRoutes() {
 
     get("/bookmarks") {
         val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
-        val list = displayMovieList(bookmarkedMovies)
+        val list = renderMovieList(bookmarkedMovies)
 
         val body = if (bookmarkedMovies.isEmpty()) {
             "<p>No bookmarked movies</p>"
@@ -235,7 +248,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Bookmarked Movies",
                 body = body,
-                nav = "<p>empty</p>"
+                nav = renderNavBar()
             )
         )
     }

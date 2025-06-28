@@ -204,3 +204,68 @@ h1 {
     background: transparent;
     color: #333;
 }
+
+
+/* NAV BAR */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background: #f4f4f4;
+    border-right: 1px solid #ddd;
+    color: #333;
+    padding: 1em;
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling inside nav */
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.nav-list li {
+    margin: 0;
+    width: 100%;
+}
+
+.nav-list a {
+    display: block;
+    color: #333;
+    text-decoration: none;
+    padding: 0.5rem 1.25rem;
+    transition: background 0.2s;
+    width: 100%;
+}
+
+.nav-list a:hover {
+    text-decoration: underline;
+}
+
+/* Main content should have left margin equal to nav width */
+main {
+    margin-left: auto;
+    padding: 2rem;
+    flex: 1;
+    min-width: 0;
+}
