@@ -75,9 +75,9 @@ object CachedMovies {
         return movie
     }
 
-    suspend fun search(title: String): List<Movie> {
+    suspend fun search(title: String, numResults: Int = 4): List<Movie> {
         val jw = JustWatch(country = "DE", language = "en")
-        val searchResults = jw.search(title = title)
+        val searchResults = jw.search(title = title, numResults)
         return searchResults.map { mediaEntry ->
             val isBookmarked = cache[mediaEntry.id]?.isBookmarked ?: false
 
@@ -192,9 +192,9 @@ fun renderMovieList(movies: List<CachedMovies.Movie>): String {
     }
 }
 
-suspend fun searchForMovie(title: String?): String {
+suspend fun searchForMovie(title: String?, numResults: Int): String {
 
-    val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title)
+    val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
 
     val list = renderMovieList(searchResult)
 
@@ -232,7 +232,10 @@ fun Route.miscRoutes() {
             contentType = ContentType.parse("text/html"),
             text = htmlTemplate(
                 title = "Search",
-                body = searchForMovie(call.request.queryParameters["title"]),
+                body = searchForMovie(
+                    call.request.queryParameters["title"],
+                        call.request.queryParameters["num"]?.toIntOrNull() ?: 4
+                ),
                 nav = renderNavBar(),
             )
         )
