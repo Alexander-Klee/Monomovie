@@ -1,10 +1,17 @@
 plugins {
     kotlin("jvm") version "2.2.0"
+    application
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
+    id("io.ktor.plugin") version "3.2.0"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "de.amklee"
 version = "1.0-SNAPSHOT"
+
+application {
+    mainClass = "de.amklee.monomovie.MainKt"
+}
 
 repositories {
     mavenCentral()
@@ -12,15 +19,18 @@ repositories {
 }
 
 dependencies {
+    implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
+
     testImplementation(kotlin("test"))
-    implementation("io.gitlab.jfronny:commons-logger:1.8.0-SNAPSHOT")
-    implementation("io.gitlab.jfronny:slf4j-over-jpl:1.8.0-SNAPSHOT")
-    implementation("io.ktor:ktor-client-core:3.2.0")
-    implementation("io.ktor:ktor-client-cio:3.2.0")
-    implementation("io.ktor:ktor-client-content-negotiation:3.2.0")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.0")
-    implementation("io.ktor:ktor-server-core:2.3.7")
-    implementation("io.ktor:ktor-server-netty:2.3.7")
+
+    implementation("io.gitlab.jfronny:commons-logger")
+    implementation("io.gitlab.jfronny:slf4j-over-jpl")
+    implementation("io.ktor:ktor-client-core")
+    implementation("io.ktor:ktor-client-cio")
+    implementation("io.ktor:ktor-client-content-negotiation")
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
+    implementation("io.ktor:ktor-server-core")
+    implementation("io.ktor:ktor-server-netty")
 }
 
 tasks.test {

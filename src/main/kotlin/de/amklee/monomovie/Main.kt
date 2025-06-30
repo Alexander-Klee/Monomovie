@@ -8,6 +8,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.json.Json
+import org.intellij.lang.annotations.Language
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -153,7 +154,7 @@ fun renderMovieList(movies: List<CachedMovies.Movie>): String {
 
     if (movies.isEmpty()) return "<p>No movies found.</p>"
 
-    val bookmarkJS = $$"""
+    @Language("HTML") val bookmarkJS = $$"""
         <script>
         function setBookmark(movieId, el) {
             fetch(`/bookmark/${movieId}`, {
@@ -198,6 +199,7 @@ suspend fun searchForMovie(title: String?, numResults: Int): String {
 
     val list = renderMovieList(searchResult)
 
+    //language=HTML
     return $$"""
         <div class="search-bar">
             <form action="/search" method="get">
