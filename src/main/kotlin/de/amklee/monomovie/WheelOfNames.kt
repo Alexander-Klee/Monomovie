@@ -28,7 +28,7 @@ class WheelOfNames(private val apiKey: String) {
     }
 
     @Serializable
-    data class Entry(val text: String)
+    data class Entry(val text: String, val weight: Int)
     @Serializable
     private data class Wheel(
         val shareMode: String,

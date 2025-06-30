@@ -105,19 +105,20 @@ fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
             """.trimIndent()
     }
 
+    // language=HTML
     return """
         <li class="movie-list-item">
             $prefix
             <div class="movie-item bookmark-container">
-                <span class="movie-poster">
-                    <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
+                <span class="movie-poster ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)">
+                    <span class="bookmark-icon"></span>
                     <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
                 </span>
                 
                 <div class="movie-details">
                     <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
                     <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
-                    <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
+                    <p class="movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
                 </div>
                 
                 <div class="movie-offers">
@@ -303,10 +304,8 @@ fun Route.miscRoutes() {
 
         call.respondRedirect(
             wheelOfNames.createWheel(
-                selectedMovies.flatMap { (movie, weight) ->
-                    List(weight) {
-                        WheelOfNames.Entry(movie.mediaEntry.content?.title ?: "null")
-                    }
+                selectedMovies.map { (movie, weight) ->
+                    WheelOfNames.Entry(movie.mediaEntry.content?.title ?: "null", weight)
                 }
             ))
     }
