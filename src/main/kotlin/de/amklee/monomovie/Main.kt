@@ -5,18 +5,18 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.path
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.intellij.lang.annotations.Language
-import java.io.File
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 object Resources {
     val style: String by lazy {
@@ -35,7 +35,7 @@ object CachedMovies {
 
     private val cache = mutableMapOf<String, Movie>()
 
-    private val bookmarksFile = File("bookmarks.json")
+    private val bookmarksFile = Path("bookmarks.json")
     private var bookmarks: MutableSet<String> = loadBookmarks()
 
 
@@ -44,7 +44,7 @@ object CachedMovies {
         return if (bookmarksFile.exists()) {
             try {
                 Json.decodeFromString<Set<String>>(bookmarksFile.readText()).toMutableSet()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 mutableSetOf()
             }
         } else {
@@ -158,9 +158,29 @@ fun renderMovieList(movies: List<CachedMovies.Movie>): String {
             """.trimIndent()
     }
 
-    if (movies.isEmpty()) return "<p>No movies found.</p>"
+    fun renderMovieItem(movie: CachedMovies.Movie): String {
+        return """
+            <li class="movie-item bookmark-container">
+                <span class="movie-poster">
+                    <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
+                    <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
+                </span>
+                
+                <div class="movie-details">
+                    <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
+                    <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
+                    <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
+                </div>
+                
+                <div class="movie-offers">
+                    ${getOffers(movie)}
+                </div>
+            </li>
+            """.trimIndent()
+    }
 
-    @Language("HTML") val bookmarkJS = $$"""
+    @Language("HTML")
+    val bookmarkJS = $$"""
         <script>
         function setBookmark(movieId, el) {
             fetch(`/bookmark/${movieId}`, {
@@ -177,51 +197,54 @@ fun renderMovieList(movies: List<CachedMovies.Movie>): String {
         </script>
     """.trimIndent()
 
-    return bookmarkJS + movies.joinToString("\n") { movie ->
-        """
-        <li class="movie-item bookmark-container">
-            <span class="movie-poster">
-                <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
-                <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
-            </span>
-            
-            <div class="movie-details">
-                <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
-                <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
-                <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
-            </div>
-            
-            <div class="movie-offers">
-                ${getOffers(movie)}
-            </div>
-        </li>
+    val movieList = """
+        <ul class="movie-list">
+            ${movies.joinToString("\n") { movie -> renderMovieItem(movie) }}
+        </ul>
+    """.trimIndent()
+
+    return bookmarkJS + movieList
+}
+
+@Language("HTML")
+fun SearchBar(title: String?): String = """
+    <div class="search-bar">
+        <form action="/search" method="get">
+        <button type="submit" class="search-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <title>search</title>
+              <path d="M12.2 13.6a7 7 0 1 1 1.4-1.4l5.4 5.4-1.4 1.4zM3 8a5 5 0 1 0 10 0A5 5 0 0 0 3 8"/>
+            </svg>
+        </button>
+        <input type="text" name="title" placeholder="Search for a movie..." value="${title?.escapeHTML() ?: ""}"/>
+        </form>
+    </div>"""
+
+suspend fun SearchPage(title: String?, numResults: Int = 4): String {
+    val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
+
+    return SearchBar(title) + if (searchResult.isEmpty()) {
+        "<p>No Search Results</p>"
+    } else {
+        $$"""
+            <h4>Search results:</h4>
+            $${renderMovieList(searchResult)}
         """.trimIndent()
     }
 }
 
-suspend fun searchForMovie(title: String?, numResults: Int): String {
+suspend fun BookmarkPage(): String {
+    val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
+    val list = renderMovieList(bookmarkedMovies)
 
-    val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
-
-    val list = renderMovieList(searchResult)
-
-    //language=HTML
-    return $$"""
-        <div class="search-bar">
-            <form action="/search" method="get">
-            <button type="submit" class="search-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <title>search</title>
-                  <path d="M12.2 13.6a7 7 0 1 1 1.4-1.4l5.4 5.4-1.4 1.4zM3 8a5 5 0 1 0 10 0A5 5 0 0 0 3 8"/>
-                </svg>
-            </button>
-            <input type="text" name="title" placeholder="Search for a movie..." value="$${title?.escapeHTML() ?: ""}"/>
-            </form>
-        </div>
-        $${if (list.isNotEmpty()) "<h4>Search results:</h4>" else ""}
-        <ul class="movie-list">$$list</ul>
-    """.trimIndent()
+    return "<h1>Bookmarked Movies:</h1>" +  if (bookmarkedMovies.isEmpty()) {
+        "<p>No bookmarked movies found</p>"
+    } else {
+        list
+    }
 }
+
+suspend fun HomePage(): String = SearchBar(null) + BookmarkPage()
 
 fun Route.miscRoutes() {
     get("/") {
@@ -229,29 +252,27 @@ fun Route.miscRoutes() {
             contentType = ContentType.parse("text/html"),
             text = htmlTemplate(
                 title = "Welcome",
-                body = "<p>Not much to see here yet</p>",
+                body = HomePage(),
                 nav = renderNavBar()
             )
         )
     }
 
     get("/search") {
+        val title = call.request.queryParameters["title"]?.escapeHTML()
+        val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
+
         call.respondText(
             contentType = ContentType.parse("text/html"),
             text = htmlTemplate(
-                title = "Search",
-                body = searchForMovie(
-                    call.request.queryParameters["title"],
-                        call.request.queryParameters["num"]?.toIntOrNull() ?: 4
-                ),
+                title = "$title Search",
+                body = SearchPage(title, numResults),
                 nav = renderNavBar(),
             )
         )
     }
     get("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]
-
-        println("Bookmarking movie with ID: $movieId")
 
         if (movieId == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
@@ -264,25 +285,11 @@ fun Route.miscRoutes() {
     }
 
     get("/bookmarks") {
-        val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
-        val list = renderMovieList(bookmarkedMovies)
-
-        val body = if (bookmarkedMovies.isEmpty()) {
-            "<p>No bookmarked movies</p>"
-        } else {
-            """
-                <h1>Bookmarked Movies</h1>
-                <ul class="movie-list">
-                    $list
-                </ul>
-            """.trimIndent()
-        }
-
         call.respondText(
             contentType = ContentType.parse("text/html"),
             text = htmlTemplate(
                 title = "Bookmarked Movies",
-                body = body,
+                body = BookmarkPage(),
                 nav = renderNavBar()
             )
         )
