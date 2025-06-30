@@ -35,6 +35,16 @@ h1 {
     background: #f0f0f0;
 }
 
+.movie-list-item {
+    display: flex;
+}
+
+.movie-checkbox {
+    display: inline-block;
+    align-self: center;
+    margin-right: 8px;
+}
+
 .movie-poster {
     display: flex;
     width: 15%;
@@ -269,7 +279,6 @@ main {
     flex: 1;
     min-width: 0;
 }
-
 /* For Phones*/
 .menu-button {
     display: none;

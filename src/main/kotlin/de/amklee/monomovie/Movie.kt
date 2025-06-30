@@ -33,7 +33,7 @@ object CachedMovies {
         bookmarksFile.writeText(Json.encodeToString(bookmarks))
     }
 
-    suspend fun get(id: String): Movie?{
+    suspend fun get(id: String): Movie? {
         // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
         return cache[id] ?: run {
             val jw = JustWatch(country = "DE", language = "en")

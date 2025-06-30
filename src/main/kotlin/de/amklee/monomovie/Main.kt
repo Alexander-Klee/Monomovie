@@ -83,7 +83,7 @@ fun NavBar(): String {
     """.trimIndent()
 }
 
-fun MovieList(movies: List<CachedMovies.Movie>): String {
+fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
     fun getOffers(movie: CachedMovies.Movie): String {
         val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
@@ -107,20 +107,23 @@ fun MovieList(movies: List<CachedMovies.Movie>): String {
 
     fun renderMovieItem(movie: CachedMovies.Movie): String {
         return """
-            <li class="movie-item bookmark-container">
-                <span class="movie-poster">
-                    <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
-                    <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
-                </span>
-                
-                <div class="movie-details">
-                    <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
-                    <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
-                    <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
-                </div>
-                
-                <div class="movie-offers">
-                    ${getOffers(movie)}
+            <li class="movie-list-item">
+                ${if (selectable) """<input type="checkbox" class="movie-checkbox" name="selected[]" value="${movie.mediaEntry.id?.escapeHTML()}">""" else ""}
+                <div class="movie-item bookmark-container">
+                    <span class="movie-poster">
+                        <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
+                        <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
+                    </span>
+                    
+                    <div class="movie-details">
+                        <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
+                        <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
+                        <p class = "movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
+                    </div>
+                    
+                    <div class="movie-offers">
+                        ${getOffers(movie)}
+                    </div>
                 </div>
             </li>
             """.trimIndent()
@@ -167,7 +170,7 @@ fun SearchBar(title: String?): String = """
         </form>
     </div>"""
 
-suspend fun SearchPage(title: String?, numResults: Int = 4): String {
+suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
     val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
 
     return SearchBar(title) + if (searchResult.isEmpty()) {
@@ -175,23 +178,29 @@ suspend fun SearchPage(title: String?, numResults: Int = 4): String {
     } else {
         $$"""
             <h4>Search results:</h4>
-            $${MovieList(searchResult)}
+            $${MovieList(searchResult, false)}
         """.trimIndent()
     }
 }
 
-suspend fun BookmarkPage(): String {
+suspend inline fun BookmarkPage(): String {
     val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
-    val list = MovieList(bookmarkedMovies)
 
     return "<h1>Bookmarked Movies:</h1>" +  if (bookmarkedMovies.isEmpty()) {
         "<p>No bookmarked movies found</p>"
-    } else {
-        list
-    }
+    } else """
+        <form method="post" action="/roulette">
+            <button type="submit" class="roulette-button">Roulette</button>
+            ${MovieList(bookmarkedMovies, true)}
+        </form>
+    """.trimIndent()
 }
 
-suspend fun HomePage(): String = SearchBar(null) + BookmarkPage()
+suspend inline fun RoulettePage(selectedMovies1: List<CachedMovies.Movie>): String {
+    return ""
+}
+
+suspend inline fun HomePage(): String = SearchBar(null) + BookmarkPage()
 
 fun Route.miscRoutes() {
     get("/") {
@@ -235,6 +244,23 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Bookmarked Movies",
                 body = BookmarkPage(),
+                nav = NavBar()
+            )
+        )
+    }
+    post("/roulette") {
+        val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
+
+        if (selectedMovies.isEmpty()) {
+            call.respond(HttpStatusCode.BadRequest, "No movies selected for roulette")
+            return@post
+        }
+
+        call.respondText(
+            contentType = ContentType.parse("text/html"),
+            text = htmlTemplate(
+                title = "Roulette",
+                body = RoulettePage(selectedMovies),
                 nav = NavBar()
             )
         )
