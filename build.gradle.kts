@@ -20,6 +20,8 @@ repositories {
 
 dependencies {
     implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
+    implementation("io.ktor:ktor-server-host-common:3.2.0")
+    implementation("io.ktor:ktor-server-status-pages:3.2.0")
 
     testImplementation(kotlin("test"))
 

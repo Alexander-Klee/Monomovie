@@ -1,9 +1,12 @@
 package de.amklee.monomovie
 
+import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.path
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -287,6 +290,12 @@ fun hostServer() {
     embeddedServer(Netty, port = 8080) {
         routing {
             miscRoutes()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                SystemLoggerPlus.forName(call.request.path()).error("Uncaught exception", cause)
+                call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
+            }
         }
     }.start(wait = true)
 }
