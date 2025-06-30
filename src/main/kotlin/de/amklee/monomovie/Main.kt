@@ -131,6 +131,8 @@ fun renderNavBar(): String {
                 <li><a href="/">Home</a></li>
                 <li><a href="/search">Search</a></li>
                 <li><a href="/bookmarks">Bookmarks</a></li>
+                <li><a href="https://jellyfin.amklee.de">Jellyfin</a></li>
+                <li><a href="https://amklee.de/recipe">Recipes</a></li>
             </ul>
         </nav>
     """.trimIndent()
