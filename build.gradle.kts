@@ -39,3 +39,9 @@ tasks.test {
 kotlin {
     jvmToolchain(21)
 }
+
+tasks {
+    shadowJar {
+        archiveFileName = "app.jar"
+    }
+}
