@@ -51,7 +51,7 @@ fun htmlTemplate(title: String, body: String, nav: String): String {
         """.trimIndent()
 }
 
-fun renderNavBar(): String {
+fun NavBar(): String {
     return """
         <nav>
             <h1>Movies</h1>
@@ -66,7 +66,7 @@ fun renderNavBar(): String {
     """.trimIndent()
 }
 
-fun renderMovieList(movies: List<CachedMovies.Movie>): String {
+fun MovieList(movies: List<CachedMovies.Movie>): String {
     fun getOffers(movie: CachedMovies.Movie): String {
         val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
@@ -114,7 +114,7 @@ fun renderMovieList(movies: List<CachedMovies.Movie>): String {
         <script>
         function setBookmark(movieId, el) {
             fetch(`/bookmark/${movieId}`, {
-                method: 'GET',
+                method: 'POST',
             })
             .then(() => {
                 console.log("Bookmarking movie with ID: " + movieId);
@@ -158,14 +158,14 @@ suspend fun SearchPage(title: String?, numResults: Int = 4): String {
     } else {
         $$"""
             <h4>Search results:</h4>
-            $${renderMovieList(searchResult)}
+            $${MovieList(searchResult)}
         """.trimIndent()
     }
 }
 
 suspend fun BookmarkPage(): String {
     val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
-    val list = renderMovieList(bookmarkedMovies)
+    val list = MovieList(bookmarkedMovies)
 
     return "<h1>Bookmarked Movies:</h1>" +  if (bookmarkedMovies.isEmpty()) {
         "<p>No bookmarked movies found</p>"
@@ -183,7 +183,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Welcome",
                 body = HomePage(),
-                nav = renderNavBar()
+                nav = NavBar()
             )
         )
     }
@@ -196,16 +196,16 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "$title Search",
                 body = SearchPage(title, numResults),
-                nav = renderNavBar(),
+                nav = NavBar(),
             )
         )
     }
-    get("/bookmark/{movieId}") {
+    post("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]
 
         if (movieId == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
-            return@get
+            return@post
         }
 
         CachedMovies.toggleBookmark(movieId)
@@ -218,7 +218,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Bookmarked Movies",
                 body = BookmarkPage(),
-                nav = renderNavBar()
+                nav = NavBar()
             )
         )
     }
