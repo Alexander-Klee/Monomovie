@@ -17,13 +17,12 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 
 object Resources {
-    val style: String by lazy {
+    private val styleResource: String by lazy {
         Resources::class.java.getResource("/style.css")?.readText()
             ?: throw FileNotFoundException("style.css not found in resources")
     }
-    private const val stylePath = "src/main/resources/style.css" // or the full path to your style.css
-
-    val styleAutoUpdate: String get() = Path(stylePath).takeIf { it.exists() }?.readText() ?: style
+    private val styleFile = Path("src/main/resources/style.css").takeIf { it.exists() }
+    val style: String get() = styleFile?.readText() ?: styleResource
 }
 
 val bannedTypes = setOf("BUY", "RENT")
@@ -37,7 +36,7 @@ fun htmlTemplate(title: String, body: String, nav: String): String {
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>$title</title>
             <style>
-                ${Resources.styleAutoUpdate}
+                ${Resources.style}
             </style>
         </head>
         <body>
