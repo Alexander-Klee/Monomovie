@@ -23,9 +23,7 @@ object Resources {
     }
     private const val stylePath = "src/main/resources/style.css" // or the full path to your style.css
 
-    val styleAutoUpdate: String by lazy {
-        Path(stylePath).takeIf { it.exists() }?.readText() ?: style
-    }
+    val styleAutoUpdate: String get() = Path(stylePath).takeIf { it.exists() }?.readText() ?: style
 }
 
 val bannedTypes = setOf("BUY", "RENT")
