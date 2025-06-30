@@ -14,6 +14,9 @@ import kotlinx.serialization.json.Json
 import org.intellij.lang.annotations.Language
 import java.io.File
 import java.io.FileNotFoundException
+import kotlin.io.path.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 
 object Resources {
     val style: String by lazy {
@@ -22,9 +25,9 @@ object Resources {
     }
     private const val stylePath = "src/main/resources/style.css" // or the full path to your style.css
 
-    val styleAutoUpdate: String
-        get() = File(stylePath).takeIf { it.exists() }?.readText()
-            ?: throw FileNotFoundException("style.css not found at path: $stylePath")
+    val styleAutoUpdate: String by lazy {
+        Path(stylePath).takeIf { it.exists() }?.readText() ?: style
+    }
 }
 
 object CachedMovies {
