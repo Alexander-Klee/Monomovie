@@ -108,7 +108,7 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
     fun renderMovieItem(movie: CachedMovies.Movie): String {
         return """
             <li class="movie-list-item">
-                ${if (selectable) """<input type="checkbox" class="movie-checkbox" name="selected[]" value="${movie.mediaEntry.id?.escapeHTML()}">""" else ""}
+                ${if (selectable) """<input type="checkbox" class="movie-checkbox" name="selected[]" value="${movie.mediaEntry.id?.escapeHTML()}" onchange="selectedChanged()">""" else ""}
                 <div class="movie-item bookmark-container">
                     <span class="movie-poster">
                         <span class="bookmark-icon ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)"></span>
@@ -144,6 +144,18 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
                  console.error("Bookmark error:", error);
             });
         }
+        
+        $${if (selectable) """
+            function selectedChanged() {
+                const disabled = document.querySelectorAll(".movie-checkbox:checked").length <= 1;
+                
+                document.querySelectorAll(".roulette-button").forEach(button => {
+                    button.disabled = disabled;
+                });
+            }
+            
+            selectedChanged();
+        """.trimIndent() else ""}
         </script>
     """.trimIndent()
 
@@ -190,14 +202,14 @@ suspend inline fun BookmarkPage(): String {
         "<p>No bookmarked movies found</p>"
     } else """
         <form method="post" action="/roulette">
-            <button type="submit" class="roulette-button">Roulette</button>
+            <button type="submit" class="roulette-button" disabled>Roulette</button>
             ${MovieList(bookmarkedMovies, true)}
         </form>
     """.trimIndent()
 }
 
-suspend inline fun RoulettePage(selectedMovies1: List<CachedMovies.Movie>): String {
-    return ""
+suspend inline fun RoulettePage(selectedMovies: List<CachedMovies.Movie>): String {
+    return selectedMovies.joinToString { it.mediaEntry.content?.title ?: "null" }
 }
 
 suspend inline fun HomePage(): String = SearchBar(null) + BookmarkPage()
@@ -251,8 +263,8 @@ fun Route.miscRoutes() {
     post("/roulette") {
         val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
 
-        if (selectedMovies.isEmpty()) {
-            call.respond(HttpStatusCode.BadRequest, "No movies selected for roulette")
+        if (selectedMovies.isEmpty() || selectedMovies.size < 2) {
+            call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")
             return@post
         }
 
