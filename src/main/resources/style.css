@@ -178,6 +178,15 @@ h1 {
     cursor: not-allowed;
 }
 
+.roulette-weight {
+    height: fit-content;
+    width: 4em;
+    align-self: center;
+    padding: 0.3em 0.7em;
+    margin: 0.3em 0.7em;
+    border-radius: 8px;
+}
+
 /* SEARCH BAR*/
 
 .search-bar {

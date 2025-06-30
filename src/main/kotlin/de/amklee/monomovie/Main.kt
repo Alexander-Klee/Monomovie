@@ -217,7 +217,7 @@ suspend inline fun RoulettePage(movies: List<CachedMovies.Movie>): String {
             <ul class="movie-list">
                 ${movies.joinToString("\n") { movie -> MovieItem(
                     movie,
-                    prefix = """<input type="number" name="${movie.mediaEntry.id?.escapeHTML()}" min="1" value = "1">"""
+                    prefix = """<input type="number" class="roulette-weight" name="${movie.mediaEntry.id?.escapeHTML()}" min="1" value = "1">"""
                 ) }}
             </ul>
             <button type="submit" class="roulette-button">Start Roulette</button>
