@@ -227,6 +227,7 @@ suspend inline fun RoulettePage(movies: List<CachedMovies.Movie>): String {
 
 suspend inline fun HomePage(): String = SearchBar(null) + BookmarkPage()
 
+val wheelOfNames = WheelOfNames(System.getenv("WHEEL_OF_NAMES_API_KEY") ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
 fun Route.miscRoutes() {
     get("/") {
         call.respondText(
@@ -300,15 +301,14 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        val randomMovie = selectedMovies.flatMap { (movie, weight) -> List(weight) { movie } }.random()
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = htmlTemplate(
-                title = "Roulette Result",
-                body = MovieItem(randomMovie),
-                nav = NavBar()
-            )
-        )
+        call.respondRedirect(
+            wheelOfNames.createWheel(
+                selectedMovies.flatMap { (movie, weight) ->
+                    List(weight) {
+                        WheelOfNames.Entry(movie.mediaEntry.content?.title ?: "null")
+                    }
+                }
+            ))
     }
 }
 

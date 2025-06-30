@@ -11,6 +11,7 @@ object CachedMovies {
     data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
 
     private val cache = mutableMapOf<String, Movie>()
+    private val justWatch = JustWatch(country = "DE", language = "en")
 
     private val bookmarksFile = Path("bookmarks.json")
     private var bookmarks: MutableSet<String> = loadBookmarks()
@@ -36,8 +37,7 @@ object CachedMovies {
     suspend fun get(id: String): Movie? {
         // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
         return cache[id] ?: run {
-            val jw = JustWatch(country = "DE", language = "en")
-            val details = jw.details(id)
+            val details = justWatch.details(id)
             if (details != null) {
                 val movie = Movie(mediaEntry = details, isBookmarked = id in bookmarks, cacheDate = System.currentTimeMillis())
                 cache[id] = movie
@@ -60,8 +60,7 @@ object CachedMovies {
     }
 
     suspend fun search(title: String, numResults: Int = 4): List<Movie> {
-        val jw = JustWatch(country = "DE", language = "en")
-        val searchResults = jw.search(title = title, numResults)
+        val searchResults = justWatch.search(title = title, numResults)
         return searchResults.map { mediaEntry ->
             val isBookmarked = cache[mediaEntry.id]?.isBookmarked ?: false
 
