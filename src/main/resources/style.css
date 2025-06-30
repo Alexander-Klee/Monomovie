@@ -269,3 +269,82 @@ main {
     flex: 1;
     min-width: 0;
 }
+
+/* For Phones*/
+.menu-button {
+    display: none;
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: #ddd;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    z-index: 200;
+    padding: 0.5em;
+    cursor: pointer;
+}
+.menu-button svg {
+    width: 23px;
+    height: 23px;
+    display: block;
+    padding: 1px;
+}
+
+.menu-open .menu-button {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    nav {
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+    nav.nav-visible, nav.nav-visible * {
+        visibility: visible !important;
+        pointer-events: auto !important;
+        background: #f4f4f4;
+    }
+
+    .menu-button {
+        display: block;
+    }
+    main {
+        margin-left: 0;
+        margin-top: 0;
+        padding: 1rem 0.5rem;
+        max-width: 100%;
+    }
+    .movie-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .movie-poster {
+        width: 100%;
+        justify-content: center;
+    }
+    .movie-details {
+        margin-top: 0.5rem;
+    }
+    .movie-offers {
+        max-width: 100%;
+        align-self: center;
+    }
+    .offer-list {
+        justify-content: center;
+    }
+    h1 {
+        font-size: 1.2rem;
+    }
+    .movie-title {
+        font-size: 1rem;
+    }
+    .movie-short-description {
+        font-size: 0.85rem;
+    }
+    .search-bar form {
+        max-width: 100%;
+        padding: 0 0.5rem;
+    }
+}
