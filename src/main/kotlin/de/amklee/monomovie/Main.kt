@@ -50,11 +50,11 @@ fun htmlTemplate(title: String, body: String, nav: String): String {
                     document.body.classList.toggle('menu-open', nav.classList.contains('nav-visible'));
                 }
                 function closeMenu() {
-                        const nav = document.querySelector('nav');
-                        if (nav.classList.contains('nav-visible')) {
-                            nav.classList.remove('nav-visible');
-                            document.body.classList.remove('menu-open');
-                        }
+                    const nav = document.querySelector('nav');
+                    if (nav.classList.contains('nav-visible')) {
+                        nav.classList.remove('nav-visible');
+                        document.body.classList.remove('menu-open');
+                    }
                 }
             </script>
             <nav>
@@ -212,7 +212,7 @@ suspend inline fun BookmarkPage(): String {
     """.trimIndent()
 }
 
-suspend inline fun RoulettePage(movies: List<CachedMovies.Movie>): String {
+fun RoulettePage(movies: List<CachedMovies.Movie>): String {
     return """
         <form action="/roulette/submit" method="post">
             <ul class="movie-list">
