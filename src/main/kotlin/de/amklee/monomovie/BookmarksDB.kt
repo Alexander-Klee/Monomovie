@@ -36,7 +36,7 @@ object BookmarksDB {
         save()
     }
 
-    fun getBookmarks(): List<String> = bookmarksDB.bookmarks.map { it.id }
+    fun getBookmarks(): List<String> = bookmarksDB.bookmarks.sortedByDescending { it.bookmarkedAt }.map { it.id }
 
     private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB2 {
         val string = path.readText().trim()
