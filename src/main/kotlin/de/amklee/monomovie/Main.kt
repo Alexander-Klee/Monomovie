@@ -27,7 +27,7 @@ object Resources {
 
 val bannedTypes = setOf("BUY", "RENT")
 
-fun htmlTemplate(title: String, body: String, nav: String): String {
+inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String {
     return """
         <!DOCTYPE html>
         <html lang="en">
@@ -57,9 +57,7 @@ fun htmlTemplate(title: String, body: String, nav: String): String {
                     }
                 }
             </script>
-            <nav>
-                $nav
-            </nav>
+            ${Nav()}
             <main onclick="closeMenu()">
                 $body
             </main>
@@ -236,7 +234,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Welcome",
                 body = HomePage(),
-                nav = NavBar()
+                Nav = ::NavBar
             )
         )
     }
@@ -249,7 +247,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "$title Search",
                 body = SearchPage(title, numResults),
-                nav = NavBar(),
+                Nav = ::NavBar,
             )
         )
     }
@@ -271,7 +269,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Bookmarked Movies",
                 body = BookmarkPage(),
-                nav = NavBar()
+                Nav = ::NavBar
             )
         )
     }
@@ -288,7 +286,7 @@ fun Route.miscRoutes() {
             text = htmlTemplate(
                 title = "Roulette",
                 body = RoulettePage(selectedMovies),
-                nav = NavBar()
+                Nav = ::NavBar
             )
         )
     }

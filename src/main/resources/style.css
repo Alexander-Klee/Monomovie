@@ -256,7 +256,6 @@ body {
 }
 
 nav {
-    position: fixed;
     top: 0;
     left: 0;
     width: 220px;
@@ -338,12 +337,12 @@ main {
         visibility: visible;
     }
     nav {
-        visibility: hidden;
+        display: none;
         pointer-events: none;
         transition: opacity 0.2s;
     }
     nav.nav-visible, nav.nav-visible * {
-        visibility: visible !important;
+        display: block !important;
         pointer-events: auto !important;
         background: #f4f4f4;
     }
