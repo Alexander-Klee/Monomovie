@@ -89,10 +89,13 @@ fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
         val offerHtml = offers.joinToString("\n") { offer ->
             val iconUrl = "https://images.justwatch.com${offer.`package`?.icon}"
             val altText = offer.`package`?.clearName ?: "Unknown"
+            val link = offer.standardWebURL ?: ""
 
             """
             <li class="offer-item">
-                <img src="${iconUrl.escapeHTML()}" alt="${altText.escapeHTML()}" class="offer-icon"/>
+                <a href="${link.escapeHTML()}">
+                    <img src="${iconUrl.escapeHTML()}" alt="${altText.escapeHTML()}" class="offer-icon"/>
+                </a>
             </li>
             """.trimIndent()
         }
