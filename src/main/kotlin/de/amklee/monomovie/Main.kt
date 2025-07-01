@@ -34,6 +34,7 @@ inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String 
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="color-scheme" content="dark light" />
             <title>$title</title>
             <style>
                 ${Resources.style}
