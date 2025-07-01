@@ -1,11 +1,5 @@
 package de.amklee.monomovie
 
-import kotlinx.serialization.json.Json
-import kotlin.io.path.Path
-import kotlin.io.path.exists
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
-
 
 object CachedMovies {
     data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
@@ -13,33 +7,12 @@ object CachedMovies {
     private val cache = mutableMapOf<String, Movie>()
     private val justWatch = JustWatch(country = "DE", language = "en")
 
-    private val bookmarksFile = Path("bookmarks.json")
-    private var bookmarks: MutableSet<String> = loadBookmarks()
-
-
-    // Load bookmarks from file at startup
-    private fun loadBookmarks(): MutableSet<String> {
-        return if (bookmarksFile.exists()) {
-            try {
-                Json.decodeFromString<Set<String>>(bookmarksFile.readText()).toMutableSet()
-            } catch (_: Exception) {
-                mutableSetOf()
-            }
-        } else {
-            mutableSetOf()
-        }
-    }
-
-    private fun saveBookmarks() {
-        bookmarksFile.writeText(Json.encodeToString(bookmarks))
-    }
-
     suspend fun get(id: String): Movie? {
         // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
         return cache[id] ?: run {
             val details = justWatch.details(id)
             if (details != null) {
-                val movie = Movie(mediaEntry = details, isBookmarked = id in bookmarks, cacheDate = System.currentTimeMillis())
+                val movie = Movie(mediaEntry = details, isBookmarked = id in BookmarksDB, cacheDate = System.currentTimeMillis())
                 cache[id] = movie
                 return@run movie
             }
@@ -51,11 +24,10 @@ object CachedMovies {
         val movie = cache[id] ?: return null
         movie.isBookmarked = !movie.isBookmarked
         if (movie.isBookmarked) {
-            bookmarks.add(id)
+            BookmarksDB.addBookmark(id)
         } else {
-            bookmarks.remove(id)
+            BookmarksDB.removeBookmark(id)
         }
-        saveBookmarks()
         return movie
     }
 
@@ -71,5 +43,5 @@ object CachedMovies {
         }
     }
 
-    suspend fun getBookmarkedMovies(): List<Movie> = bookmarks.mapNotNull { id -> get(id) }
+    suspend fun getBookmarkedMovies(): List<Movie> = BookmarksDB.getBookmarks().mapNotNull { id -> get(id) }
 }

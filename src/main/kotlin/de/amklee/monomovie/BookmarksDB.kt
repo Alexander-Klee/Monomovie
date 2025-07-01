@@ -1,0 +1,85 @@
+package de.amklee.monomovie
+
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.nio.file.Path
+import java.time.Instant
+import kotlin.io.path.Path
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
+
+object BookmarksDB {
+
+    private val json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+    }
+
+    private var bookmarksDB: BookmarksDB2 = openBookmarksDb()
+
+    private fun save() = synchronized(this) {
+        bookmarksDB.save()
+    }
+
+    operator fun contains(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id }
+
+    fun addBookmark(id: String) {
+        bookmarksDB = bookmarksDB
+            .copy(bookmarks = bookmarksDB.bookmarks + listOf(
+                Bookmark(id, Instant.now().epochSecond)
+            ))
+        save()
+    }
+
+    fun removeBookmark(id: String) {
+        bookmarksDB = bookmarksDB.copy(bookmarks = bookmarksDB.bookmarks.filterNot { it.id == id })
+        save()
+    }
+
+    fun getBookmarks(): List<String> = bookmarksDB.bookmarks.map { it.id }
+
+    private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB2 {
+        val string = path.readText().trim()
+        if (string[0] == '[') {
+            // legacy DB1 format
+            val db1 = json.decodeFromString<List<String>>(string)
+            return BookmarksDB1(db1).migrate()
+        }
+        val version = json.decodeFromString<Versioned>(string).version
+        return when (version) {
+            1 -> json.decodeFromString<BookmarksDB1>(string).migrate()
+            2 -> json.decodeFromString<BookmarksDB2>(string).migrate()
+            else -> throw IllegalStateException("Unsupported DB version: $version")
+        }
+    }
+
+    private fun BookmarksDB2.save(path: Path = Path("bookmarks.json")) {
+        val jsonString = json.encodeToString(this)
+        path.writeText(jsonString)
+    }
+
+    @Serializable
+    private open class Versioned(val version: Int)
+
+    @Serializable
+    private data class BookmarksDB1(
+        val bookmarks: List<String>
+    ) : Versioned(1)
+
+    @Serializable
+    private data class BookmarksDB2(
+        val bookmarks: List<Bookmark>
+    ) : Versioned(2)
+
+    @Serializable
+    private data class Bookmark(
+        val id: String,
+        val bookmarkedAt: Long
+    )
+
+    private fun BookmarksDB1.migrate(): BookmarksDB2 {
+        return BookmarksDB2(bookmarks = bookmarks.map { Bookmark(it, Instant.now().epochSecond) }).migrate()
+    }
+
+    private fun BookmarksDB2.migrate(): BookmarksDB2 = this
+}
