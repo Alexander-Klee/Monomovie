@@ -107,20 +107,27 @@ fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
             """.trimIndent()
     }
 
+    val cssClass = if (movie.isBookmarked) "bookmarked" else ""
+    val id = movie.mediaEntry.id?.escapeHTML()
+    val posterUrl = movie.mediaEntry.content?.posterUrl?.escapeHTML()
+    val movieTitle = movie.mediaEntry.content?.title?.escapeHTML()
+    val movieYear = movie.mediaEntry.content?.originalReleaseYear
+    val movieDesc = movie.mediaEntry.content?.shortDescription?.escapeHTML()
+
     // language=HTML
     return """
         <li class="movie-list-item">
             $prefix
             <div class="movie-item bookmark-container">
-                <span class="movie-poster ${if (movie.isBookmarked) "bookmarked" else ""}" onclick="setBookmark('${movie.mediaEntry.id?.escapeHTML()}', this)">
+                <span class="movie-poster $cssClass" onclick="setBookmark('$id', this)">
                     <span class="bookmark-icon"></span>
-                    <img class="movie-poster" src="https://images.justwatch.com${movie.mediaEntry.content?.posterUrl?.escapeHTML()}" alt="${movie.mediaEntry.content?.title?.escapeHTML()}">
+                    <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
                 </span>
                 
                 <div class="movie-details">
-                    <p class="movie-title">${movie.mediaEntry.content?.title?.escapeHTML()}</p>
-                    <p class="movie-year">${movie.mediaEntry.content?.originalReleaseYear}</p>
-                    <p class="movie-short-description" onclick="this.classList.add('expanded')">${movie.mediaEntry.content?.shortDescription?.escapeHTML()}</p>
+                    <p class="movie-title">$movieYear</p>
+                    <p class="movie-year">$movieTitle</p>
+                    <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc/p>
                 </div>
                 
                 <div class="movie-offers">
