@@ -127,7 +127,7 @@ fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
                 <div class="movie-details">
                     <p class="movie-title">$movieYear</p>
                     <p class="movie-year">$movieTitle</p>
-                    <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc/p>
+                    <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc</p>
                 </div>
                 
                 <div class="movie-offers">
