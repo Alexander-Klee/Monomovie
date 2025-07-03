@@ -82,7 +82,7 @@ fun NavBar(): String {
     """.trimIndent()
 }
 
-fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
+fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = { it }, id: String? = null): String {
     fun getOffers(movie: CachedMovies.Movie): String {
         val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
@@ -108,7 +108,7 @@ fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
     }
 
     val cssClass = if (movie.isBookmarked) "bookmarked" else ""
-    val id = movie.mediaEntry.id?.escapeHTML()
+    val movieId = movie.mediaEntry.id?.escapeHTML()
     val posterUrl = movie.mediaEntry.content?.posterUrl?.escapeHTML()
     val movieTitle = movie.mediaEntry.content?.title?.escapeHTML()
     val movieYear = movie.mediaEntry.content?.originalReleaseYear
@@ -117,23 +117,24 @@ fun MovieItem(movie: CachedMovies.Movie, prefix: String = ""): String {
     // language=HTML
     return """
         <li class="movie-list-item">
-            $prefix
-            <div class="movie-item bookmark-container">
-                <span class="movie-poster $cssClass" onclick="setBookmark('$id', this)">
-                    <span class="bookmark-icon"></span>
-                    <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
-                </span>
-                
-                <div class="movie-details">
-                    <p class="movie-title">$movieTitle</p>
-                    <p class="movie-year">$movieYear</p>
-                    <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc</p>
+           ${movieItemWrapper("""
+               <div class="movie-item bookmark-container">
+                    <span class="movie-poster $cssClass" onclick="setBookmark('$movieId', this)">
+                        <span class="bookmark-icon"></span>
+                        <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
+                    </span>
+                    
+                    <div class="movie-details">
+                        <p class="movie-title">$movieTitle</p>
+                        <p class="movie-year">$movieYear</p>
+                        <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc</p>
+                    </div>
+                    
+                    <div class="movie-offers">
+                        ${getOffers(movie)}
+                    </div>
                 </div>
-                
-                <div class="movie-offers">
-                    ${getOffers(movie)}
-                </div>
-            </div>
+           """.trimIndent())}
         </li>
         """.trimIndent()
 }
@@ -173,8 +174,17 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
         <ul class="movie-list">
             ${movies.joinToString("\n") { movie -> MovieItem(
                 movie,
-                prefix = if (selectable) """<input type="checkbox" class="movie-checkbox" name="selected[]" value="${movie.mediaEntry.id?.escapeHTML()}" onchange="selectedChanged()">""" else ""
             ) }}
+                movieItemWrapper = if (!selectable) { it -> it } else { it ->
+                    """
+                        <label for="${movie.mediaEntry.id?.escapeHTML()}">
+                            <input type="checkbox" class="movie-checkbox" name="selected[]"
+                                value="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
+                                onchange="selectedChanged()">
+                            $it
+                        </label>
+                    """.trimIndent()
+                },
         </ul>
     """.trimIndent()
 
@@ -227,7 +237,15 @@ fun RoulettePage(movies: List<CachedMovies.Movie>): String {
             <ul class="movie-list">
                 ${movies.joinToString("\n") { movie -> MovieItem(
                     movie,
-                    prefix = """<input type="number" class="roulette-weight" name="${movie.mediaEntry.id?.escapeHTML()}" min="1" value = "1">"""
+                    movieItemWrapper = { it -> """
+                        <label for="${movie.mediaEntry.id?.escapeHTML()}">
+                            <input type="number" class="roulette-weight"
+                                name="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
+                                min="1" value = "1">
+                            $it
+                        </label>
+                        """.trimIndent()
+                    }
                 ) }}
             </ul>
             <button type="submit" class="roulette-button">Start Roulette</button>
