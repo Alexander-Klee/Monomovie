@@ -119,7 +119,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         <li class="movie-list-item">
            ${movieItemWrapper("""
                <div class="movie-item bookmark-container">
-                    <span class="movie-poster $cssClass" onclick="setBookmark('$movieId', this)">
+                    <span class="movie-poster $cssClass" onclick="setBookmark('$movieId', this, false)" ondblclick="setBookmark('$movieId', this, true)">
                         <span class="bookmark-icon"></span>
                         <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
                     </span>
@@ -143,7 +143,9 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
     @Language("HTML")
     val bookmarkJS = $$"""
         <script>
-        function setBookmark(movieId, el) {
+        function setBookmark(movieId, el, isDoubleClick) {
+            const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
+            if (isSmallScreen !== isDoubleClick) return;
             fetch(`/bookmark/${movieId}`, {
                 method: 'POST',
             })
