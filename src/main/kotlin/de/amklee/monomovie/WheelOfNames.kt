@@ -1,15 +1,13 @@
 package de.amklee.monomovie
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -19,6 +17,7 @@ class WheelOfNames(private val apiKey: String) {
             json(Json {
                 prettyPrint = true
                 ignoreUnknownKeys = true
+                encodeDefaults = true
             })
         }
         defaultRequest {
@@ -28,7 +27,12 @@ class WheelOfNames(private val apiKey: String) {
     }
 
     @Serializable
-    data class Entry(val text: String, val weight: Int)
+    data class Entry(val text: String, val weight: Int) {
+        init {
+            require(text.isNotBlank()) { "Entry text must not be blank" }
+            require(weight >= 0) { "Entry weight must be non-negative" }
+        }
+    }
     @Serializable
     private data class Wheel(
         val shareMode: String,
@@ -38,7 +42,8 @@ class WheelOfNames(private val apiKey: String) {
         data class WheelConfig(
             val title: String,
             val description: String,
-            val entries: List<Entry>
+            val entries: List<Entry>,
+            val isAdvanced: Boolean
         )
     }
     @Serializable
@@ -57,7 +62,8 @@ class WheelOfNames(private val apiKey: String) {
             wheelConfig = Wheel.WheelConfig(
                 title = "My wheel",
                 description = "I created this wheel using the API!",
-                entries = entries
+                entries = entries,
+                isAdvanced = true
             )
         )
         try {
