@@ -176,7 +176,6 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
         <ul class="movie-list">
             ${movies.joinToString("\n") { movie -> MovieItem(
                 movie,
-            ) }}
                 movieItemWrapper = if (!selectable) { it -> it } else { it ->
                     """
                         <label for="${movie.mediaEntry.id?.escapeHTML()}">
@@ -187,6 +186,7 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
                         </label>
                     """.trimIndent()
                 },
+            ) }}
         </ul>
     """.trimIndent()
 
