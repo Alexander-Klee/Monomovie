@@ -139,6 +139,20 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         """.trimIndent()
 }
 
+fun MovieListElements(movies: List<CachedMovies.Movie>, selectable: Boolean): String = movies.joinToString("\n") { movie -> MovieItem(
+        movie,
+        movieItemWrapper = if (!selectable) { it -> it } else { it ->
+            """
+                <label for="${movie.mediaEntry.id?.escapeHTML()}">
+                    <input type="checkbox" class="movie-checkbox" name="selected[]"
+                        value="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
+                        onchange="selectedChanged()">
+                    $it
+                </label>
+            """.trimIndent()
+        },
+    ) }
+
 fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
     @Language("HTML")
     val bookmarkJS = $$"""
@@ -179,19 +193,7 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
 
     val movieList = """
         <ul class="movie-list">
-            ${movies.joinToString("\n") { movie -> MovieItem(
-                movie,
-                movieItemWrapper = if (!selectable) { it -> it } else { it ->
-                    """
-                        <label for="${movie.mediaEntry.id?.escapeHTML()}">
-                            <input type="checkbox" class="movie-checkbox" name="selected[]"
-                                value="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
-                                onchange="selectedChanged()">
-                            $it
-                        </label>
-                    """.trimIndent()
-                },
-            ) }}
+            ${MovieListElements(movies, selectable)}
         </ul>
     """.trimIndent()
 
@@ -213,16 +215,71 @@ fun SearchBar(title: String?): String = """
     </div>"""
 
 suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
-    val searchResult = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
-
-    return SearchBar(title) + if (searchResult.isEmpty()) {
+    val searchResults = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
+    val resultContent = if (searchResults.isEmpty()) {
         "<p>No Search Results</p>"
     } else {
-        $$"""
+        $"""
             <h4>Search results:</h4>
-            $${MovieList(searchResult, false)}
+            ${MovieList(searchResults, false)}
         """.trimIndent()
     }
+    val showMoreResults = """
+          <script>
+            var moreSearchResultsAvailable = true;
+            var numAlreadyDisplayed = $numResults;
+
+            function getMoreMovies() {
+                const currentParams = new URLSearchParams(window.location.search);
+            
+                let numMore = 4;
+                let params = new URLSearchParams({
+                  title: currentParams.get('title') || '',
+                  numAlreadyDisplayed: numAlreadyDisplayed,
+                  numMore: numMore
+                });
+                
+                fetch("/moreSearchResults?" + params.toString())
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error("Failed to fetch more movies");
+                            return;
+                        }
+                        return response.text();
+                    }).then(html => {
+                        if (html.trim() === '') {
+                            moreSearchResultsAvailable = false;
+                            return;
+                        }
+                        
+                        document.querySelector(".movie-list").insertAdjacentHTML( 'beforeend', html );
+                        numAlreadyDisplayed += numMore;
+                    }).catch(error => {
+                        console.error("Error fetching more movies:", error);
+                    });
+            }
+            
+            window.addEventListener("scroll", () => {
+                if (document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight
+                        && moreSearchResultsAvailable) {
+                    getMoreMovies();
+                }
+            });
+          </script>
+    """.trimIndent()
+
+    return SearchBar(title) + showMoreResults + resultContent
+}
+
+suspend inline fun MoreSearchResults(title: String, numAlreadyDisplayResults: Int, numMoreResults: Int): String {
+    val searchResults = CachedMovies
+                            .search(title, numAlreadyDisplayResults + numMoreResults)
+                            .drop(numAlreadyDisplayResults)
+    println("More search results for '$title': ${searchResults.size} results, requested: $numMoreResults, already displayed: $numAlreadyDisplayResults")
+    if (searchResults.isEmpty()) {
+        return ""
+    }
+    return MovieListElements(searchResults, false)
 }
 
 suspend inline fun BookmarkPage(): String {
@@ -248,7 +305,7 @@ fun RoulettePage(movies: List<CachedMovies.Movie>): String {
                         <label for="${movie.mediaEntry.id?.escapeHTML()}">
                             <input type="number" class="roulette-weight"
                                 name="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
-                                min="1" value = "1">
+                                min="1" value="1">
                             $it
                         </label>
                         """.trimIndent()
@@ -284,6 +341,25 @@ fun Route.miscRoutes() {
                 title = "$title Search",
                 body = SearchPage(title, numResults),
                 Nav = ::NavBar,
+            )
+        )
+    }
+    get("/moreSearchResults") {
+        val title = call.request.queryParameters["title"]?.escapeHTML()
+        val numAlreadyDisplayResults = call.request.queryParameters["numAlreadyDisplayed"]?.toIntOrNull() ?: 0
+        val numMoreResults = call.request.queryParameters["numMore"]?.toIntOrNull() ?: 4
+
+        if (title.isNullOrBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Missing title parameter")
+            return@get
+        }
+
+        call.respondText(
+            contentType = ContentType.parse("text/html"),
+            text = MoreSearchResults(
+                title = title,
+                numAlreadyDisplayResults = numAlreadyDisplayResults,
+                numMoreResults = numMoreResults
             )
         )
     }
