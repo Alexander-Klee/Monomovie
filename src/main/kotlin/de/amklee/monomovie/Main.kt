@@ -119,7 +119,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         <li class="movie-list-item">
            ${movieItemWrapper("""
                <div class="movie-item bookmark-container">
-                    <span class="movie-poster $cssClass" onclick="setBookmark('$movieId', this, false)" ondblclick="setBookmark('$movieId', this, true)">
+                    <span class="movie-poster $cssClass" onclick="return setBookmark('$movieId', this, false)" ondblclick="setBookmark('$movieId', this, true)">
                         <span class="bookmark-icon"></span>
                         <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
                     </span>
@@ -146,6 +146,10 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
         function setBookmark(movieId, el, isDoubleClick) {
             const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
             if (isSmallScreen !== isDoubleClick) return;
+            document.querySelectorAll("#" + movieId).forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
             fetch(`/bookmark/${movieId}`, {
                 method: 'POST',
             })
@@ -156,6 +160,7 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
             .catch(error => {
                  console.error("Bookmark error:", error);
             });
+            return false; // prevent default action
         }
         
         $${if (selectable) """
