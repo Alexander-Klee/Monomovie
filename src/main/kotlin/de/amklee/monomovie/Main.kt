@@ -117,6 +117,9 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
     val movieYear = movie.mediaEntry.content?.originalReleaseYear
     val movieDesc = movie.mediaEntry.content?.shortDescription?.escapeHTML()
 
+    val tomatoRating = movie.mediaEntry.content?.scoring?.tomatoMeter
+    val imdbRating = movie.mediaEntry.content?.scoring?.imdbScore
+
     // language=HTML
     return """
         <li class="movie-list-item">
@@ -128,7 +131,17 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
                     </span>
                     
                     <div class="movie-details">
-                        <p class="movie-title">$movieTitle</p>
+                        <div class="movie-title-bar">
+                           <p class="movie-title">$movieTitle</p>
+                           <div class="movie-rating-container">
+                               <div class="movie-rating">
+                                   ${tomatoRating?.let { "<i class=\"tomato-icon rating-logo\"></i> <p>$it%</p>" } ?: ""} 
+                               </div>
+                               <div class="movie-rating">
+                                   ${imdbRating?.let { "<i class=\"imdb-icon rating-logo\"></i> <p>$it</p>" } ?: ""}
+                               </div>
+                           </div>
+                        </div>
                         <p class="movie-year">$movieYear</p>
                         <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc</p>
                     </div>
@@ -166,14 +179,13 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
             document.querySelectorAll("#" + movieId).forEach(checkbox => {
                 checkbox.checked = false;
             });
-           
-            
+        
             if (el.classList.contains('bookmarked')) {
                 deleteBookmark(movieId, el);
             } else {
                 setBookmark(movieId, el);
             }
-
+        
             return false; // prevent default action
         }
         
@@ -320,8 +332,8 @@ suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearch
     }
 
     val mediaEntries = searchResults.edges.map {
-        println("Found entry: ${it.node.content?.title} (${it.cursor})")
-        CachedMovies.Movie(it.node, false, System.currentTimeMillis()) }
+        CachedMovies.Movie(it.node, false, System.currentTimeMillis())
+    }
     return MoreSearchResultsResponse(searchResults.pageInfo.endCursor, MovieListElements(mediaEntries, false), searchResults.pageInfo.hasNextPage)
 }
 
