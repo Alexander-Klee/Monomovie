@@ -113,26 +113,48 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
     fun getRatings(movie: CachedMovies.Movie): String {
         fun formatScore(score: Float): String = String.format("%.1f", score)
 
-        val tomatoRating = if (movie.mediaEntry.content?.scoring?.tomatoMeter == null) "" else """
+        fun linkWrapper(link: String?, content: String?): String {
+            if (content.isNullOrBlank()) return ""
+            if (link.isNullOrBlank()) return content
+            return """
+                <a href="$link" target="_blank" class="no-link-style" rel="noopener noreferrer">
+                    $content
+                </a>
+                """.trimIndent()
+        }
+
+        val tomatoRating = movie.mediaEntry.content?.scoring?.tomatoMeter?.let { score ->
+            """
             <div class="movie-rating">
                 <i class="tomato-icon rating-logo"></i>
-                <p>${movie.mediaEntry.content.scoring.tomatoMeter}%</p>
+                <p>$score%</p>
             </div>
-            """.trimIndent()
-        val imdbRating = if (movie.mediaEntry.content?.scoring?.imdbScore == null) "" else """
+            """.trimIndent() } ?: ""
+
+        val imdbLink = movie.mediaEntry.content?.externalIds?.imdbId?.let { id -> "https://www.imdb.com/title/$id" }
+        val imdbRating = movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
+            """
             <div class="movie-rating">
                 <i class="imdb-icon rating-logo"></i>
-                <p>${formatScore(movie.mediaEntry.content.scoring.imdbScore)}</p>
+                <p>${formatScore(score)}</p>
             </div>
-            """.trimIndent()
-        val tmdbRating = if (movie.mediaEntry.content?.scoring?.tmdbScore == null) "" else """
+            """.trimIndent() } ?: ""
+
+        val tmdbLinkType = when (movie.mediaEntry.objectType?.lowercase()) {
+            "movie" -> "movie"
+            "show" -> "tv"
+            else -> "movie" // Default
+        }
+        val tmdbLink = movie.mediaEntry.content?.externalIds?.tmdbId?.let { id -> "https://www.themoviedb.org/$tmdbLinkType/$id" }
+        val tmdbRating = movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
+            """
             <div class="movie-rating">
                 <i class="tmdb-icon rating-logo"></i>
-                <p>${formatScore(movie.mediaEntry.content.scoring.tmdbScore)}</p>
+                <p>${formatScore(score)}</p>
             </div>
-            """.trimIndent()
+            """.trimIndent() } ?: ""
 
-        return tomatoRating + imdbRating + tmdbRating
+        return tomatoRating + linkWrapper(imdbLink, imdbRating) + linkWrapper(tmdbLink, tmdbRating)
     }
 
     val cssClass = if (movie.isBookmarked) "bookmarked" else ""
@@ -141,7 +163,6 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
     val movieTitle = movie.mediaEntry.content?.title?.escapeHTML()
     val movieYear = movie.mediaEntry.content?.originalReleaseYear
     val movieDesc = movie.mediaEntry.content?.shortDescription?.escapeHTML()
-
 
     // language=HTML
     return """

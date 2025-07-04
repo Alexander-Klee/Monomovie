@@ -164,6 +164,12 @@ h1 {
 }
 .movie-rating p {
     margin: 0 0.5em 0 0.2em;
+    color: var(--text-color-light);
+    text-decoration: none;
+}
+
+.no-link-style {
+    text-decoration: none;
 }
 
 .rating-logo {
