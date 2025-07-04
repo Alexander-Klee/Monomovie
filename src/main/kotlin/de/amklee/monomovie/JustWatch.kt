@@ -47,7 +47,7 @@ class JustWatch(
         bestOnly: Boolean = true,
         cursor: String? = null
     ): SearchTitles {
-        // TODO: somehow the pagination returns duplicate entries, with diffrent cursors
+        // Be aware that the JustWatch API returns duplicate titles when searching.
         val response: SearchResponse = client.post {
             setBody(SearchRequestBody(
                 operationName = "GetSearchTitles",
