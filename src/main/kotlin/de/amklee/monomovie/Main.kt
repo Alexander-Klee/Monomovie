@@ -110,6 +110,31 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
             """.trimIndent()
     }
 
+    fun getRatings(movie: CachedMovies.Movie): String {
+        fun formatScore(score: Float): String = String.format("%.1f", score)
+
+        val tomatoRating = if (movie.mediaEntry.content?.scoring?.tomatoMeter == null) "" else """
+            <div class="movie-rating">
+                <i class="tomato-icon rating-logo"></i>
+                <p>${movie.mediaEntry.content.scoring.tomatoMeter}%</p>
+            </div>
+            """.trimIndent()
+        val imdbRating = if (movie.mediaEntry.content?.scoring?.imdbScore == null) "" else """
+            <div class="movie-rating">
+                <i class="imdb-icon rating-logo"></i>
+                <p>${formatScore(movie.mediaEntry.content.scoring.imdbScore)}</p>
+            </div>
+            """.trimIndent()
+        val tmdbRating = if (movie.mediaEntry.content?.scoring?.tmdbScore == null) "" else """
+            <div class="movie-rating">
+                <i class="tmdb-icon rating-logo"></i>
+                <p>${formatScore(movie.mediaEntry.content.scoring.tmdbScore)}</p>
+            </div>
+            """.trimIndent()
+
+        return tomatoRating + imdbRating + tmdbRating
+    }
+
     val cssClass = if (movie.isBookmarked) "bookmarked" else ""
     val movieId = movie.mediaEntry.id?.escapeHTML()
     val posterUrl = movie.mediaEntry.content?.posterUrl?.escapeHTML()
@@ -117,8 +142,6 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
     val movieYear = movie.mediaEntry.content?.originalReleaseYear
     val movieDesc = movie.mediaEntry.content?.shortDescription?.escapeHTML()
 
-    val tomatoRating = movie.mediaEntry.content?.scoring?.tomatoMeter
-    val imdbRating = movie.mediaEntry.content?.scoring?.imdbScore
 
     // language=HTML
     return """
@@ -134,12 +157,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
                         <div class="movie-title-bar">
                            <p class="movie-title">$movieTitle</p>
                            <div class="movie-rating-container">
-                               <div class="movie-rating">
-                                   ${tomatoRating?.let { "<i class=\"tomato-icon rating-logo\"></i> <p>$it%</p>" } ?: ""} 
-                               </div>
-                               <div class="movie-rating">
-                                   ${imdbRating?.let { "<i class=\"imdb-icon rating-logo\"></i> <p>$it</p>" } ?: ""}
-                               </div>
+                               ${getRatings(movie)}
                            </div>
                         </div>
                         <p class="movie-year">$movieYear</p>
