@@ -44,26 +44,31 @@ class JustWatch(
     suspend fun search(
         title: String,
         count: Int = 4,
-        bestOnly: Boolean = true
-    ): List<MediaEntry> {
+        bestOnly: Boolean = true,
+        cursor: String? = null
+    ): SearchTitles {
+        // TODO: somehow the pagination returns duplicate entries, with diffrent cursors
         val response: SearchResponse = client.post {
             setBody(SearchRequestBody(
                 operationName = "GetSearchTitles",
                 variables = SearchRequestBody.SearchVariables(
-                    first = count,
-                    searchTitlesFilter = mapOf("searchQuery" to title),
-                    language = language,
                     country = country.uppercase(),
+                    language = language,
+                    first = count,
+                    searchTitlesSortBy = "POPULAR",
+                    searchAfterCursor = cursor,
+                    searchTitlesFilter = mapOf("searchQuery" to title),
                     formatPoster = "JPG",
                     formatOfferIcon = "PNG",
                     profile = "S718",
                     backdropProfile = "S1920",
-                    filter = mapOf("bestOnly" to bestOnly)
+                    filter = mapOf("bestOnly" to bestOnly),
+                    location = "SearchPage"
                 ),
                 query = SEARCH_QUERY
             ))
         }.body()
-        return response.data.popularTitles.edges.map { it.node }
+        return response.data.searchTitles
     }
 
     @Serializable
@@ -74,15 +79,18 @@ class JustWatch(
     ) {
         @Serializable
         data class SearchVariables(
-            val first: Int,
-            val searchTitlesFilter: Map<String, String>,
-            val language: String,
             val country: String,
+            val language: String,
+            val first: Int,
+            val searchAfterCursor: String? = null,
+            val searchTitlesSortBy: String,
+            val searchTitlesFilter: Map<String, String>,
             val formatPoster: String,
             val formatOfferIcon: String,
             val profile: String,
             val backdropProfile: String,
-            val filter: Map<String, Boolean>
+            val filter: Map<String, Boolean>,
+            val location: String
         )
     }
 
@@ -180,24 +188,30 @@ class JustWatch(
     companion object {
         private val SEARCH_QUERY = $$"""
             query GetSearchTitles(
-              $searchTitlesFilter: TitleFilter!,
-                $country: Country!,
+              $country: Country!,
               $language: Language!,
               $first: Int!,
+              $searchAfterCursor: String,
+              $searchTitlesFilter: TitleFilter!,
+              $searchTitlesSortBy: PopularTitlesSorting!,
               $formatPoster: ImageFormat,
               $formatOfferIcon: ImageFormat,
               $profile: PosterProfile,
               $backdropProfile: BackdropProfile,
               $filter: OfferFilter!,
+              $location: String!
             ) {
-              popularTitles(
-                country: $country
-                filter: $searchTitlesFilter
-                first: $first
-                sortBy: POPULAR
-                sortRandomSeed: 0
+              searchTitles(
+                after: $searchAfterCursor,
+                country: $country,
+                filter: $searchTitlesFilter,
+                first: $first,
+                sortBy: $searchTitlesSortBy,
+                sortRandomSeed: 0,
+                source: $location
               ) {
                 edges {
+                  cursor
                   node {
                     id
                     objectId
@@ -238,6 +252,10 @@ class JustWatch(
                       audioLanguages
                     }
                   }
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
                 }
               }
             }
@@ -341,11 +359,22 @@ class JustWatch(
 @Serializable
 data class SearchResponse(val data: SearchData)
 @Serializable
-data class SearchData(val popularTitles: PopularTitles)
+data class SearchData(val searchTitles: SearchTitles)
 @Serializable
-data class PopularTitles(val edges: List<Edge>)
+data class SearchTitles(
+    val edges: List<Edge>,
+    val pageInfo: PageInfo
+)
 @Serializable
-data class Edge(val node: MediaEntry)
+data class PageInfo(
+    val endCursor: String,
+    val hasNextPage: Boolean
+)
+@Serializable
+data class Edge(
+    val cursor: String,
+    val node: MediaEntry,
+)
 
 @Serializable
 data class MediaEntry(

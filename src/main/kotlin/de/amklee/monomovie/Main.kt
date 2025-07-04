@@ -1,7 +1,9 @@
 package de.amklee.monomovie
 
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -14,6 +16,7 @@ import org.intellij.lang.annotations.Language
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
 import kotlin.io.path.exists
+import kotlinx.serialization.Serializable
 import kotlin.io.path.readText
 
 object Resources {
@@ -215,53 +218,63 @@ fun SearchBar(title: String?): String = """
     </div>"""
 
 suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
-    val searchResults = if (title.isNullOrBlank()) emptyList() else CachedMovies.search(title, numResults)
-    val resultContent = if (searchResults.isEmpty()) {
-        "<p>No Search Results</p>"
+    if (title.isNullOrBlank()) {
+        return SearchBar("") + "<p>Please enter a title to search for.</p>"
+    }
+    val searchResults = CachedMovies.cursorSearch(title = title, cursor = null, numResults = numResults)
+    val mediaEntries = searchResults.edges.map {
+        CachedMovies.Movie(it.node, false, System.currentTimeMillis())
+    }
+
+    val resultContent = if (searchResults.edges.isEmpty()) {
+        return SearchBar(title) + "<p>No Search Results.</p>"
     } else {
         $"""
             <h4>Search results:</h4>
-            ${MovieList(searchResults, false)}
+            ${MovieList(mediaEntries, false)}
         """.trimIndent()
     }
-    val showMoreResults = """
+    val showMoreResults = $$"""
           <script>
-            var moreSearchResultsAvailable = true;
-            var numAlreadyDisplayed = $numResults;
+            let hasNextPage = true;
+            let lastCursor = "$${searchResults.pageInfo.endCursor}";
+            let isLoading = false;
 
             function getMoreMovies() {
-                const currentParams = new URLSearchParams(window.location.search);
-            
-                let numMore = 4;
-                let params = new URLSearchParams({
-                  title: currentParams.get('title') || '',
-                  numAlreadyDisplayed: numAlreadyDisplayed,
-                  numMore: numMore
-                });
+                if (isLoading) return;
+                isLoading = true;
                 
-                fetch("/moreSearchResults?" + params.toString())
-                    .then(response => {
-                        if (!response.ok) {
-                            console.error("Failed to fetch more movies");
-                            return;
-                        }
-                        return response.text();
-                    }).then(html => {
-                        if (html.trim() === '') {
-                            moreSearchResultsAvailable = false;
-                            return;
-                        }
-                        
-                        document.querySelector(".movie-list").insertAdjacentHTML( 'beforeend', html );
-                        numAlreadyDisplayed += numMore;
-                    }).catch(error => {
-                        console.error("Error fetching more movies:", error);
-                    });
+                const currentParams = new URLSearchParams(window.location.search);
+                let currentTitle = currentParams.get('title');
+                
+                let formData = new URLSearchParams();
+                if (currentTitle) formData.append("title", currentTitle);
+                if (lastCursor) formData.append("cursor", lastCursor);
+                
+                fetch("/moreSearchResults?" + formData.toString(), {
+                    method: "POST"
+                })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                  }
+                  return response.json();
+                }).then(data => {
+                  document.querySelector(".movie-list").insertAdjacentHTML( 'beforeend', data.html );
+                  hasNextPage = data.hasNextPage;
+                  lastCursor = data.cursor;
+                })
+                .catch(error => {
+                  console.error("Fetch error:", error);
+                })
+                .finally(() => {
+                    isLoading = false;
+                });
             }
             
             window.addEventListener("scroll", () => {
                 if (document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight
-                        && moreSearchResultsAvailable) {
+                        && hasNextPage) {
                     getMoreMovies();
                 }
             });
@@ -271,15 +284,24 @@ suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
     return SearchBar(title) + showMoreResults + resultContent
 }
 
-suspend inline fun MoreSearchResults(title: String, numAlreadyDisplayResults: Int, numMoreResults: Int): String {
-    val searchResults = CachedMovies
-                            .search(title, numAlreadyDisplayResults + numMoreResults)
-                            .drop(numAlreadyDisplayResults)
-    println("More search results for '$title': ${searchResults.size} results, requested: $numMoreResults, already displayed: $numAlreadyDisplayResults")
-    if (searchResults.isEmpty()) {
-        return ""
+@Serializable
+data class MoreSearchResultsResponse(
+    val cursor: String,
+    val html: String,
+    val hasNextPage: Boolean
+)
+
+suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearchResultsResponse {
+    val searchResults = CachedMovies.cursorSearch(title, cursor)
+
+    if (searchResults.edges.isEmpty()) {
+        return MoreSearchResultsResponse("", "", false)
     }
-    return MovieListElements(searchResults, false)
+
+    val mediaEntries = searchResults.edges.map {
+        println("Found entry: ${it.node.content?.title} (${it.cursor})")
+        CachedMovies.Movie(it.node, false, System.currentTimeMillis()) }
+    return MoreSearchResultsResponse(searchResults.pageInfo.endCursor, MovieListElements(mediaEntries, false), searchResults.pageInfo.hasNextPage)
 }
 
 suspend inline fun BookmarkPage(): String {
@@ -344,24 +366,16 @@ fun Route.miscRoutes() {
             )
         )
     }
-    get("/moreSearchResults") {
+    post("/moreSearchResults") {
         val title = call.request.queryParameters["title"]?.escapeHTML()
-        val numAlreadyDisplayResults = call.request.queryParameters["numAlreadyDisplayed"]?.toIntOrNull() ?: 0
-        val numMoreResults = call.request.queryParameters["numMore"]?.toIntOrNull() ?: 4
+        val cursor = call.request.queryParameters["cursor"]?.escapeHTML()
 
         if (title.isNullOrBlank()) {
             call.respond(HttpStatusCode.BadRequest, "Missing title parameter")
-            return@get
+            return@post
         }
 
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = MoreSearchResults(
-                title = title,
-                numAlreadyDisplayResults = numAlreadyDisplayResults,
-                numMoreResults = numMoreResults
-            )
-        )
+        call.respond(MoreSearchResults(title, cursor))
     }
     post("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]
@@ -423,6 +437,9 @@ fun Route.miscRoutes() {
 
 fun hostServer() {
     embeddedServer(Netty, port = 8080) {
+        install(ContentNegotiation) {
+            json()
+        }
         routing {
             miscRoutes()
         }

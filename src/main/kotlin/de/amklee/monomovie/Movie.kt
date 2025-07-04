@@ -33,7 +33,9 @@ object CachedMovies {
 
     suspend fun search(title: String, numResults: Int = 4): List<Movie> {
         val searchResults = justWatch.search(title = title, numResults)
+        val searchResults = justWatch.search(title = title, numResults).edges.map { it.node }
         return searchResults.map { mediaEntry ->
+            // populate cache
             val isBookmarked = cache[mediaEntry.id]?.isBookmarked ?: false
 
             val movie = Movie(mediaEntry = mediaEntry, isBookmarked = isBookmarked, cacheDate = System.currentTimeMillis())
@@ -42,6 +44,9 @@ object CachedMovies {
             movie
         }
     }
+
+    suspend fun cursorSearch(title: String, cursor: String? = null, numResults: Int = 4): SearchTitles
+        = justWatch.search(title = title, cursor = cursor, count = numResults)
 
     suspend fun getBookmarkedMovies(): List<Movie> = BookmarksDB.getBookmarks().mapNotNull { id -> get(id) }
 }
