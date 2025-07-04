@@ -24,6 +24,10 @@ object BookmarksDB {
     operator fun contains(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id }
 
     fun addBookmark(id: String) {
+        if (contains(id)) {
+            markBookmark(id)
+            return
+        }
         bookmarksDB = bookmarksDB
             .copy(bookmarks = bookmarksDB.bookmarks + listOf(
                 Bookmark3(id, Instant.now().epochSecond, true)
@@ -31,12 +35,37 @@ object BookmarksDB {
         save()
     }
 
+    fun markBookmark(id: String) {
+        bookmarksDB = bookmarksDB.copy(
+            bookmarks = bookmarksDB.bookmarks
+                .map {
+                    if (it.id == id) it.copy(isBookmarked = true)
+                    else it
+                }
+        )
+        save()
+    }
+
     fun removeBookmark(id: String) {
+        bookmarksDB = bookmarksDB.copy(
+            bookmarks = bookmarksDB.bookmarks
+                .map {
+                    if (it.id == id) it.copy(isBookmarked = false)
+                    else it
+                }
+        )
+        save()
+    }
+
+    fun deleteBookmark(id: String) {
         bookmarksDB = bookmarksDB.copy(bookmarks = bookmarksDB.bookmarks.filterNot { it.id == id })
         save()
     }
 
-    fun getBookmarks(): List<String> = bookmarksDB.bookmarks.sortedByDescending { it.bookmarkedAt }.map { it.id }
+    fun getBookmarks(): List<String> = bookmarksDB.bookmarks
+        .filter { it.isBookmarked }
+        .sortedByDescending { it.bookmarkedAt }
+        .map { it.id }
 
     private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB3 {
         val string = path.readText().trim()
@@ -49,6 +78,7 @@ object BookmarksDB {
         return when (version) {
             1 -> json.decodeFromString<BookmarksDB1>(string).migrate()
             2 -> json.decodeFromString<BookmarksDB2>(string).migrate()
+            3 -> json.decodeFromString<BookmarksDB3>(string).migrate()
             else -> throw IllegalStateException("Unsupported DB version: $version")
         }
     }
@@ -74,13 +104,13 @@ object BookmarksDB {
     @Serializable
     private data class BookmarksDB3(
         val bookmarks: List<Bookmark3>
-    ) : Versioned(2)
+    ) : Versioned(3)
 
     @Serializable
     private data class Bookmark3(
         val id: String,
         val bookmarkedAt: Long,
-        val enabled: Boolean
+        val isBookmarked: Boolean
     )
     @Serializable
     private data class Bookmark2(
