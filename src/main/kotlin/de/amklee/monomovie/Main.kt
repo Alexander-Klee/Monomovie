@@ -221,7 +221,7 @@ suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
     if (title.isNullOrBlank()) {
         return SearchBar("") + "<p>Please enter a title to search for.</p>"
     }
-    val searchResults = CachedMovies.cursorSearch(title = title, cursor = null, numResults = numResults)
+    val searchResults = CachedMovies.search(title = title, cursor = null, numResults = numResults)
     val mediaEntries = searchResults.edges.map {
         CachedMovies.Movie(it.node, false, System.currentTimeMillis())
     }
@@ -292,7 +292,7 @@ data class MoreSearchResultsResponse(
 )
 
 suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearchResultsResponse {
-    val searchResults = CachedMovies.cursorSearch(title, cursor)
+    val searchResults = CachedMovies.search(title, cursor)
 
     if (searchResults.edges.isEmpty()) {
         return MoreSearchResultsResponse("", "", false)
