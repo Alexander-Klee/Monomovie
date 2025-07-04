@@ -15,7 +15,7 @@ object BookmarksDB {
         ignoreUnknownKeys = true
     }
 
-    private var bookmarksDB: BookmarksDB2 = openBookmarksDb()
+    private var bookmarksDB: BookmarksDB3 = openBookmarksDb()
 
     private fun save() = synchronized(this) {
         bookmarksDB.save()
@@ -26,7 +26,7 @@ object BookmarksDB {
     fun addBookmark(id: String) {
         bookmarksDB = bookmarksDB
             .copy(bookmarks = bookmarksDB.bookmarks + listOf(
-                Bookmark(id, Instant.now().epochSecond)
+                Bookmark3(id, Instant.now().epochSecond, true)
             ))
         save()
     }
@@ -38,7 +38,7 @@ object BookmarksDB {
 
     fun getBookmarks(): List<String> = bookmarksDB.bookmarks.sortedByDescending { it.bookmarkedAt }.map { it.id }
 
-    private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB2 {
+    private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB3 {
         val string = path.readText().trim()
         if (string[0] == '[') {
             // legacy DB1 format
@@ -53,7 +53,7 @@ object BookmarksDB {
         }
     }
 
-    private fun BookmarksDB2.save(path: Path = Path("bookmarks.json")) {
+    private fun BookmarksDB3.save(path: Path = Path("bookmarks.json")) {
         val jsonString = json.encodeToString(this)
         path.writeText(jsonString)
     }
@@ -68,18 +68,31 @@ object BookmarksDB {
 
     @Serializable
     private data class BookmarksDB2(
-        val bookmarks: List<Bookmark>
+        val bookmarks: List<Bookmark2>
     ) : Versioned(2)
 
     @Serializable
-    private data class Bookmark(
+    private data class BookmarksDB3(
+        val bookmarks: List<Bookmark3>
+    ) : Versioned(2)
+
+    @Serializable
+    private data class Bookmark3(
+        val id: String,
+        val bookmarkedAt: Long,
+        val enabled: Boolean
+    )
+    @Serializable
+    private data class Bookmark2(
         val id: String,
         val bookmarkedAt: Long
     )
 
-    private fun BookmarksDB1.migrate(): BookmarksDB2 {
-        return BookmarksDB2(bookmarks = bookmarks.map { Bookmark(it, Instant.now().epochSecond) }).migrate()
+    private fun BookmarksDB1.migrate(): BookmarksDB3 {
+        return BookmarksDB2(bookmarks = bookmarks.map { Bookmark2(it, Instant.now().epochSecond) }).migrate()
     }
-
-    private fun BookmarksDB2.migrate(): BookmarksDB2 = this
+    private fun BookmarksDB2.migrate(): BookmarksDB3 {
+        return BookmarksDB3(bookmarks = bookmarks.map { Bookmark3(it.id, it.bookmarkedAt, true) }).migrate()
+    }
+    private fun BookmarksDB3.migrate(): BookmarksDB3 = this
 }

@@ -85,7 +85,7 @@ fun NavBar(): String {
     """.trimIndent()
 }
 
-fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = { it }, id: String? = null): String {
+fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = { it }): String {
     fun getOffers(movie: CachedMovies.Movie): String {
         val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
@@ -122,7 +122,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         <li class="movie-list-item">
            ${movieItemWrapper("""
                <div class="movie-item bookmark-container">
-                    <span class="movie-poster $cssClass" onclick="return setBookmark('$movieId', this, false)" ondblclick="setBookmark('$movieId', this, true)">
+                    <span class="movie-poster $cssClass" onclick="return bookmark('$movieId', this, false)" ondblclick="bookmark('$movieId', this, true)">
                         <span class="bookmark-icon"></span>
                         <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
                     </span>
@@ -160,24 +160,45 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
     @Language("HTML")
     val bookmarkJS = $$"""
         <script>
-        function setBookmark(movieId, el, isDoubleClick) {
+        function bookmark(movieId, el, isDoubleClick) {
             const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
             if (isSmallScreen !== isDoubleClick) return;
             document.querySelectorAll("#" + movieId).forEach(checkbox => {
                 checkbox.checked = false;
             });
+           
+            
+            if (el.classList.contains('bookmarked')) {
+                deleteBookmark(movieId, el);
+            } else {
+                setBookmark(movieId, el);
+            }
 
+            return false; // prevent default action
+        }
+        
+        function setBookmark(movieId, el) {
             fetch(`/bookmark/${movieId}`, {
                 method: 'POST',
             })
             .then(() => {
-                console.log("Bookmarking movie with ID: " + movieId);
-                el.classList.toggle('bookmarked');
+                el.classList.add('bookmarked');
             })
             .catch(error => {
                  console.error("Bookmark error:", error);
             });
-            return false; // prevent default action
+        }
+        
+        function deleteBookmark(movieId, el) {
+            fetch(`/bookmark/${movieId}`, {
+                method: 'DELETE',
+            })
+            .then(() => {
+                el.classList.remove('bookmarked');
+            })
+            .catch(error => {
+                 console.error("Delete bookmark error:", error);
+            });
         }
         
         $${if (selectable) """
@@ -385,8 +406,18 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        CachedMovies.toggleBookmark(movieId)
+        CachedMovies.setBookmark(movieId)
+        call.respond(HttpStatusCode.OK)
+    }
+    delete("/bookmark/{movieId}") {
+        val movieId = call.parameters["movieId"]
 
+        if (movieId == null) {
+            call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
+            return@delete
+        }
+
+        CachedMovies.deleteBookmark(movieId)
         call.respond(HttpStatusCode.OK)
     }
     get("/bookmarks") {

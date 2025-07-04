@@ -20,12 +20,19 @@ object CachedMovies {
         }
     }
 
-    fun toggleBookmark(id: String): Movie? {
+    fun setBookmark(id: String): Movie? {
         val movie = cache[id] ?: return null
-        movie.isBookmarked = !movie.isBookmarked
-        if (movie.isBookmarked) {
+        if (!movie.isBookmarked) {
+            movie.isBookmarked = true
             BookmarksDB.addBookmark(id)
-        } else {
+        }
+        return movie
+    }
+
+    fun deleteBookmark(id: String): Movie? {
+        val movie = cache[id] ?: return null
+        if (movie.isBookmarked) {
+            movie.isBookmarked = false
             BookmarksDB.removeBookmark(id)
         }
         return movie
