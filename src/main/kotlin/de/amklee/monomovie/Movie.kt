@@ -12,7 +12,7 @@ object CachedMovies {
         return cache[id] ?: run {
             val details = justWatch.details(id)
             if (details != null) {
-                val movie = Movie(mediaEntry = details, isBookmarked = id in BookmarksDB, cacheDate = System.currentTimeMillis())
+                val movie = Movie(mediaEntry = details, isBookmarked = BookmarksDB.isBookmarked(id), cacheDate = System.currentTimeMillis())
                 cache[id] = movie
                 return@run movie
             }

@@ -22,6 +22,7 @@ object BookmarksDB {
     }
 
     operator fun contains(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id }
+    fun isBookmarked(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id && it.isBookmarked }
 
     fun addBookmark(id: String) {
         if (contains(id)) {
