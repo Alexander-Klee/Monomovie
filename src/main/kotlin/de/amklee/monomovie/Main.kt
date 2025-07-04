@@ -337,15 +337,16 @@ suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearch
     return MoreSearchResultsResponse(searchResults.pageInfo.endCursor, MovieListElements(mediaEntries, false), searchResults.pageInfo.hasNextPage)
 }
 
-suspend inline fun BookmarkPage(): String {
-    val bookmarkedMovies = CachedMovies.getBookmarkedMovies()
+suspend inline fun BookmarkPage(displayHidden: Boolean = false): String {
+    val movies = if (displayHidden) CachedMovies.getAllBookmarkedMovies()
+                                                    else CachedMovies.getBookmarkedMovies()
 
-    return "<h1>Bookmarked Movies:</h1>" +  if (bookmarkedMovies.isEmpty()) {
+    return "<h1>Bookmarked Movies:</h1>" +  if (movies.isEmpty()) {
         "<p>No bookmarked movies found</p>"
     } else """
         <form method="post" action="/roulette">
             <button type="submit" class="roulette-button" disabled>Roulette</button>
-            ${MovieList(bookmarkedMovies, true)}
+            ${MovieList(movies, !displayHidden)}
         </form>
     """.trimIndent()
 }
@@ -433,11 +434,12 @@ fun Route.miscRoutes() {
         call.respond(HttpStatusCode.OK)
     }
     get("/bookmarks") {
+        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
         call.respondText(
             contentType = ContentType.parse("text/html"),
             text = htmlTemplate(
                 title = "Bookmarked Movies",
-                body = BookmarkPage(),
+                body = BookmarkPage(displayHidden),
                 Nav = ::NavBar
             )
         )

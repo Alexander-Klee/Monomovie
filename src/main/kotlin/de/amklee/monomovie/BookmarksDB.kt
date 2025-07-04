@@ -68,6 +68,11 @@ object BookmarksDB {
         .sortedByDescending { it.bookmarkedAt }
         .map { it.id }
 
+    fun getAllBookmarks(): List<Pair<String, Boolean>> = bookmarksDB.bookmarks
+        .sortedByDescending { it.bookmarkedAt }
+        .sortedByDescending { it.isBookmarked }
+        .map { it.id to it.isBookmarked }
+
     private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB3 {
         val string = path.readText().trim()
         if (string[0] == '[') {

@@ -42,4 +42,5 @@ object CachedMovies {
         = justWatch.search(title = title, cursor = cursor, count = numResults)
 
     suspend fun getBookmarkedMovies(): List<Movie> = BookmarksDB.getBookmarks().mapNotNull { id -> get(id) }
+    suspend fun getAllBookmarkedMovies(): List<Movie> = BookmarksDB.getAllBookmarks().mapNotNull { (id, _) -> get(id) }
 }
