@@ -416,6 +416,8 @@ nav {
     }
     nav {
         position: fixed;
+        height: 100vh;
+        width: 60%;
         display: none;
         pointer-events: none;
         transition: opacity 0.2s;
