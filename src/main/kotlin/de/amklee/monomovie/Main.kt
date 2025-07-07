@@ -31,6 +31,7 @@ object Resources {
 val bannedTypes = setOf("BUY", "RENT")
 
 inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String {
+    // language=HTML
     return """
         <!DOCTYPE html>
         <html lang="en">
@@ -39,6 +40,14 @@ inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String 
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <meta name="color-scheme" content="dark light" />
             <title>$title</title>
+            
+            <meta property="og:title" content="$title" />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="https://mmv.amklee.de/" />
+            <meta property="og:site_name" content="Monomovie" />
+            <meta property="og:description" content="Discover, bookmark and select movies for playback." />
+            <meta property="og:image" content="https://mmv.amklee.de/og-image.png" />
+            
             <style>
                 ${Resources.style}
             </style>
@@ -71,6 +80,7 @@ inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String 
 }
 
 fun NavBar(): String {
+    // language=HTML
     return """
         <nav>
             <h1>Movies</h1>
@@ -94,6 +104,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
             val altText = offer.`package`?.clearName ?: "Unknown"
             val link = offer.standardWebURL ?: ""
 
+            // language=HTML
             """
             <li class="offer-item">
                 <a href="${link.escapeHTML()}">
@@ -103,6 +114,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
             """.trimIndent()
         }
 
+        // language=HTML
         return """
             <ul class="offer-list">
                 $offerHtml
@@ -116,6 +128,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         fun linkWrapper(link: String?, content: String?): String {
             if (content.isNullOrBlank()) return ""
             if (link.isNullOrBlank()) return content
+            // language=HTML
             return """
                 <a href="$link" target="_blank" class="no-link-style" rel="noopener noreferrer">
                     $content
@@ -124,6 +137,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         }
 
         val tomatoRating = movie.mediaEntry.content?.scoring?.tomatoMeter?.let { score ->
+            // language=HTML
             """
             <div class="movie-rating">
                 <i class="tomato-icon rating-logo"></i>
@@ -133,6 +147,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
 
         val imdbLink = movie.mediaEntry.content?.externalIds?.imdbId?.let { id -> "https://www.imdb.com/title/$id" }
         val imdbRating = movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
+            // language=HTML
             """
             <div class="movie-rating">
                 <i class="imdb-icon rating-logo"></i>
@@ -147,6 +162,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
         }
         val tmdbLink = movie.mediaEntry.content?.externalIds?.tmdbId?.let { id -> "https://www.themoviedb.org/$tmdbLinkType/$id" }
         val tmdbRating = movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
+            // language=HTML
             """
             <div class="movie-rating">
                 <i class="tmdb-icon rating-logo"></i>
@@ -197,6 +213,7 @@ fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = 
 fun MovieListElements(movies: List<CachedMovies.Movie>, selectable: Boolean): String = movies.joinToString("\n") { movie -> MovieItem(
         movie,
         movieItemWrapper = if (!selectable) { it -> it } else { it ->
+            // language=HTML
             """
                 <label for="${movie.mediaEntry.id?.escapeHTML()}">
                     <input type="checkbox" class="movie-checkbox" name="selected[]"
@@ -306,6 +323,7 @@ suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
             ${MovieList(mediaEntries, false)}
         """.trimIndent()
     }
+    // language=HTML
     val showMoreResults = $$"""
           <script>
             let hasNextPage = true;
@@ -380,6 +398,7 @@ suspend inline fun BookmarkPage(displayHidden: Boolean = false): String {
     val movies = if (displayHidden) CachedMovies.getAllBookmarkedMovies()
                                                     else CachedMovies.getBookmarkedMovies()
 
+    // language=HTML
     return "<h1>Bookmarked Movies:</h1>" +  if (movies.isEmpty()) {
         "<p>No bookmarked movies found</p>"
     } else """
@@ -391,6 +410,7 @@ suspend inline fun BookmarkPage(displayHidden: Boolean = false): String {
 }
 
 fun RoulettePage(movies: List<CachedMovies.Movie>): String {
+    // language=HTML
     return """
         <form action="/roulette/submit" method="post">
             <ul class="movie-list">
