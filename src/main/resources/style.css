@@ -26,6 +26,13 @@
     }
 }
 
+/* Fix inconsistent ascent across browsers. */
+@font-face {
+    font-family: "Zentrierte";
+    src: local("Segoe UI");
+    ascent-override: 100%;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -47,6 +54,7 @@ main {
     margin: 2rem auto;
     padding: 1rem;
     background: var(--primary-color);
+    /*overflow: auto;*/
 }
 
 h1 {
@@ -274,16 +282,156 @@ h1 {
 }
 
 .roulette-weight {
-    height: fit-content;
-    width: 4em;
-    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    max-height: 1.5em;
+    color: var(--text-color);
+}
+.roulette-weight p {
+    margin: 0;
+    padding: 0;
+    font-family: "Zentrierte", sans-serif;
+}
+
+
+/*ROULETTE SLIDER*/
+:root {
+    --track-background-color: var(--secondary-color);
+    --track-color: var(--secondary-highlight-color);
+    --track-shadow-color: none;
+    --thumb-color: var(--border-color);
+    --thumb-outline-color: none;
+}
+
+body {
+    padding-top: 2em;
+}
+
+/* Slider base styles */
+.roulette-slider {
+    /*display: block;*/
+    display: flex;
+    flex: auto;
     padding: 0.3em 0.7em;
     margin: 0.3em 0.7em;
-    border-radius: 8px;
+    opacity: 1;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    background: none;
+}
+
+/* Webkit track */
+.roulette-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 0.75em;
+    border-radius: 0.25em;
+    background: var(--track-background-color);
+    box-shadow: 0 1px 1px var(--track-shadow-color);
+}
+
+/* Firefox track */
+.roulette-slider::-moz-range-track {
+    width: 100%;
+    height: 0.75em;
+    border-radius: 0.25em;
+    background: var(--track-background-color);
+    box-shadow: 0 1px 1px var(--track-shadow-color);
+}
+
+/* IE track */
+.roulette-slider::-ms-fill-lower {
+    background: var(--track-background-color);
+    border-radius: 0.25em;
+}
+
+/* Thumb styles */
+.roulette-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -0.25em;
+    width: 0.75em;
+    height: 1.25em;
+    background: var(--thumb-color);
+    border-radius: 10%;
+    cursor: ew-resize;
+    box-sizing: border-box;
+}
+
+.roulette-slider::-moz-range-thumb {
+    width: 0.75em;
+    height: 1.25em;
+    background: var(--thumb-color);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: ew-resize;
+    box-sizing: border-box;
+}
+
+.roulette-slider::-ms-thumb {
+    width: 0.75em;
+    height: 1.25em;
+    background: var(--thumb-color);
+    border-radius: 10%;
+    cursor: ew-resize;
+    box-sizing: border-box;
+}
+
+/* Remove default outline and style focus */
+.roulette-slider:focus {
+    outline: none;
+    opacity: .99;
+}
+
+/* Remove extra appearance for all browsers */
+.roulette-slider,
+.roulette-slider::-webkit-slider-thumb,
+.roulette-slider::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+}
+.roulette-slider::-ms-track {
+    width: 100%;
+    height: 0.75em;
+    border-radius: 0.25em;
+    background: transparent;
+    border: none;
+    color: transparent;
+}
+
+/* Optional: progress/active track for Firefox and IE */
+.roulette-slider::-moz-range-progress {
+    height: 0.75em;
+    border-radius: 0.25em;
+    background: var(--track-color);
+}
+
+.roulette-slider::-ms-fill-lower {
+    background: var(--track-color);
+}
+
+/*.roulette-slider::-webkit-slider-container {*/
+/*    !*width: 100%;*!*/
+/*    !*height: 0.75em;*!*/
+/*    background: var(--track-color);*/
+/*}*/
+
+/* Hide outline on focus for Firefox */
+.roulette-slider::-moz-focus-outer {
+    border: 0;
+}
+@media (max-width: 600px) {
+    .roulette-slider {
+        max-width: 200px;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
 }
 
 /* SEARCH BAR*/
-
 .search-bar {
     display: flex;
     justify-content: center;
@@ -353,6 +501,7 @@ nav {
     padding: 1em;
     margin: 0;
     overflow: hidden; /* Prevent scrolling inside nav */
+    position: sticky;
 }
 
 .nav-list {

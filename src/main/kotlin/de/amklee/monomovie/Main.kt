@@ -418,9 +418,15 @@ fun RoulettePage(movies: List<CachedMovies.Movie>): String {
                     movie,
                     movieItemWrapper = { it -> """
                         <label for="${movie.mediaEntry.id?.escapeHTML()}">
-                            <input type="number" class="roulette-weight"
-                                name="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
-                                min="1" value="1">
+                            <div class='roulette-weight'>
+                                <p>
+                                    1
+                                </p>
+                                <input type="range" class='roulette-slider'
+                                    name="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
+                                    min="1" max="10" value="1"
+                                    oninput="this.previousElementSibling.textContent = this.value">
+                            </div>
                             $it
                         </label>
                         """.trimIndent()
