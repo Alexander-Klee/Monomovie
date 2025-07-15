@@ -1,4 +1,4 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.db
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

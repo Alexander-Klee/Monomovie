@@ -1,5 +1,8 @@
 package de.amklee.monomovie
 
+import de.amklee.monomovie.db.BookmarksDB
+import de.amklee.monomovie.db.WatchedDB
+
 
 object CachedMovies {
     data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
