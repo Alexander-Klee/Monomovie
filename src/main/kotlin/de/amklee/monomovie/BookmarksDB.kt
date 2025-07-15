@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.Path
+import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
@@ -31,7 +32,7 @@ object BookmarksDB {
         }
         bookmarksDB = bookmarksDB
             .copy(bookmarks = bookmarksDB.bookmarks + listOf(
-                Bookmark3(id, Instant.now().epochSecond, true)
+                BookmarkItem3(id, Instant.now().epochSecond, true)
             ))
         save()
     }
@@ -74,6 +75,9 @@ object BookmarksDB {
         .map { it.id to it.isBookmarked }
 
     private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB3 {
+        if (!path.exists()) {
+            return BookmarksDB3(emptyList())
+        }
         val string = path.readText().trim()
         if (string[0] == '[') {
             // legacy DB1 format
@@ -85,7 +89,7 @@ object BookmarksDB {
             1 -> json.decodeFromString<BookmarksDB1>(string).migrate()
             2 -> json.decodeFromString<BookmarksDB2>(string).migrate()
             3 -> json.decodeFromString<BookmarksDB3>(string).migrate()
-            else -> throw IllegalStateException("Unsupported DB version: $version")
+            else -> throw IllegalStateException("Unsupported BookmarksDB version: $version")
         }
     }
 
@@ -104,31 +108,31 @@ object BookmarksDB {
 
     @Serializable
     private data class BookmarksDB2(
-        val bookmarks: List<Bookmark2>
+        val bookmarks: List<BookmarkItem2>
     ) : Versioned(2)
 
     @Serializable
     private data class BookmarksDB3(
-        val bookmarks: List<Bookmark3>
+        val bookmarks: List<BookmarkItem3>
     ) : Versioned(3)
 
     @Serializable
-    private data class Bookmark3(
+    private data class BookmarkItem3(
         val id: String,
         val bookmarkedAt: Long,
         val isBookmarked: Boolean
     )
     @Serializable
-    private data class Bookmark2(
+    private data class BookmarkItem2(
         val id: String,
         val bookmarkedAt: Long
     )
 
     private fun BookmarksDB1.migrate(): BookmarksDB3 {
-        return BookmarksDB2(bookmarks = bookmarks.map { Bookmark2(it, Instant.now().epochSecond) }).migrate()
+        return BookmarksDB2(bookmarks = bookmarks.map { BookmarkItem2(it, Instant.now().epochSecond) }).migrate()
     }
     private fun BookmarksDB2.migrate(): BookmarksDB3 {
-        return BookmarksDB3(bookmarks = bookmarks.map { Bookmark3(it.id, it.bookmarkedAt, true) }).migrate()
+        return BookmarksDB3(bookmarks = bookmarks.map { BookmarkItem3(it.id, it.bookmarkedAt, true) }).migrate()
     }
     private fun BookmarksDB3.migrate(): BookmarksDB3 = this
 }
