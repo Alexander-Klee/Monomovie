@@ -1,23 +1,23 @@
 package de.amklee.monomovie
 
-import de.amklee.monomovie.CachedMovies.getOffers
+import de.amklee.monomovie.components.MovieItem
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import kotlinx.serialization.Serializable
 import org.intellij.lang.annotations.Language
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
 import kotlin.io.path.exists
-import kotlinx.serialization.Serializable
 import kotlin.io.path.readText
 
 object Resources {
@@ -87,6 +87,7 @@ fun NavBar(): String {
                 <li><a href="/">Home</a></li>
                 <li><a href="/search">Search</a></li>
                 <li><a href="/bookmarks">Bookmarks</a></li>
+                <li><a href="/watched">Watched</a></li>
                 <li><a href="https://jellyfin.amklee.de">Jellyfin</a></li>
                 <li><a href="https://amklee.de/recipe">Recipes</a></li>
             </ul>
@@ -94,138 +95,16 @@ fun NavBar(): String {
     """.trimIndent()
 }
 
-fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = { it }): String {
-    fun getOffers(movie: CachedMovies.Movie): String {
-        val offers = movie.getOffers()
-
-        val offerHtml = offers.joinToString("\n") { offer ->
-            val iconUrl = "https://images.justwatch.com${offer.`package`?.icon}"
-            val altText = offer.`package`?.clearName ?: "Unknown"
-            val link = offer.standardWebURL ?: ""
-
-            // language=HTML
-            """
-            <li class="offer-item">
-                <a href="${link.escapeHTML()}">
-                    <img src="${iconUrl.escapeHTML()}" alt="${altText.escapeHTML()}" class="offer-icon"/>
-                </a>
-            </li>
-            """.trimIndent()
-        }
-
-        // language=HTML
-        return """
-            <ul class="offer-list">
-                $offerHtml
-            </ul>
-            """.trimIndent()
+fun MovieListElements(movies: List<CachedMovies.Movie>, selectable: Boolean): String = movies.joinToString("\n") { movie ->
+    if (selectable) {
+        MovieItem(movie).selectableListItem()
+    } else {
+        MovieItem(movie).basicListItem()
     }
-
-    fun getRatings(movie: CachedMovies.Movie): String {
-        fun formatScore(score: Float): String = String.format("%.1f", score)
-
-        fun linkWrapper(link: String?, content: String?): String {
-            if (content.isNullOrBlank()) return ""
-            if (link.isNullOrBlank()) return content
-            // language=HTML
-            return """
-                <a href="$link" target="_blank" class="no-link-style" rel="noopener noreferrer">
-                    $content
-                </a>
-                """.trimIndent()
-        }
-
-        val tomatoRating = movie.mediaEntry.content?.scoring?.tomatoMeter?.let { score ->
-            // language=HTML
-            """
-            <div class="movie-rating">
-                <i class="tomato-icon rating-logo"></i>
-                <p>$score%</p>
-            </div>
-            """.trimIndent() } ?: ""
-
-        val imdbLink = movie.mediaEntry.content?.externalIds?.imdbId?.let { id -> "https://www.imdb.com/title/$id" }
-        val imdbRating = movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
-            // language=HTML
-            """
-            <div class="movie-rating">
-                <i class="imdb-icon rating-logo"></i>
-                <p>${formatScore(score)}</p>
-            </div>
-            """.trimIndent() } ?: ""
-
-        val tmdbLinkType = when (movie.mediaEntry.objectType?.lowercase()) {
-            "movie" -> "movie"
-            "show" -> "tv"
-            else -> "movie" // Default
-        }
-        val tmdbLink = movie.mediaEntry.content?.externalIds?.tmdbId?.let { id -> "https://www.themoviedb.org/$tmdbLinkType/$id" }
-        val tmdbRating = movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
-            // language=HTML
-            """
-            <div class="movie-rating">
-                <i class="tmdb-icon rating-logo"></i>
-                <p>${formatScore(score)}</p>
-            </div>
-            """.trimIndent() } ?: ""
-
-        return tomatoRating + linkWrapper(imdbLink, imdbRating) + linkWrapper(tmdbLink, tmdbRating)
-    }
-
-    val cssClass = if (movie.isBookmarked) "bookmarked" else ""
-    val movieId = movie.mediaEntry.id?.escapeHTML()
-    val posterUrl = movie.mediaEntry.content?.posterUrl?.escapeHTML()
-    val movieTitle = movie.mediaEntry.content?.title?.escapeHTML()
-    val movieYear = movie.mediaEntry.content?.originalReleaseYear
-    val movieDesc = movie.mediaEntry.content?.shortDescription?.escapeHTML()
-
-    // language=HTML
-    return """
-        <li class="movie-list-item">
-           ${movieItemWrapper("""
-               <div class="movie-item bookmark-container">
-                    <span class="movie-poster $cssClass" onclick="return bookmark('$movieId', this, false)" ondblclick="bookmark('$movieId', this, true)">
-                        <span class="bookmark-icon"></span>
-                        <img class="movie-poster" src="https://images.justwatch.com$posterUrl" alt="$movieTitle">
-                    </span>
-                    
-                    <div class="movie-details">
-                        <div class="movie-title-bar">
-                           <p class="movie-title">$movieTitle</p>
-                           <div class="movie-rating-container">
-                               ${getRatings(movie)}
-                           </div>
-                        </div>
-                        <p class="movie-year">$movieYear</p>
-                        <p class="movie-short-description" onclick="this.classList.add('expanded')">$movieDesc</p>
-                    </div>
-                    
-                    <div class="movie-offers">
-                        ${getOffers(movie)}
-                    </div>
-                </div>
-           """.trimIndent())}
-        </li>
-        """.trimIndent()
 }
 
-fun MovieListElements(movies: List<CachedMovies.Movie>, selectable: Boolean): String = movies.joinToString("\n") { movie -> MovieItem(
-        movie,
-        movieItemWrapper = if (!selectable) { it -> it } else { it ->
-            // language=HTML
-            """
-                <label for="${movie.mediaEntry.id?.escapeHTML()}">
-                    <input type="checkbox" class="movie-checkbox" name="selected[]"
-                        value="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
-                        onchange="selectedChanged()">
-                    $it
-                </label>
-            """.trimIndent()
-        },
-    ) }
-
 fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
-    @Language("HTML")
+    // language=HTML
     val bookmarkJS = $$"""
         <script>
         function bookmark(movieId, el, isDoubleClick) {
@@ -282,6 +161,7 @@ fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
         </script>
     """.trimIndent()
 
+    // language=HTML
     val movieList = """
         <ul class="movie-list">
             ${MovieListElements(movies, selectable)}
@@ -413,18 +293,7 @@ fun RoulettePage(movies: List<CachedMovies.Movie>): String {
     return """
         <form action="/roulette/submit" method="post">
             <ul class="movie-list">
-                ${movies.joinToString("\n") { movie -> MovieItem(
-                    movie,
-                    movieItemWrapper = { it -> """
-                        <label for="${movie.mediaEntry.id?.escapeHTML()}">
-                            <input type="number" class="roulette-weight"
-                                name="${movie.mediaEntry.id?.escapeHTML()}" id="${movie.mediaEntry.id?.escapeHTML()}"
-                                min="1" value="1">
-                            $it
-                        </label>
-                        """.trimIndent()
-                    }
-                ) }}
+                ${movies.joinToString("\n") { MovieItem(it).rouletteListItem() }}
             </ul>
             <button type="submit" class="roulette-button">Start Roulette</button>
         </form>
