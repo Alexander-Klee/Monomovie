@@ -35,6 +35,10 @@ class JustWatch(
                 ignoreUnknownKeys = true
             })
         }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 10000 // Set a timeout for requests
+            socketTimeoutMillis = 10000 // Set a timeout for sockets
+        }
         defaultRequest {
             url("https://apis.justwatch.com/graphql")
             contentType(ContentType.Application.Json)
