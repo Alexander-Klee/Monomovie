@@ -502,6 +502,21 @@ fun Route.miscRoutes() {
             )
         )
     }
+    get("/watched") {
+        val watchedMovies = CachedMovies.getWatchedMovies()
+        call.respondText(
+            contentType = ContentType.parse("text/html"),
+            text = htmlTemplate(
+                title = "Watched Movies",
+                body = if (watchedMovies.isEmpty()) {
+                    "<p>No watched movies found</p>"
+                } else {
+                    "<h1>Watched Movies:</h1>" + MovieList(watchedMovies, false)
+                },
+                Nav = ::NavBar
+            )
+        )
+    }
     post("/roulette") {
         val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
 

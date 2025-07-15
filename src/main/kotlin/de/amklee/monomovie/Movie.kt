@@ -40,9 +40,14 @@ object CachedMovies {
         return movie
     }
 
+    fun watch(id: String) {
+        WatchedDB.watch(id)
+    }
+
     suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchTitles
         = justWatch.search(title = title, cursor = cursor, count = numResults)
 
+    suspend fun getWatchedMovies(): List<Movie> = WatchedDB.getWatched().mapNotNull { id -> get(id) }
     suspend fun getBookmarkedMovies(): List<Movie> = BookmarksDB.getBookmarks().mapNotNull { id -> get(id) }
     suspend fun getAllBookmarkedMovies(): List<Movie> = BookmarksDB.getAllBookmarks().mapNotNull { (id, _) -> get(id) }
 }
