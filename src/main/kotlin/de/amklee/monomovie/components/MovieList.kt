@@ -59,10 +59,9 @@ class MovieList(private val movies: List<CachedMovies.Movie>) {
         selectedChanged();
         """.trimIndent()
 
-    private fun selectableListElements() = movies.map { MovieItem(it).selectableListItem() }
-    private fun listElements() = movies.map { MovieItem(it).listItem() }
+    private fun selectableListElements() = movies.joinToString(separator = "\n") { MovieItem(it).selectableListItem() }
 
-    fun rawElements(): String = listElements().joinToString(separator = "\n")
+    fun listElements(): String = movies.joinToString(separator = "\n") { MovieItem(it).listItem() }
 
     fun basicList(): String {
         // language=HTML
@@ -71,7 +70,7 @@ class MovieList(private val movies: List<CachedMovies.Movie>) {
                 $bookmarkJS
             </script>
             <ul class="movie-list">
-                ${listElements().joinToString(separator = "\n")}
+                ${listElements()}
             </ul>
             """.trimIndent()
     }
@@ -84,7 +83,7 @@ class MovieList(private val movies: List<CachedMovies.Movie>) {
                 $selectableJS
             </script>
             <ul class="movie-list">
-                ${selectableListElements().joinToString(separator = "\n")}
+                ${selectableListElements()}
             </ul>
             """
     }

@@ -122,7 +122,7 @@ suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearch
     }
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
-        MovieList(mediaEntries).rawElements(),
+        MovieList(mediaEntries).listElements(),
         searchResults.pageInfo.hasNextPage
     )
 }
