@@ -1,9 +1,9 @@
 package de.amklee.monomovie
 
-import de.amklee.monomovie.components.MovieItem
-import de.amklee.monomovie.components.MovieList
-import de.amklee.monomovie.components.NavBar
-import de.amklee.monomovie.components.htmlTemplate
+import de.amklee.monomovie.components.*
+import de.amklee.monomovie.util.Resources
+import de.amklee.monomovie.util.buildULHtml
+import de.amklee.monomovie.util.respondHtmlTemplate
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -16,91 +16,50 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import kotlinx.html.*
 import kotlinx.serialization.Serializable
 import org.intellij.lang.annotations.Language
 
-
 @Language("HTML")
-fun SearchBar(title: String?): String = """
-    <div class="search-bar">
-        <form action="/search" method="get">
-        <button type="submit" class="search-button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-              <title>search</title>
-              <path d="M12.2 13.6a7 7 0 1 1 1.4-1.4l5.4 5.4-1.4 1.4zM3 8a5 5 0 1 0 10 0A5 5 0 0 0 3 8"/>
-            </svg>
-        </button>
-        <input type="text" name="title" placeholder="Search for a movie..." value="${title?.escapeHTML() ?: ""}"/>
-        </form>
-    </div>"""
-
-suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
-    if (title.isNullOrBlank()) {
-        return SearchBar("") + "<p>Please enter a title to search for.</p>"
+fun FlowContent.SearchBar(title: String) {
+    div(classes = "search-bar") {
+        getForm(action = "/search") {
+            button(classes = "search-button", type = ButtonType.submit) {
+                // language=HTML
+                unsafe { +Resources.searchSvg }
+            }
+            textInput(name = "title", classes = "search-input") {
+                placeholder = "Search for a movie…"
+                value = title
+            }
+        }
     }
-    val searchResults = CachedMovies.search(title = title, cursor = null, numResults = numResults)
+}
+
+fun FlowContent.SearchPage(title: String, searchResults: SearchTitles?) {
+    if (searchResults == null) {
+        SearchBar("")
+        p { +"Please enter a title to search for." }
+        return
+    }
     val mediaEntries = searchResults.edges.map {
         CachedMovies.Movie(it.node, false, System.currentTimeMillis())
     }
 
-    val resultContent = if (searchResults.edges.isEmpty()) {
-        return SearchBar(title) + "<p>No Search Results.</p>"
-    } else {
-        // language=HTML
-        """
-        <h4>Search results:</h4>
-        ${MovieList(mediaEntries).basicList()}
-        """.trimIndent()
+    SearchBar(title)
+
+    script {
+        unsafe {
+            +Resources.infiniteScrollJs.replace($$"$endCursor$", searchResults.pageInfo.endCursor)
+        }
     }
-    // language=HTML
-    val showMoreResults = $$"""
-          <script>
-            let hasNextPage = true;
-            let lastCursor = "$${searchResults.pageInfo.endCursor}";
-            let isLoading = false;
 
-            function getMoreMovies() {
-                if (isLoading) return;
-                isLoading = true;
-                
-                const currentParams = new URLSearchParams(window.location.search);
-                let currentTitle = currentParams.get('title');
-                
-                let formData = new URLSearchParams();
-                if (currentTitle) formData.append("title", currentTitle);
-                if (lastCursor) formData.append("cursor", lastCursor);
-                
-                fetch("/moreSearchResults?" + formData.toString(), {
-                    method: "POST"
-                })
-                .then(response => {
-                  if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                  }
-                  return response.json();
-                }).then(data => {
-                  document.querySelector(".movie-list").insertAdjacentHTML( 'beforeend', data.html );
-                  hasNextPage = data.hasNextPage;
-                  lastCursor = data.cursor;
-                })
-                .catch(error => {
-                  console.error("Fetch error:", error);
-                })
-                .finally(() => {
-                    isLoading = false;
-                });
-            }
-            
-            window.addEventListener("scroll", () => {
-                if (document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight
-                        && hasNextPage) {
-                    getMoreMovies();
-                }
-            });
-          </script>
-    """.trimIndent()
-
-    return SearchBar(title) + showMoreResults + resultContent
+    if (searchResults.edges.isEmpty()) {
+        p { +"No Search Results" }
+    } else {
+        h4 { +"Search Results:" }
+        BasicMovieList(mediaEntries)
+    }
 }
 
 @Serializable
@@ -110,10 +69,8 @@ data class MoreSearchResultsResponse(
     val hasNextPage: Boolean
 )
 
-suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearchResultsResponse {
-    val searchResults = CachedMovies.search(title, cursor)
-
-    if (searchResults.edges.isEmpty()) {
+fun MoreSearchResults(searchResults: SearchTitles?): MoreSearchResultsResponse {
+    if (searchResults == null || searchResults.edges.isEmpty()) {
         return MoreSearchResultsResponse("", "", false)
     }
 
@@ -122,64 +79,68 @@ suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearch
     }
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
-        MovieList(mediaEntries).listElements(),
+        buildULHtml {
+            for (movie in mediaEntries) {
+                MovieListItem(movie)
+            }
+        },
         searchResults.pageInfo.hasNextPage
     )
 }
 
-suspend inline fun BookmarkPage(displayHidden: Boolean = false): String {
-    val movies = if (displayHidden) CachedMovies.getAllBookmarkedMovies()
-                                                    else CachedMovies.getBookmarkedMovies()
-
-    // language=HTML
-    return "<h1>Bookmarked Movies:</h1>" +  if (movies.isEmpty()) {
-        "<p>No bookmarked movies found</p>"
-    } else """
-        <form method="post" action="/roulette">
-            <button type="submit" class="roulette-button" disabled>Roulette</button>
-            ${MovieList(movies).selectableList()}
-        </form>
-    """.trimIndent()
+fun FlowContent.BookmarkPage(movies: List<CachedMovies.Movie>) {
+    h1 { +"Bookmarked Movies:" }
+    if (movies.isEmpty()) {
+        p { +"No bookmarked movies found" }
+        return
+    }
+    postForm(action = "/roulette", classes = "roulette-form") {
+        submitInput(classes = "roulette-button") {
+            disabled = true
+            value = "Roulette"
+        }
+        SelectableMovieList(movies)
+    }
 }
 
-fun RoulettePage(movies: List<CachedMovies.Movie>): String {
-    // language=HTML
-    return """
-        <form action="/roulette/submit" method="post">
-            <ul class="movie-list">
-                ${movies.joinToString("\n") { MovieItem(it).rouletteListItem() }}
-            </ul>
-            <button type="submit" class="roulette-button">Start Roulette</button>
-        </form>
-    """.trimIndent()
+fun FlowContent.RoulettePage(movies: List<CachedMovies.Movie>) {
+    postForm("/roulette/submit") {
+        ul(classes = "roulette-list") {
+            for (movie in movies) {
+                RouletteMovieListItem(movie)
+            }
+        }
+        submitInput(classes = "roulette-button") {
+            value = "Start Roulette"
+        }
+    }
 }
 
-suspend inline fun HomePage(): String = SearchBar(null) + BookmarkPage()
+fun FlowContent.HomePage(bookmarkedMovies: List<CachedMovies.Movie>) {
+    SearchBar("")
+    BookmarkPage(bookmarkedMovies)
+}
 
 val wheelOfNames = WheelOfNames(System.getenv("WHEEL_OF_NAMES_API_KEY") ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
 fun Route.miscRoutes() {
     get("/") {
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = htmlTemplate(
-                title = "Welcome",
-                body = HomePage(),
-                Nav = ::NavBar
-            )
-        )
+        call.respondHtmlTemplate(HtmlTemplate("Welcome")) {
+            val bookmarkedMovies = CachedMovies.getBookmarkedMovies(false)
+            body {
+                HomePage(bookmarkedMovies)
+            }
+        }
     }
     get("/search") {
         val title = call.request.queryParameters["title"]?.escapeHTML()
         val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = htmlTemplate(
-                title = "$title Search",
-                body = SearchPage(title, numResults),
-                Nav = ::NavBar,
-            )
-        )
+        call.respondHtmlTemplate(HtmlTemplate("$title Search")) {
+            val results = CachedMovies.search(title = title, cursor = null, numResults = numResults)
+            body {
+                SearchPage(title ?: "", results)
+            }
+        }
     }
     post("/moreSearchResults") {
         val title = call.request.queryParameters["title"]?.escapeHTML()
@@ -190,7 +151,9 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respond(MoreSearchResults(title, cursor))
+        val searchResults = CachedMovies.search(title, cursor)
+
+        call.respond(MoreSearchResults(searchResults))
     }
     post("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]
@@ -215,30 +178,25 @@ fun Route.miscRoutes() {
         call.respond(HttpStatusCode.OK)
     }
     get("/bookmarks") {
-        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = htmlTemplate(
-                title = "Bookmarked Movies",
-                body = BookmarkPage(displayHidden),
-                Nav = ::NavBar
-            )
-        )
+        call.respondHtmlTemplate(HtmlTemplate("Bookmarked Movies")) {
+            val movies = CachedMovies.getBookmarkedMovies(call.request.queryParameters["hidden"]?.toBoolean() ?: false)
+            body {
+                BookmarkPage(movies)
+            }
+        }
     }
     get("/watched") {
         val watchedMovies = CachedMovies.getWatchedMovies()
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = htmlTemplate(
-                title = "Watched Movies",
-                body = if (watchedMovies.isEmpty()) {
-                    "<p>No watched movies found</p>"
+        call.respondHtmlTemplate(HtmlTemplate("Watched Movies")) {
+            body {
+                if (watchedMovies.isEmpty()) {
+                    p { +"No watched movies found" }
                 } else {
-                    "<h1>Watched Movies:</h1>" + MovieList(watchedMovies).basicList()
-                },
-                Nav = ::NavBar
-            )
-        )
+                    h1 { +"Watched Movies:" }
+                    BasicMovieList(watchedMovies)
+                }
+            }
+        }
     }
     post("/roulette") {
         val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
@@ -248,14 +206,11 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respondText(
-            contentType = ContentType.parse("text/html"),
-            text = htmlTemplate(
-                title = "Roulette",
-                body = RoulettePage(selectedMovies),
-                Nav = ::NavBar
-            )
-        )
+        call.respondHtmlTemplate(HtmlTemplate("Roulette")) {
+            body {
+                RoulettePage(selectedMovies)
+            }
+        }
     }
     post("/roulette/submit") {
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
@@ -276,7 +231,7 @@ fun Route.miscRoutes() {
     }
 }
 
-fun hostServer() {
+fun main() {
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) {
             json()
@@ -291,8 +246,4 @@ fun hostServer() {
             }
         }
     }.start(wait = true)
-}
-
-fun main() {
-    hostServer()
 }

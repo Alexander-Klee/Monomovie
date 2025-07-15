@@ -3,7 +3,6 @@ package de.amklee.monomovie
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 
-
 object CachedMovies {
     data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
     fun Movie.getOffers() = mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
@@ -47,10 +46,12 @@ object CachedMovies {
         WatchedDB.watch(id)
     }
 
-    suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchTitles
-        = justWatch.search(title = title, cursor = cursor, count = numResults)
+    suspend fun search(title: String?, cursor: String? = null, numResults: Int = 4): SearchTitles?
+        = if (title.isNullOrBlank()) null else justWatch.search(title = title, cursor = cursor, count = numResults)
 
-    suspend fun getWatchedMovies(): List<Movie> = WatchedDB.getWatched().mapNotNull { id -> get(id) }
-    suspend fun getBookmarkedMovies(): List<Movie> = BookmarksDB.getBookmarks().mapNotNull { id -> get(id) }
-    suspend fun getAllBookmarkedMovies(): List<Movie> = BookmarksDB.getAllBookmarks().mapNotNull { (id, _) -> get(id) }
+    suspend inline fun getWatchedMovies(): List<Movie> = WatchedDB.getWatched().mapNotNull { id -> get(id) }
+    suspend inline fun getBookmarkedMovies(displayHidden: Boolean) = (
+            if (displayHidden) BookmarksDB.getAllBookmarks().map { it.first }
+            else BookmarksDB.getBookmarks()
+        ).mapNotNull { id -> get(id) }
 }

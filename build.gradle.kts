@@ -38,6 +38,8 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
+    implementation("io.ktor:ktor-server-html-builder")
+    implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0")
 }
 
 tasks.test {

@@ -10,7 +10,6 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 object BookmarksDB {
-
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
