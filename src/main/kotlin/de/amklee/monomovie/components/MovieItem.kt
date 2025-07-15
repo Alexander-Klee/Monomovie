@@ -119,7 +119,7 @@ class MovieItem(private val movie: CachedMovies.Movie) {
             """.trimIndent()
     }
 
-    fun basicListItem(): String {
+    fun listItem(): String {
         // language=HTML
         return """
             <li class="movie-list-item">

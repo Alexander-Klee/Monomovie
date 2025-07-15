@@ -1,6 +1,7 @@
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.MovieItem
+import de.amklee.monomovie.components.MovieList
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -95,82 +96,6 @@ fun NavBar(): String {
     """.trimIndent()
 }
 
-fun MovieListElements(movies: List<CachedMovies.Movie>, selectable: Boolean): String = movies.joinToString("\n") { movie ->
-    if (selectable) {
-        MovieItem(movie).selectableListItem()
-    } else {
-        MovieItem(movie).basicListItem()
-    }
-}
-
-fun MovieList(movies: List<CachedMovies.Movie>, selectable: Boolean): String {
-    // language=HTML
-    val bookmarkJS = $$"""
-        <script>
-        function bookmark(movieId, el, isDoubleClick) {
-            const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
-            if (isSmallScreen !== isDoubleClick) return;
-            document.querySelectorAll("#" + movieId).forEach(checkbox => {
-                checkbox.checked = false;
-            });
-        
-            if (el.classList.contains('bookmarked')) {
-                deleteBookmark(movieId, el);
-            } else {
-                setBookmark(movieId, el);
-            }
-        
-            return false; // prevent default action
-        }
-        
-        function setBookmark(movieId, el) {
-            fetch(`/bookmark/${movieId}`, {
-                method: 'POST',
-            })
-            .then(() => {
-                el.classList.add('bookmarked');
-            })
-            .catch(error => {
-                 console.error("Bookmark error:", error);
-            });
-        }
-        
-        function deleteBookmark(movieId, el) {
-            fetch(`/bookmark/${movieId}`, {
-                method: 'DELETE',
-            })
-            .then(() => {
-                el.classList.remove('bookmarked');
-            })
-            .catch(error => {
-                 console.error("Delete bookmark error:", error);
-            });
-        }
-        
-        $${if (selectable) """
-            function selectedChanged() {
-                const disabled = document.querySelectorAll(".movie-checkbox:checked").length <= 1;
-                
-                document.querySelectorAll(".roulette-button").forEach(button => {
-                    button.disabled = disabled;
-                });
-            }
-            
-            selectedChanged();
-        """.trimIndent() else ""}
-        </script>
-    """.trimIndent()
-
-    // language=HTML
-    val movieList = """
-        <ul class="movie-list">
-            ${MovieListElements(movies, selectable)}
-        </ul>
-    """.trimIndent()
-
-    return bookmarkJS + movieList
-}
-
 @Language("HTML")
 fun SearchBar(title: String?): String = """
     <div class="search-bar">
@@ -197,9 +122,10 @@ suspend inline fun SearchPage(title: String?, numResults: Int = 4): String {
     val resultContent = if (searchResults.edges.isEmpty()) {
         return SearchBar(title) + "<p>No Search Results.</p>"
     } else {
-        $"""
-            <h4>Search results:</h4>
-            ${MovieList(mediaEntries, false)}
+        // language=HTML
+        """
+        <h4>Search results:</h4>
+        ${MovieList(mediaEntries).basicList()}
         """.trimIndent()
     }
     // language=HTML
@@ -270,7 +196,11 @@ suspend inline fun MoreSearchResults(title: String, cursor: String?): MoreSearch
     val mediaEntries = searchResults.edges.map {
         CachedMovies.Movie(it.node, false, System.currentTimeMillis())
     }
-    return MoreSearchResultsResponse(searchResults.pageInfo.endCursor, MovieListElements(mediaEntries, false), searchResults.pageInfo.hasNextPage)
+    return MoreSearchResultsResponse(
+        searchResults.pageInfo.endCursor,
+        MovieList(mediaEntries).rawElements(),
+        searchResults.pageInfo.hasNextPage
+    )
 }
 
 suspend inline fun BookmarkPage(displayHidden: Boolean = false): String {
@@ -283,7 +213,7 @@ suspend inline fun BookmarkPage(displayHidden: Boolean = false): String {
     } else """
         <form method="post" action="/roulette">
             <button type="submit" class="roulette-button" disabled>Roulette</button>
-            ${MovieList(movies, !displayHidden)}
+            ${MovieList(movies).selectableList()}
         </form>
     """.trimIndent()
 }
@@ -380,7 +310,7 @@ fun Route.miscRoutes() {
                 body = if (watchedMovies.isEmpty()) {
                     "<p>No watched movies found</p>"
                 } else {
-                    "<h1>Watched Movies:</h1>" + MovieList(watchedMovies, false)
+                    "<h1>Watched Movies:</h1>" + MovieList(watchedMovies).basicList()
                 },
                 Nav = ::NavBar
             )
