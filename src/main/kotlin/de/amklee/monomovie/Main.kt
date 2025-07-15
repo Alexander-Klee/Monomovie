@@ -1,5 +1,6 @@
 package de.amklee.monomovie
 
+import de.amklee.monomovie.CachedMovies.getOffers
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.http.*
@@ -27,8 +28,6 @@ object Resources {
     private val styleFile = Path("src/main/resources/style.css").takeIf { it.exists() }
     val style: String get() = styleFile?.readText() ?: styleResource
 }
-
-val bannedTypes = setOf("BUY", "RENT")
 
 inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String {
     // language=HTML
@@ -97,7 +96,7 @@ fun NavBar(): String {
 
 fun MovieItem(movie: CachedMovies.Movie, movieItemWrapper: (String) -> String = { it }): String {
     fun getOffers(movie: CachedMovies.Movie): String {
-        val offers = movie.mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
+        val offers = movie.getOffers()
 
         val offerHtml = offers.joinToString("\n") { offer ->
             val iconUrl = "https://images.justwatch.com${offer.`package`?.icon}"

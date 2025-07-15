@@ -3,9 +3,11 @@ package de.amklee.monomovie
 
 object CachedMovies {
     data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
+    fun Movie.getOffers() = mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
     private val cache = mutableMapOf<String, Movie>()
     private val justWatch = JustWatch(country = "DE", language = "en")
+    private val bannedTypes = setOf("BUY", "RENT")
 
     suspend fun get(id: String): Movie? {
         // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
