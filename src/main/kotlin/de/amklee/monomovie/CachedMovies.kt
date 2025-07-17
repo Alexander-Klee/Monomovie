@@ -67,8 +67,11 @@ object CachedMovies {
         = if (title.isNullOrBlank()) null else justWatch.search(title = title, cursor = cursor, count = numResults)
 
     suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
-    suspend inline fun getBookmarkedMovies(displayHidden: Boolean) = (
-            if (displayHidden) BookmarksDB.getAllBookmarks().map { it.first }
-            else BookmarksDB.getBookmarks()
-        ).mapNotNull { id -> get(id) }
+    suspend inline fun getBookmarkedMovies(
+        displayHidden: Boolean,
+        displayWatched: Boolean
+    ) = BookmarksDB.getBookmarks()
+            .filter { displayHidden || it.isBookmarked }
+            .mapNotNull { get(it.id) }
+            .filter { displayWatched || !it.isWatched }
 }

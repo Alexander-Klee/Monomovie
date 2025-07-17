@@ -15,6 +15,7 @@ object BookmarksDB {
         ignoreUnknownKeys = true
     }
 
+    data class BookmarkItem(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true)
     private var bookmarksDB: BookmarksDB3 = openBookmarksDb()
 
     private fun save() = synchronized(this) {
@@ -63,15 +64,10 @@ object BookmarksDB {
         save()
     }
 
-    fun getBookmarks(): List<String> = bookmarksDB.bookmarks
+    fun getBookmarks(): List<BookmarkItem> = bookmarksDB.bookmarks
         .filter { it.isBookmarked }
         .sortedByDescending { it.bookmarkedAt }
-        .map { it.id }
-
-    fun getAllBookmarks(): List<Pair<String, Boolean>> = bookmarksDB.bookmarks
-        .sortedByDescending { it.bookmarkedAt }
-        .sortedByDescending { it.isBookmarked }
-        .map { it.id to it.isBookmarked }
+        .map { BookmarkItem(it.id, it.bookmarkedAt, it.isBookmarked) }
 
     private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB3 {
         if (!path.exists()) {

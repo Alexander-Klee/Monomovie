@@ -126,7 +126,7 @@ val wheelOfNames = WheelOfNames(System.getenv("WHEEL_OF_NAMES_API_KEY") ?: throw
 fun Route.miscRoutes() {
     get("/") {
         call.respondHtmlTemplate(HtmlTemplate("Monomovie")) {
-            val bookmarkedMovies = CachedMovies.getBookmarkedMovies(false)
+            val bookmarkedMovies = CachedMovies.getBookmarkedMovies(displayHidden = false, displayWatched = false)
             body {
                 HomePage(bookmarkedMovies)
             }
@@ -179,8 +179,11 @@ fun Route.miscRoutes() {
         call.respond(HttpStatusCode.OK)
     }
     get("/bookmarks") {
+        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
+        val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
+
         call.respondHtmlTemplate(HtmlTemplate("Bookmarked Movies")) {
-            val movies = CachedMovies.getBookmarkedMovies(call.request.queryParameters["hidden"]?.toBoolean() ?: false)
+            val movies = CachedMovies.getBookmarkedMovies(displayHidden, displayWatched)
             body {
                 BookmarkPage(movies)
             }
