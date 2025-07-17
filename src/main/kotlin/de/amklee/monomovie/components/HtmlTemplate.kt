@@ -21,6 +21,10 @@ class HtmlTemplate(private val title: String): Template<HTML> {
             meta(content = "Discover, bookmark and select movies for playback.") { name = "og:description" }
             meta(content = "https://mmv.amklee.de/og-image.png") { name = "og:image" }
 
+            link(rel = "manifest", href = "/static/site.webmanifest")
+            link(rel = "apple-touch-icon", href = "/static/apple-touch-icon.png")
+            link(rel = "icon", type = "image/png", href = "/static/favicon-96x96.png") { sizes = "96x96"}
+
             style {
                 unsafe { +Resources.style }
             }
