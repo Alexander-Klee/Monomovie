@@ -125,7 +125,7 @@ fun FlowContent.HomePage(bookmarkedMovies: List<CachedMovies.Movie>) {
 val wheelOfNames = WheelOfNames(System.getenv("WHEEL_OF_NAMES_API_KEY") ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
 fun Route.miscRoutes() {
     get("/") {
-        call.respondHtmlTemplate(HtmlTemplate("Welcome")) {
+        call.respondHtmlTemplate(HtmlTemplate("Monomovie")) {
             val bookmarkedMovies = CachedMovies.getBookmarkedMovies(false)
             body {
                 HomePage(bookmarkedMovies)
