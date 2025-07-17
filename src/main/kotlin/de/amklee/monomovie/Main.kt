@@ -136,7 +136,7 @@ fun Route.miscRoutes() {
         val title = call.request.queryParameters["title"]?.escapeHTML()
         val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
-        call.respondHtmlTemplate(HtmlTemplate("$title Search")) {
+        call.respondHtmlTemplate(HtmlTemplate(title?.let { "$it Search" } ?: "Search")) {
             val results = CachedMovies.search(title = title, cursor = null, numResults = numResults)
             body {
                 SearchPage(title ?: "", results)
