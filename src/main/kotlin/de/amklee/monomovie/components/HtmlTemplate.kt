@@ -6,6 +6,7 @@ import kotlinx.html.*
 
 class HtmlTemplate(private val title: String): Template<HTML> {
     val body = Placeholder<FlowContent>()
+
     override fun HTML.apply() {
         head {
             meta(charset = "utf-8")
