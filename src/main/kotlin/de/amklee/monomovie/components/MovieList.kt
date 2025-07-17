@@ -7,18 +7,18 @@ import kotlinx.html.script
 import kotlinx.html.ul
 import kotlinx.html.unsafe
 
-fun FlowContent.BasicMovieList(moview: List<CachedMovies.Movie>) {
+fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
     script {
         unsafe { +Resources.bookmarkJs }
     }
     ul(classes = "movie-list") {
-        for (movie in moview) {
+        for (movie in movies) {
             MovieListItem(movie)
         }
     }
 }
 
-fun FlowContent.SelectableMovieList(moview: List<CachedMovies.Movie>) {
+fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) {
     script {
         unsafe {
             +Resources.bookmarkJs
@@ -26,7 +26,7 @@ fun FlowContent.SelectableMovieList(moview: List<CachedMovies.Movie>) {
         }
     }
     ul(classes = "movie-list") {
-        for (movie in moview) {
+        for (movie in movies) {
             SelectableMovieListItem(movie)
         }
     }
