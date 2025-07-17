@@ -1,6 +1,7 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.util.Resources
+import de.amklee.monomovie.util.property
 import io.ktor.server.html.*
 import kotlinx.html.*
 
@@ -14,12 +15,12 @@ class HtmlTemplate(private val title: String): Template<HTML> {
             meta(name = "color-scheme", content = "dark light")
             title(this@HtmlTemplate.title)
 
-            meta(content = this@HtmlTemplate.title) { name = "og:title" }
-            meta(content = "website") { name = "og:type" }
-            meta(content = "https://mmv.amklee.de/") { name = "og:url" }
-            meta(content = "Monomovie") { name = "og:site_name" }
-            meta(content = "Discover, bookmark and select movies for playback.") { name = "og:description" }
-            meta(content = "https://mmv.amklee.de/og-image.png") { name = "og:image" }
+            meta(content = this@HtmlTemplate.title) { property = "og:title" }
+            meta(content = "website") { property = "og:type" }
+            meta(content = "https://mmv.amklee.de/") { property = "og:url" }
+            meta(content = "Monomovie") { property = "og:site_name" }
+            meta(content = "Discover, bookmark and select movies for playback.") { property = "og:description" }
+            meta(content = "https://mmv.amklee.de/og-image.png") { property = "og:image" }
 
             link(rel = "manifest", href = "/static/site.webmanifest")
             link(rel = "apple-touch-icon", href = "/static/apple-touch-icon.png")
