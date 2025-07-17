@@ -5,6 +5,15 @@ import de.amklee.monomovie.CachedMovies.getOffers
 import io.ktor.util.*
 import kotlinx.html.*
 
+private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
+    if (movie.mediaEntry.id == null) return
+
+    span(classes = "watched-button${if (movie.isWatched) " watched" else ""}") {
+        onClick = "watch('${movie.mediaEntry.id}', this)"
+        i(classes = "watched-icon rating-logo")
+    }
+}
+
 private fun FlowContent.Offers(movie: CachedMovies.Movie) {
     ul(classes = "offer-list") {
         for (offer in movie.getOffers()) {
@@ -81,6 +90,7 @@ private fun FlowContent.MovieItem(movie: CachedMovies.Movie) {
             div(classes = "movie-title-bar") {
                 p(classes = "movie-title") { +movieTitle }
                 div(classes = "movie-rating-container") {
+                    WatchedButton(movie)
                     Ratings(movie)
                 }
             }

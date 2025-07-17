@@ -44,7 +44,7 @@ fun FlowContent.SearchPage(title: String, searchResults: SearchTitles?) {
         return
     }
     val mediaEntries = searchResults.edges.map {
-        CachedMovies.Movie(it.node, false, System.currentTimeMillis())
+        CachedMovies.Movie(it.node, isBookmarked = false, isWatched = false, cacheDate = System.currentTimeMillis())
     }
 
     SearchBar(title)
@@ -76,7 +76,7 @@ fun MoreSearchResults(searchResults: SearchTitles?): MoreSearchResultsResponse {
     }
 
     val mediaEntries = searchResults.edges.map {
-        CachedMovies.Movie(it.node, false, System.currentTimeMillis())
+        CachedMovies.Movie(it.node, isBookmarked = false, isWatched = false, cacheDate = System.currentTimeMillis())
     }
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
@@ -199,6 +199,28 @@ fun Route.miscRoutes() {
             }
         }
     }
+    post("/watch/{movieId}") {
+        val movieId = call.parameters["movieId"]
+
+        if (movieId == null) {
+            call.respond(HttpStatusCode.BadRequest, "Missing movie ID")
+            return@post
+        }
+
+        CachedMovies.setWatch(movieId)
+        call.respond(HttpStatusCode.OK)
+    }
+    delete("/watch/{movieId}") {
+        val movieId = call.parameters["movieId"]
+
+        if (movieId == null) {
+            call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
+            return@delete
+        }
+
+        CachedMovies.deleteWatch(movieId)
+        call.respond(HttpStatusCode.OK)
+    }
     post("/roulette") {
         val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
 
@@ -246,6 +268,11 @@ fun main() {
                 SystemLoggerPlus.forName(call.request.path()).error("Uncaught exception", cause)
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
+            // TODO: remove, for debugging
+//            status(HttpStatusCode.NotFound) {
+//                SystemLoggerPlus.forName(call.request.path()).warn("404 Not Found: ${call.request.uri}")
+//                call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
+//            }
         }
     }.start(wait = true)
 }

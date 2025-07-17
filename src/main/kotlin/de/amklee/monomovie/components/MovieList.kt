@@ -8,7 +8,10 @@ import java.time.format.DateTimeFormatter
 
 fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
     script {
-        unsafe { +Resources.bookmarkJs }
+        unsafe {
+            +Resources.bookmarkJs
+            +Resources.watchedJs
+        }
     }
     ul(classes = "movie-list") {
         for (movie in movies) {
@@ -20,7 +23,10 @@ fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) {
     script {
-        unsafe { +Resources.bookmarkJs }
+        unsafe {
+            +Resources.bookmarkJs
+            +Resources.watchedJs
+        }
     }
     ul(classes = "movie-list") {
         for ((date, movies) in movies
@@ -41,6 +47,7 @@ fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) {
     script {
         unsafe {
             +Resources.bookmarkJs
+            +Resources.watchedJs
             +Resources.selectableJs
         }
     }

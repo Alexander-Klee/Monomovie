@@ -1,6 +1,9 @@
 function bookmark(movieId, el, isDoubleClick) {
     const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
     if (isSmallScreen !== isDoubleClick) return;
+
+    // TODO the previous element from el is the checkbox, so we can use it to uncheck all checkboxes with the same movieId
+    // el.parentNode
     document.querySelectorAll("#" + movieId).forEach(checkbox => {
         checkbox.checked = false;
     });

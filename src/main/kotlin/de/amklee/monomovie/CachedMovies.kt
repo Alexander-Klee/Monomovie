@@ -4,7 +4,7 @@ import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 
 object CachedMovies {
-    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, val cacheDate: Long)
+    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Long)
     fun Movie.getOffers() = mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
     private val cache = mutableMapOf<String, Movie>()
@@ -16,7 +16,11 @@ object CachedMovies {
         return cache[id] ?: run {
             val details = justWatch.details(id)
             if (details != null) {
-                val movie = Movie(mediaEntry = details, isBookmarked = BookmarksDB.isBookmarked(id), cacheDate = System.currentTimeMillis())
+                val movie = Movie(
+                    mediaEntry = details,
+                    isBookmarked = BookmarksDB.isBookmarked(id),
+                    isWatched = id in WatchedDB,
+                    cacheDate = System.currentTimeMillis())
                 cache[id] = movie
                 return@run movie
             }
@@ -42,8 +46,21 @@ object CachedMovies {
         return movie
     }
 
-    fun watch(id: String) {
-        WatchedDB.watch(id)
+    suspend fun setWatch(id: String) {
+        val movie = get(id) ?: return
+        if (movie.isWatched) {
+            // TODO maybe increment watch count or unwatch
+            return
+        }
+        movie.isWatched = true
+        WatchedDB.setWatch(id)
+    }
+
+    suspend fun deleteWatch(id: String) {
+        val movie = get(id) ?: return
+        if (!movie.isWatched) return
+        movie.isWatched = false
+        WatchedDB.deleteWatch(id)
     }
 
     suspend fun search(title: String?, cursor: String? = null, numResults: Int = 4): SearchTitles?

@@ -27,7 +27,7 @@ object WatchedDB {
 
     operator fun contains(id: String): Boolean = watchedDB.watched.any { it.id == id }
 
-    fun watch(id: String) {
+    fun setWatch(id: String) {
         if (contains(id)) {
             // maybe increment watch count or something
             return
@@ -36,6 +36,13 @@ object WatchedDB {
             watched = watchedDB.watched + listOf(
             WatchedItem1(id, Instant.now().epochSecond)
         ))
+        save()
+    }
+
+    fun deleteWatch(id: String) {
+        watchedDB = watchedDB.copy(
+            watched = watchedDB.watched.filter { it.id != id }
+        )
         save()
     }
 
