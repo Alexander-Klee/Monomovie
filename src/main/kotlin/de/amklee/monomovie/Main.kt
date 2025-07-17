@@ -1,8 +1,8 @@
 package de.amklee.monomovie
 
-import de.amklee.monomovie.components.*
-import de.amklee.monomovie.util.Resources
-import de.amklee.monomovie.util.buildULHtml
+import de.amklee.monomovie.components.HtmlTemplate
+import de.amklee.monomovie.components.WatchedMovieList
+import de.amklee.monomovie.pages.*
 import de.amklee.monomovie.util.respondHtmlTemplate
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.http.*
@@ -17,112 +17,14 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import kotlinx.html.*
-import kotlinx.serialization.Serializable
-import org.intellij.lang.annotations.Language
+import kotlinx.html.h1
+import kotlinx.html.p
 
-@Language("HTML")
-fun FlowContent.SearchBar(title: String) {
-    div(classes = "search-bar") {
-        getForm(action = "/search") {
-            button(classes = "search-button", type = ButtonType.submit) {
-                // language=HTML
-                unsafe { +Resources.searchSvg }
-            }
-            textInput(name = "title", classes = "search-input") {
-                placeholder = "Search for a movie…"
-                value = title
-            }
-        }
-    }
-}
 
-fun FlowContent.SearchPage(title: String, searchResults: SearchTitles?) {
-    if (searchResults == null) {
-        SearchBar("")
-        p { +"Please enter a title to search for." }
-        return
-    }
-    val mediaEntries = searchResults.edges.map {
-        CachedMovies.Movie(it.node, isBookmarked = false, isWatched = false, cacheDate = System.currentTimeMillis())
-    }
+val wheelOfNames = WheelOfNames(
+    System.getenv("WHEEL_OF_NAMES_API_KEY")
+        ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
 
-    SearchBar(title)
-
-    script {
-        unsafe {
-            +Resources.infiniteScrollJs.replace($$"$endCursor$", searchResults.pageInfo.endCursor)
-        }
-    }
-
-    if (searchResults.edges.isEmpty()) {
-        p { +"No Search Results" }
-    } else {
-        h4 { +"Search Results:" }
-        BasicMovieList(mediaEntries)
-    }
-}
-
-@Serializable
-data class MoreSearchResultsResponse(
-    val cursor: String,
-    val html: String,
-    val hasNextPage: Boolean
-)
-
-fun MoreSearchResults(searchResults: SearchTitles?): MoreSearchResultsResponse {
-    if (searchResults == null || searchResults.edges.isEmpty()) {
-        return MoreSearchResultsResponse("", "", false)
-    }
-
-    val mediaEntries = searchResults.edges.map {
-        CachedMovies.Movie(it.node, isBookmarked = false, isWatched = false, cacheDate = System.currentTimeMillis())
-    }
-    return MoreSearchResultsResponse(
-        searchResults.pageInfo.endCursor,
-        buildULHtml {
-            for (movie in mediaEntries) {
-                MovieListItem(movie)
-            }
-        },
-        searchResults.pageInfo.hasNextPage
-    )
-}
-
-fun FlowContent.BookmarkPage(movies: List<CachedMovies.Movie>) {
-    h1 { +"Bookmarked Movies:" }
-    if (movies.isEmpty()) {
-        p { +"No bookmarked movies found" }
-        return
-    }
-    postForm(action = "/roulette", classes = "roulette-form") {
-        submitInput(classes = "roulette-button") {
-            disabled = true
-            value = "Roulette"
-        }
-        SelectableMovieList(movies)
-    }
-}
-
-fun FlowContent.RoulettePage(movies: List<CachedMovies.Movie>) {
-    postForm("/roulette/submit") {
-        ul(classes = "roulette-list") {
-            for (movie in movies) {
-                RouletteMovieListItem(movie)
-            }
-        }
-        submitInput(classes = "roulette-button") {
-            value = "Start Roulette"
-        }
-    }
-}
-
-fun FlowContent.HomePage(bookmarkedMovies: List<CachedMovies.Movie>) {
-    SearchBar("")
-    BookmarkPage(bookmarkedMovies)
-}
-
-val wheelOfNames = WheelOfNames(System.getenv("WHEEL_OF_NAMES_API_KEY") ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
 fun Route.miscRoutes() {
     get("/") {
         call.respondHtmlTemplate(HtmlTemplate("Monomovie")) {
@@ -271,7 +173,7 @@ fun main() {
                 SystemLoggerPlus.forName(call.request.path()).error("Uncaught exception", cause)
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
-            // TODO: remove, for debugging
+//             TODO: remove, for debugging
 //            status(HttpStatusCode.NotFound) {
 //                SystemLoggerPlus.forName(call.request.path()).warn("404 Not Found: ${call.request.uri}")
 //                call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
