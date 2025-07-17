@@ -1,9 +1,12 @@
 package de.amklee.monomovie.db
 
+import de.amklee.monomovie.CachedMovies
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.nio.file.Path
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -14,6 +17,7 @@ object WatchedDB {
         prettyPrint = true
         ignoreUnknownKeys = true
     }
+    data class WatchedItem(val item: CachedMovies.Movie, val watchedAt: LocalDateTime)
 
     private var watchedDB: WatchedDB1 = openWatchedDb()
 
@@ -35,9 +39,17 @@ object WatchedDB {
         save()
     }
 
-    fun getWatched(): List<String> = watchedDB.watched
+    suspend fun getWatched(): List<WatchedItem> = watchedDB.watched
         .sortedByDescending { it.watchedAt }
-        .map { it.id }
+        .mapNotNull {
+            WatchedItem(
+                CachedMovies.get(it.id) ?: return@mapNotNull null,
+                LocalDateTime.ofInstant(
+                    Instant.ofEpochSecond(it.watchedAt),
+                    ZoneId.of("Europe/Berlin")
+                )
+            )
+        }
 
     private fun openWatchedDb(path: Path = Path("watched.json")): WatchedDB1 {
         if (!path.exists()) {

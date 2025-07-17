@@ -194,7 +194,7 @@ fun Route.miscRoutes() {
                     p { +"No watched movies found" }
                 } else {
                     h1 { +"Watched Movies:" }
-                    BasicMovieList(watchedMovies)
+                    WatchedMovieList(watchedMovies)
                 }
             }
         }

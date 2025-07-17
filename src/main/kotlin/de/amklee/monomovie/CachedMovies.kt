@@ -49,7 +49,7 @@ object CachedMovies {
     suspend fun search(title: String?, cursor: String? = null, numResults: Int = 4): SearchTitles?
         = if (title.isNullOrBlank()) null else justWatch.search(title = title, cursor = cursor, count = numResults)
 
-    suspend inline fun getWatchedMovies(): List<Movie> = WatchedDB.getWatched().mapNotNull { id -> get(id) }
+    suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
     suspend inline fun getBookmarkedMovies(displayHidden: Boolean) = (
             if (displayHidden) BookmarksDB.getAllBookmarks().map { it.first }
             else BookmarksDB.getBookmarks()

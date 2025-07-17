@@ -1,11 +1,10 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.CachedMovies
+import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.util.Resources
-import kotlinx.html.FlowContent
-import kotlinx.html.script
-import kotlinx.html.ul
-import kotlinx.html.unsafe
+import kotlinx.html.*
+import java.time.format.DateTimeFormatter
 
 fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
     script {
@@ -14,6 +13,26 @@ fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
     ul(classes = "movie-list") {
         for (movie in movies) {
             MovieListItem(movie)
+        }
+    }
+}
+
+private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
+fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) {
+    script {
+        unsafe { +Resources.bookmarkJs }
+    }
+    ul(classes = "movie-list") {
+        for ((date, movies) in movies
+            .groupBy { it.watchedAt.toLocalDate() }
+            .entries.sortedByDescending { it.key }
+        ) {
+            li(classes = "watched-date") {
+                +date.format(dateFormatter)
+            }
+            for (movie in movies) {
+                MovieListItem(movie.item)
+            }
         }
     }
 }
