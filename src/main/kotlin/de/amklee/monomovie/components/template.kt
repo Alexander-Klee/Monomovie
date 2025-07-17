@@ -32,6 +32,10 @@ inline fun htmlTemplate(title: String, body: String, Nav: () -> String): String 
             <meta property="og:description" content="Discover, bookmark and select movies for playback." />
             <meta property="og:image" content="https://mmv.amklee.de/og-image.png" />
             
+            <link rel="manifest" href="/static/site.webmanifest" />
+            <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+            <link rel="icon" type="image/png" href="/static/favicon-96x96.png" sizes="96x96">
+            
             <style>
                 ${Resources.style}
             </style>
