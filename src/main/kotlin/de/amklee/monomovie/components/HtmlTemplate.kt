@@ -5,7 +5,9 @@ import de.amklee.monomovie.util.property
 import io.ktor.server.html.*
 import kotlinx.html.*
 
-class HtmlTemplate(private val title: String): Template<HTML> {
+class HtmlTemplate(title: String): Template<HTML> {
+    private val title: String = if (title.endsWith("Monomovie")) title else "$title - Monomovie"
+
     val body = Placeholder<FlowContent>()
 
     override fun HTML.apply() {

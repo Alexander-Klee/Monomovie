@@ -133,7 +133,7 @@ fun Route.miscRoutes() {
         }
     }
     get("/search") {
-        val title = call.request.queryParameters["title"]?.escapeHTML()
+        val title = call.request.queryParameters["title"]
         val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
         call.respondHtmlTemplate(HtmlTemplate(title?.let { "$it Search" } ?: "Search")) {
@@ -144,8 +144,8 @@ fun Route.miscRoutes() {
         }
     }
     post("/moreSearchResults") {
-        val title = call.request.queryParameters["title"]?.escapeHTML()
-        val cursor = call.request.queryParameters["cursor"]?.escapeHTML()
+        val title = call.request.queryParameters["title"]
+        val cursor = call.request.queryParameters["cursor"]
 
         if (title.isNullOrBlank()) {
             call.respond(HttpStatusCode.BadRequest, "Missing title parameter")
