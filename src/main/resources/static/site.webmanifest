@@ -1,6 +1,8 @@
 {
   "name": "Monomovie",
   "short_name": "Monomovie",
+  "description": "Discover, bookmark and select movies for playback.",
+  "lang": "en-US",
   "icons": [
     {
       "src": "/static/web-app-manifest-192x192.png",
@@ -13,6 +15,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshot-wide.png",
+      "sizes": "1920x1008",
+      "form_factor": "narrow",
+      "label": "Screenshot of the Monomovie Homepage."
+    },
+    {
+      "src": "/static/screenshot-narrow.png",
+      "sizes": "419x911",
+      "form_factor": "wide",
+      "label": "Screenshot of the Monomovie Homepage."
     }
   ],
   "start_url": "/",
