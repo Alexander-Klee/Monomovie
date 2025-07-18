@@ -21,13 +21,13 @@
     {
       "src": "/static/screenshot-wide.png",
       "sizes": "1920x1008",
-      "form_factor": "narrow",
+      "form_factor": "wide",
       "label": "Screenshot of the Monomovie Homepage."
     },
     {
       "src": "/static/screenshot-narrow.png",
       "sizes": "419x911",
-      "form_factor": "wide",
+      "form_factor": "narrow",
       "label": "Screenshot of the Monomovie Homepage."
     }
   ],
