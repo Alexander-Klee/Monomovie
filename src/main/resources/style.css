@@ -218,7 +218,6 @@ h1 {
 
 .movie-offers {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     margin: 0.3rem;
     max-width: 20%;
@@ -307,7 +306,7 @@ h1 {
 /* SEARCH BAR*/
 
 .search-bar {
-    padding-top: 2em;
+    padding-top: 1em;
     display: flex;
     justify-content: center;
 }
@@ -485,6 +484,7 @@ h1 {
         font-size: 0.85rem;
     }
     .search-bar {
+        padding-top: 0;
         justify-content: flex-end;
     }
     .search-bar form {
