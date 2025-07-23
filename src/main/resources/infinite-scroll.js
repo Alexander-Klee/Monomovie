@@ -2,7 +2,7 @@ let hasNextPage = true;
 let lastCursor = "$endCursor$";
 let isLoading = false;
 
-function getMoreMovies() {
+function getMoreMovies(infinite_list) {
     if (isLoading) return;
     isLoading = true;
 
@@ -15,28 +15,30 @@ function getMoreMovies() {
 
     fetch("/moreSearchResults?" + formData.toString(), {
         method: "POST"
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
-            }
-            return response.json();
-        }).then(data => {
-        document.querySelector(".movie-list").insertAdjacentHTML('beforeend', data.html );
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json();
+    }).then(data => {
+        infinite_list.insertAdjacentHTML('beforeend', data.html );
         hasNextPage = data.hasNextPage;
         lastCursor = data.cursor;
-    })
-        .catch(error => {
-            console.error("Fetch error:", error);
-        })
-        .finally(() => {
-            isLoading = false;
-        });
+    }).catch(error => {
+        console.error("Fetch error:", error);
+    }).finally(() => {
+        isLoading = false;
+    });
 }
 
-window.addEventListener("scroll", () => {
-    if (document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight
-        && hasNextPage) {
-        getMoreMovies();
-    }
-});
+document.addEventListener("DOMContentLoaded", () => {
+    const infinite_list = document.getElementById('infinite-list');
+    const main = document.querySelector('main');
+
+    main.addEventListener("scroll", () => {
+        if (main.scrollTop + main.clientHeight >= main.scrollHeight
+            && hasNextPage) {
+            getMoreMovies(infinite_list);
+        }
+    });
+})

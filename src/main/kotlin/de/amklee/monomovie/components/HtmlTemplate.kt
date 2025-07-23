@@ -54,7 +54,7 @@ class HtmlTemplate(title: String): Template<HTML> {
 }
 
 fun FlowContent.NavBar() {
-    nav {
+    nav(classes = "navbar") {
         h1 { +"Movies" }
         ul(classes = "nav-list") {
             li { a(href = "/") { +"Home" } }

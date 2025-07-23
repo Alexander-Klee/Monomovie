@@ -2,8 +2,8 @@ package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.SearchTitles
-import de.amklee.monomovie.components.BasicMovieList
 import de.amklee.monomovie.components.MovieListItem
+import de.amklee.monomovie.components.SearchMovieList
 import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
 import kotlinx.html.*
@@ -45,7 +45,7 @@ fun FlowContent.SearchPage(title: String, searchResults: SearchTitles?) {
         p { +"No Search Results" }
     } else {
         h4 { +"Search Results:" }
-        BasicMovieList(mediaEntries)
+        SearchMovieList(mediaEntries)
     }
 }
 

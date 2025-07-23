@@ -20,6 +20,21 @@ fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
     }
 }
 
+fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) {
+    script {
+        unsafe {
+            +Resources.bookmarkJs
+            +Resources.watchedJs
+        }
+    }
+    ul(classes = "movie-list") {
+        attributes["id"] = "infinite-list"
+        for (movie in movies) {
+            MovieListItem(movie)
+        }
+    }
+}
+
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) {
     script {
