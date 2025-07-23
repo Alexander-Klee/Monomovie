@@ -28,7 +28,7 @@ fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) {
         }
     }
     ul(classes = "movie-list") {
-        attributes["id"] = "infinite-list"
+        id = "infinite-list"
         for (movie in movies) {
             MovieListItem(movie)
         }

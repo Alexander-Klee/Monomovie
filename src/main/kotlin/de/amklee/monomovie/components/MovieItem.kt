@@ -2,7 +2,6 @@ package de.amklee.monomovie.components
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
-import io.ktor.util.*
 import kotlinx.html.*
 
 private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
@@ -75,15 +74,18 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
 }
 
 private fun FlowContent.MovieItem(movie: CachedMovies.Movie) {
-    val movieId = movie.mediaEntry.id?.escapeHTML()
-    val movieTitle = movie.mediaEntry.content?.title?.escapeHTML() ?: "Unknown Title"
+    val movieId = movie.mediaEntry.id
+    val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
+    val posterUrl = movie.mediaEntry.content?.posterUrl?.let {
+        "https://images.justwatch.com$it"
+    }
 
     div(classes = "movie-item bookmark-container") {
         span(classes = "movie-poster" + if (movie.isBookmarked) " bookmarked" else "") {
             onClick = "return bookmark('$movieId', this, false)"
             onDoubleClick = "return bookmark('$movieId', this, true)"
             span(classes = "bookmark-icon")
-            img(classes = "movie-poster", src = "https://images.justwatch.com${movie.mediaEntry.content?.posterUrl}", alt = movieTitle)
+            img(classes = "movie-poster", src = posterUrl, alt = movieTitle)
         }
 
         div(classes = "movie-details") {
