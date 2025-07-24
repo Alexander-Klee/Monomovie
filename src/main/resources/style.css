@@ -438,8 +438,8 @@ h1 {
 }
 .floating-action-button svg {
     fill: var(--text-color-light);
-    width: 23px;
-    height: 23px;
+    width: 2rem;
+    height: 2rem;
     display: block;
     padding: 1px;
 }
