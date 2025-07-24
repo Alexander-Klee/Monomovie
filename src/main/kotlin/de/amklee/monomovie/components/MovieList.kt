@@ -72,3 +72,16 @@ fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) {
         }
     }
 }
+
+fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) {
+    script {
+        unsafe {
+            +Resources.watchedJs
+        }
+    }
+    ul(classes = "movie-list") {
+        for (movie in movies) {
+            RouletteMovieListItem(movie)
+        }
+    }
+}

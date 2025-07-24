@@ -132,7 +132,7 @@ fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
 }
 
 fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
-    li(classes = "movie-list") {
+    li(classes = "movie-list-item") {
         label {
             htmlFor = movie.mediaEntry.id ?: ""
             numberInput(classes = "roulette-weight", name = movie.mediaEntry.id) {
