@@ -33,35 +33,17 @@ class HtmlTemplate(title: String): Template<HTML> {
             }
         }
         body {
-            checkBoxInput(name = "menu-toggle", classes = "menu-toggle") {
-                id = "menu-toggle"
-                attributes["aria-label"] = "Open menu"
-                style = "display:none"
-            }
-            label(classes = "menu-button floating-action-button") {
-                htmlFor = "menu-toggle"
-                unsafe { +Resources.menuSvg }
-            }
-            label(classes = "menu-overlay") {
-                htmlFor = "menu-toggle"
-            }
-            button(classes = "floating-action-button top-button") {
-                id = "top_button"
-                onClick = "gotoTop()"
-                unsafe { +Resources.arrowUpSvg }
-            }
-
+            MenuButton()
+            TopButton()
             NavBar()
 
             main {
                 id = "main"
-
                 script {
                     unsafe {
                         +Resources.topbuttonJs
                     }
                 }
-
                 div(classes = "content") {
                     insert(body)
                 }
@@ -81,5 +63,28 @@ fun FlowContent.NavBar() {
             li { a(href = "https://jellyfin.amklee.de") { +"Jellyfin" } }
             li { a(href = "https://amklee.de/recipe") { +"Recipes" } }
         }
+    }
+}
+
+fun FlowContent.MenuButton() {
+    checkBoxInput(name = "menu-toggle", classes = "menu-toggle") {
+        id = "menu-toggle"
+        attributes["aria-label"] = "Open menu"
+        style = "display:none"
+    }
+    label(classes = "menu-button floating-action-button") {
+        htmlFor = "menu-toggle"
+        unsafe { +Resources.menuSvg }
+    }
+    label(classes = "menu-overlay") {
+        htmlFor = "menu-toggle"
+    }
+}
+
+fun FlowContent.TopButton() {
+    button(classes = "floating-action-button top-button") {
+        id = "top_button"
+        onClick = "gotoTop()"
+        unsafe { +Resources.arrowUpSvg }
     }
 }
