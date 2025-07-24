@@ -33,25 +33,35 @@ class HtmlTemplate(title: String): Template<HTML> {
             }
         }
         body {
-            input(type = InputType.checkBox, name = "menu-toggle") {
+            checkBoxInput(name = "menu-toggle", classes = "menu-toggle") {
                 id = "menu-toggle"
-                classes = setOf("menu-toggle")
                 attributes["aria-label"] = "Open menu"
                 style = "display:none"
             }
-            label {
+            label(classes = "menu-button floating-action-button") {
                 htmlFor = "menu-toggle"
-                classes = setOf("menu-button")
                 unsafe { +Resources.menuSvg }
             }
-            label {
+            label(classes = "menu-overlay") {
                 htmlFor = "menu-toggle"
-                classes = setOf("menu-overlay")
+            }
+            button(classes = "floating-action-button top-button") {
+                id = "top_button"
+                onClick = "gotoTop()"
+                unsafe { +Resources.arrowUpSvg }
             }
 
             NavBar()
 
             main {
+                id = "main"
+
+                script {
+                    unsafe {
+                        +Resources.topbuttonJs
+                    }
+                }
+
                 div(classes = "content") {
                     insert(body)
                 }

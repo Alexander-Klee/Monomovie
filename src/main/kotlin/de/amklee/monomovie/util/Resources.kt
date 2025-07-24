@@ -9,6 +9,8 @@ import kotlin.reflect.KProperty
 object Resources {
     val style by Resource("style.css")
     val menuSvg by Resource("graphics/menu.svg")
+    val arrowUpSvg by Resource("graphics/arrowup.svg")
+    val topbuttonJs by Resource("topbutton.js")
     val bookmarkJs by Resource("bookmark.js")
     val watchedJs by Resource("watched.js")
     val selectableJs by Resource("selectable.js")

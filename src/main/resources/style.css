@@ -421,31 +421,43 @@ h1 {
     text-decoration: underline;
 }
 
-
-/* For Phones*/
-.menu-toggle {
+.menu-toggle, .menu-button {
     display: none;
 }
 
-.menu-button {
-    display: none;
+.floating-action-button {
     position: fixed;
-    top: 0.5rem;
-    left: 0.5rem;
     background: var(--secondary-color);
     border: none;
-    border-radius: 50%;
+    border-radius: 20%;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     z-index: 200;
     padding: 0.5em;
     cursor: pointer;
+    display: block;
 }
-.menu-button svg {
+.floating-action-button svg {
     fill: var(--text-color-light);
     width: 23px;
     height: 23px;
     display: block;
     padding: 1px;
+}
+.top-button {
+    bottom: 3rem;
+    right: 2rem;
+    display: none;
+}
+
+.show-top-button {
+    display: block;
+}
+
+/* For Phones*/
+.menu-button {
+    display: none;
+    top: 0.5rem;
+    left: 0.5rem;
 }
 
 .menu-overlay {
