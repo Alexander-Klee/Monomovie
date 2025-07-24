@@ -2,7 +2,7 @@ let hasNextPage = true;
 let lastCursor = "$endCursor$";
 let isLoading = false;
 
-function getMoreMovies(infinite_list) {
+function getMoreMovies(infinite_list, callback) {
     if (isLoading) return;
     isLoading = true;
 
@@ -28,17 +28,21 @@ function getMoreMovies(infinite_list) {
         console.error("Fetch error:", error);
     }).finally(() => {
         isLoading = false;
+        if (callback) {
+            callback();
+        }
     });
+}
+
+function handleScroll(infinite_list) {
+    if (main.scrollTop + main.clientHeight >= main.scrollHeight && hasNextPage) {
+        getMoreMovies(infinite_list, () => handleScroll(infinite_list));
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     const infinite_list = document.getElementById('infinite-list');
-    const main = document.querySelector('main');
 
-    main.addEventListener("scroll", () => {
-        if (main.scrollTop + main.clientHeight >= main.scrollHeight
-            && hasNextPage) {
-            getMoreMovies(infinite_list);
-        }
-    });
+    main.addEventListener("scroll", () => handleScroll(infinite_list));
+    handleScroll(infinite_list);
 })
