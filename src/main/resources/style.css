@@ -47,7 +47,17 @@ main {
     padding: 1em;
     background: var(--primary-color);
     overflow: auto;
+    flex: auto;
+    justify-content: center;
+    display: flex;
 }
+
+.content {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+}
+
 
 h1 {
     font-size: 1.8rem;

@@ -47,7 +47,9 @@ class HtmlTemplate(title: String): Template<HTML> {
 
             main {
                 onClick = "closeMenu()"
-                insert(body)
+                div(classes = "content") {
+                    insert(body)
+                }
             }
         }
     }
