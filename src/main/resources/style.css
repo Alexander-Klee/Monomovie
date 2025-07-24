@@ -331,17 +331,20 @@ h1 {
     display: flex;
     align-items: center;
     background-color: var();
+    border: 1px solid var(--border-color);
     border-radius: 50px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
     padding: 0 1rem;
     width: 100%;
     max-width: 500px;
-    transition: box-shadow 0.3s ease;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-bar form:focus-within {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color-primary);
 }
+
 
 .search-bar button {
     background: none;
@@ -428,12 +431,13 @@ h1 {
     background: var(--secondary-color);
     border: none;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     z-index: 200;
     padding: 0.5em;
     cursor: pointer;
 }
 .menu-button svg {
+    fill: var(--text-color-light);
     width: 23px;
     height: 23px;
     display: block;
