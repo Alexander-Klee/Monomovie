@@ -6,82 +6,55 @@ import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 import java.time.format.DateTimeFormatter
 
-fun FlowContent.BasicMovieList(movies: List<CachedMovies.Movie>) {
+inline fun FlowContent.MovieList(script: String, crossinline body: UL.() -> Unit) {
     script {
         unsafe {
-            +Resources.bookmarkJs
-            +Resources.watchedJs
+            +script
         }
     }
     ul(classes = "movie-list") {
-        for (movie in movies) {
-            MovieListItem(movie)
-        }
+        body()
     }
 }
 
-fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) {
-    script {
-        unsafe {
-            +Resources.bookmarkJs
-            +Resources.watchedJs
-        }
-    }
-    ul(classes = "movie-list") {
-        id = "infinite-list"
-        for (movie in movies) {
-            MovieListItem(movie)
-        }
+fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs
+) {
+    id = "infinite-list"
+    for (movie in movies) {
+        MovieListItem(movie)
     }
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
-fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) {
-    script {
-        unsafe {
-            +Resources.bookmarkJs
-            +Resources.watchedJs
+fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs
+) {
+    for ((date, movies) in movies
+        .groupBy { it.watchedAt.toLocalDate() }
+        .entries.sortedByDescending { it.key }
+    ) {
+        li(classes = "watched-date") {
+            +date.format(dateFormatter)
         }
-    }
-    ul(classes = "movie-list") {
-        for ((date, movies) in movies
-            .groupBy { it.watchedAt.toLocalDate() }
-            .entries.sortedByDescending { it.key }
-        ) {
-            li(classes = "watched-date") {
-                +date.format(dateFormatter)
-            }
-            for (movie in movies) {
-                MovieListItem(movie.item)
-            }
+        for (movie in movies) {
+            MovieListItem(movie.item)
         }
     }
 }
 
-fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) {
-    script {
-        unsafe {
-            +Resources.bookmarkJs
-            +Resources.watchedJs
-            +Resources.selectableJs
-        }
-    }
-    ul(classes = "movie-list") {
-        for (movie in movies) {
-            SelectableMovieListItem(movie)
-        }
+fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs
+) {
+    for (movie in movies) {
+        SelectableMovieListItem(movie)
     }
 }
 
-fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) {
-    script {
-        unsafe {
-            +Resources.watchedJs
-        }
-    }
-    ul(classes = "movie-list") {
-        for (movie in movies) {
-            RouletteMovieListItem(movie)
-        }
+fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+    Resources.watchedJs
+) {
+    for (movie in movies) {
+        RouletteMovieListItem(movie)
     }
 }
