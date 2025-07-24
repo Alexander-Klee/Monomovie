@@ -33,20 +33,25 @@ class HtmlTemplate(title: String): Template<HTML> {
             }
         }
         body {
-            //TODO this is awful!
-            //  A menu should never need JavaScript for basic functionality.
-            button(classes = "menu-button") {
-                onClick = "showMenu()"
+            input(type = InputType.checkBox, name = "menu-toggle") {
+                id = "menu-toggle"
+                classes = setOf("menu-toggle")
+                attributes["aria-label"] = "Open menu"
+                style = "display:none"
+            }
+            label {
+                htmlFor = "menu-toggle"
+                classes = setOf("menu-button")
                 unsafe { +Resources.menuSvg }
             }
-            script {
-                unsafe { +Resources.menuJs }
+            label {
+                htmlFor = "menu-toggle"
+                classes = setOf("menu-overlay")
             }
 
             NavBar()
 
             main {
-                onClick = "closeMenu()"
                 div(classes = "content") {
                     insert(body)
                 }
