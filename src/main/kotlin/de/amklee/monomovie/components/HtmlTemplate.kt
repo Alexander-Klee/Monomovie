@@ -55,13 +55,14 @@ class HtmlTemplate(title: String): Template<HTML> {
 fun FlowContent.NavBar() {
     nav(classes = "navbar") {
         h1 { +"Movies" }
+
         ul(classes = "nav-list") {
             li { a(href = "/") { +"Home" } }
             li { a(href = "/search") { +"Search" } }
             li { a(href = "/bookmarks") { +"Bookmarks" } }
             li { a(href = "/watched") { +"Watched" } }
             li { a(href = "https://jellyfin.amklee.de") { +"Jellyfin" } }
-            li { a(href = "https://amklee.de/recipe") { +"Recipes" } }
+            li { a(href = "https://recipes.amklee.de") { +"Recipes" } }
         }
     }
 }
