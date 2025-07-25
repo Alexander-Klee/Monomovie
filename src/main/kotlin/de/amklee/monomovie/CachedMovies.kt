@@ -2,12 +2,57 @@ package de.amklee.monomovie
 
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlin.io.path.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 object CachedMovies {
-    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Long)
+
+    @Serializable
+    data class Movie(
+        val mediaEntry: MediaEntry,
+        var isBookmarked: Boolean,
+        var isWatched: Boolean,
+        val cacheDate: Long
+    )
+
     fun Movie.getOffers() = mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
 
-    private val cache = mutableMapOf<String, Movie>()
+    private var _cache: MutableMap<String, Movie>? = null
+    private val cacheFile = Path("cached_movies.json")
+
+    val cache: MutableMap<String, Movie>
+        get() {
+            if (_cache == null) {
+                _cache = loadCache()
+            }
+            return _cache!!
+        }
+
+    private fun loadCache(): MutableMap<String, Movie> {
+        return if (cacheFile.exists()) {
+            try {
+                val jsonString = cacheFile.readText()
+                Json.decodeFromString<Map<String, Movie>>(jsonString).toMutableMap()
+            } catch (e: Exception) {
+                // TODO: log error
+                mutableMapOf()
+            }
+        } else {
+            mutableMapOf()
+        }
+    }
+
+    private fun saveCache() {
+        if (_cache != null) {
+            val jsonString = Json.encodeToString(_cache!!)
+            cacheFile.writeText(jsonString)
+        }
+    }
+
     private val justWatch = JustWatch(country = "DE", language = "en")
     private val bannedTypes = setOf("BUY", "RENT")
 
@@ -22,6 +67,7 @@ object CachedMovies {
                     isWatched = id in WatchedDB,
                     cacheDate = System.currentTimeMillis())
                 cache[id] = movie
+                saveCache()
                 return@run movie
             }
             null
