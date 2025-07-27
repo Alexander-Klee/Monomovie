@@ -2,51 +2,45 @@ package de.amklee.monomovie.components
 
 import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.property
-import io.ktor.server.html.*
 import kotlinx.html.*
 
-class HtmlTemplate(title: String): Template<HTML> {
-    private val title: String = if (title.endsWith("Monomovie")) title else "$title - Monomovie"
+inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
+    val title: String = if (title.endsWith("Monomovie")) title else "$title - Monomovie"
+    head {
+        meta(charset = "utf-8")
+        meta(name = "viewport", content = "width=device-width, initial-scale=1")
+        meta(name = "color-scheme", content = "dark light")
+        title(title)
 
-    val body = Placeholder<FlowContent>()
+        meta(content = title) { property = "og:title" }
+        meta(content = "website") { property = "og:type" }
+        meta(content = "https://mmv.amklee.de/") { property = "og:url" }
+        meta(content = "Monomovie") { property = "og:site_name" }
+        meta(content = "Discover, bookmark and select movies for playback.") { property = "og:description" }
+        meta(content = "https://mmv.amklee.de/og-image.png") { property = "og:image" }
 
-    override fun HTML.apply() {
-        head {
-            meta(charset = "utf-8")
-            meta(name = "viewport", content = "width=device-width, initial-scale=1")
-            meta(name = "color-scheme", content = "dark light")
-            title(this@HtmlTemplate.title)
+        link(rel = "manifest", href = "/static/site.webmanifest")
+        link(rel = "apple-touch-icon", href = "/static/apple-touch-icon.png")
+        link(rel = "icon", type = "image/png", href = "/static/favicon-96x96.png") { sizes = "96x96"}
 
-            meta(content = this@HtmlTemplate.title) { property = "og:title" }
-            meta(content = "website") { property = "og:type" }
-            meta(content = "https://mmv.amklee.de/") { property = "og:url" }
-            meta(content = "Monomovie") { property = "og:site_name" }
-            meta(content = "Discover, bookmark and select movies for playback.") { property = "og:description" }
-            meta(content = "https://mmv.amklee.de/og-image.png") { property = "og:image" }
-
-            link(rel = "manifest", href = "/static/site.webmanifest")
-            link(rel = "apple-touch-icon", href = "/static/apple-touch-icon.png")
-            link(rel = "icon", type = "image/png", href = "/static/favicon-96x96.png") { sizes = "96x96"}
-
-            style {
-                unsafe { +Resources.style }
-            }
+        style {
+            unsafe { +Resources.style }
         }
-        body {
-            MenuButton()
-            TopButton()
-            NavBar()
+    }
+    body {
+        MenuButton()
+        TopButton()
+        NavBar()
 
-            main {
-                id = "main"
-                script {
-                    unsafe {
-                        +Resources.topbuttonJs
-                    }
+        main {
+            id = "main"
+            script {
+                unsafe {
+                    +Resources.topbuttonJs
                 }
-                div(classes = "content") {
-                    insert(body)
-                }
+            }
+            div(classes = "content") {
+                body()
             }
         }
     }

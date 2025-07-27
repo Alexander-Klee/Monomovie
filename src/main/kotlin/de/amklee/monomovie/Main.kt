@@ -3,7 +3,7 @@ package de.amklee.monomovie
 import de.amklee.monomovie.components.HtmlTemplate
 import de.amklee.monomovie.components.WatchedMovieList
 import de.amklee.monomovie.pages.*
-import de.amklee.monomovie.util.respondHtmlTemplate
+import de.amklee.monomovie.util.respondHtml
 import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -27,10 +27,9 @@ val wheelOfNames = WheelOfNames(
 
 fun Route.miscRoutes() {
     get("/") {
-        call.respondHtmlTemplate(HtmlTemplate("Monomovie")) {
-            val bookmarkedMovies = CachedMovies.getBookmarkedMovies(displayHidden = false, displayWatched = false)
-            body {
-                HomePage(bookmarkedMovies)
+        call.respondHtml {
+            HtmlTemplate("Monomovie") {
+                HomePage(CachedMovies.getBookmarkedMovies(displayHidden = false, displayWatched = false))
             }
         }
     }
@@ -38,10 +37,9 @@ fun Route.miscRoutes() {
         val title = call.request.queryParameters["title"]
         val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
-        call.respondHtmlTemplate(HtmlTemplate(title?.let { "$it Search" } ?: "Search")) {
-            val results = CachedMovies.search(title = title, cursor = null, numResults = numResults)
-            body {
-                SearchPage(title ?: "", results)
+        call.respondHtml {
+            HtmlTemplate(title?.let { "$it Search" } ?: "Search") {
+                SearchPage(title ?: "", CachedMovies.search(title = title, cursor = null, numResults = numResults))
             }
         }
     }
@@ -84,17 +82,16 @@ fun Route.miscRoutes() {
         val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
         val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
 
-        call.respondHtmlTemplate(HtmlTemplate("Bookmarked Movies")) {
-            val movies = CachedMovies.getBookmarkedMovies(displayHidden, displayWatched)
-            body {
-                BookmarkPage(movies)
+        call.respondHtml {
+            HtmlTemplate("Bookmarked Movies") {
+                BookmarkPage(CachedMovies.getBookmarkedMovies(displayHidden, displayWatched))
             }
         }
     }
     get("/watched") {
         val watchedMovies = CachedMovies.getWatchedMovies()
-        call.respondHtmlTemplate(HtmlTemplate("Watched Movies")) {
-            body {
+        call.respondHtml {
+            HtmlTemplate("Watched Movies") {
                 if (watchedMovies.isEmpty()) {
                     p { +"No watched movies found" }
                 } else {
@@ -134,8 +131,8 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respondHtmlTemplate(HtmlTemplate("Roulette")) {
-            body {
+        call.respondHtml {
+            HtmlTemplate("Roulette") {
                 RoulettePage(selectedMovies)
             }
         }
