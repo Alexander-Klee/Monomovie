@@ -1,7 +1,6 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.util.Resources
-import de.amklee.monomovie.util.property
 import kotlinx.html.*
 
 inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {

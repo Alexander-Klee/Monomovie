@@ -53,7 +53,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
-    implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.2")
 }
 
 tasks.test {

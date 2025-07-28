@@ -8,12 +8,6 @@ import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
 import kotlinx.html.stream.createHTML
 
-var META.property: String
-    get() = attributes["property"] ?: throw IllegalStateException("Meta tag does not have a property attribute")
-    set(value) {
-        attributes["property"] = value
-    }
-
 // kotlinx.html does not come with helpers for easily building an HTML string, so we have to create our own.
 // These are needed for the infinite scroll feature in the search page.
 inline fun buildHtml(build: FlowContent.() -> Unit) = createHTML().apply {
