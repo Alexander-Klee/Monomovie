@@ -8,6 +8,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlin.math.sqrt
 
 object CachedMovies {
 
@@ -155,7 +156,7 @@ object CachedMovies {
             standardDeviationCacheAgeDays = if (cache.isEmpty()) 0.0 else {
                 val mean = cache.values.map { System.currentTimeMillis() - it.cacheDate }.average()
                 val variance = cache.values.map { (System.currentTimeMillis() - it.cacheDate - mean).let { it * it } }.average()
-                Math.sqrt(variance) / (1000 * 60 * 60 * 24)
+                sqrt(variance) / (1000 * 60 * 60 * 24)
             },
             medianCacheAgeDays = if (cache.isEmpty()) 0.0 else {
                 val sortedAges = cache.values.map { System.currentTimeMillis() - it.cacheDate }.sorted()
