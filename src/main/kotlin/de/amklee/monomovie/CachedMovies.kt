@@ -133,4 +133,42 @@ object CachedMovies {
             .filter { displayHidden || it.isBookmarked }
             .mapNotNull { get(it.id) }
             .filter { displayWatched || !it.isWatched }
+
+    @Serializable
+    data class Status(
+        val cachedMoviesSize: Int,
+        val bookmarkedMoviesSize: Int,
+        val watchedMoviesSize: Int,
+        val averageCacheAgeDays: Double,
+        val standardDeviationCacheAgeDays: Double,
+        val medianCacheAgeDays: Double,
+        val oldestCacheAgeDays: Double
+    )
+
+    private val json = Json { prettyPrint = true }
+    fun statusJson(): String {
+        val status = Status(
+            cachedMoviesSize = cache.size,
+            bookmarkedMoviesSize = cache.values.count { it.isBookmarked },
+            watchedMoviesSize = cache.values.count { it.isWatched },
+            averageCacheAgeDays = if (cache.isEmpty()) 0.0 else cache.values.map { System.currentTimeMillis() - it.cacheDate }.average() / (1000 * 60 * 60 * 24),
+            standardDeviationCacheAgeDays = if (cache.isEmpty()) 0.0 else {
+                val mean = cache.values.map { System.currentTimeMillis() - it.cacheDate }.average()
+                val variance = cache.values.map { (System.currentTimeMillis() - it.cacheDate - mean).let { it * it } }.average()
+                Math.sqrt(variance) / (1000 * 60 * 60 * 24)
+            },
+            medianCacheAgeDays = if (cache.isEmpty()) 0.0 else {
+                val sortedAges = cache.values.map { System.currentTimeMillis() - it.cacheDate }.sorted()
+                val middle = sortedAges.size / 2
+                val median = if (sortedAges.size % 2 == 0) {
+                    (sortedAges[middle - 1] + sortedAges[middle]) / 2.0
+                } else {
+                    sortedAges[middle].toDouble()
+                }
+                median / (1000 * 60 * 60 * 24)
+            },
+            oldestCacheAgeDays = (if (cache.isEmpty()) 0.0 else cache.values.maxOf { System.currentTimeMillis() - it.cacheDate } / (1000 * 60 * 60 * 24)).toDouble()
+        )
+        return json.encodeToString(status)
+    }
 }

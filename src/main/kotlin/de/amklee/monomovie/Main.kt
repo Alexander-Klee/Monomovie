@@ -157,6 +157,9 @@ fun Route.miscRoutes() {
                 }
             ))
     }
+    get("/CachedMovies.json") {
+        call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
+    }
     staticResources("/static", "static")
 }
 
