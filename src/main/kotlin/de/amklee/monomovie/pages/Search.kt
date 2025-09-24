@@ -1,7 +1,6 @@
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
-import de.amklee.monomovie.SearchTitles
 import de.amklee.monomovie.components.MovieListItem
 import de.amklee.monomovie.components.SearchMovieList
 import de.amklee.monomovie.util.Resources
@@ -23,16 +22,12 @@ fun FlowContent.SearchBar(title: String) {
     }
 }
 
-fun FlowContent.SearchPage(title: String, searchResults: SearchTitles?) {
-    if (searchResults == null) {
-        SearchBar("")
-        p { +"Please enter a title to search for." }
-        return
-    }
-    val mediaEntries = searchResults.edges.map {
-        CachedMovies.Movie(it.node, isBookmarked = false, isWatched = false, cacheDate = System.currentTimeMillis())
-    }
+fun FlowContent.EmptySearchPage() {
+    SearchBar("")
+    p { +"Please enter a title to search for." }
+}
 
+fun FlowContent.SearchPage(title: String, searchResults: CachedMovies.SearchResults) {
     SearchBar(title)
 
     script {
@@ -41,11 +36,11 @@ fun FlowContent.SearchPage(title: String, searchResults: SearchTitles?) {
         }
     }
 
-    if (searchResults.edges.isEmpty()) {
+    if (searchResults.movies.isEmpty()) {
         p { +"No Search Results" }
     } else {
         h4 { +"Search Results:" }
-        SearchMovieList(mediaEntries)
+        SearchMovieList(searchResults.movies)
     }
 }
 
@@ -56,18 +51,13 @@ data class MoreSearchResultsResponse(
     val hasNextPage: Boolean
 )
 
-fun MoreSearchResults(searchResults: SearchTitles?): MoreSearchResultsResponse {
-    if (searchResults == null || searchResults.edges.isEmpty()) {
-        return MoreSearchResultsResponse("", "", false)
-    }
+fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSearchResultsResponse {
+    if (searchResults.movies.isEmpty()) return MoreSearchResultsResponse("", "", false)
 
-    val mediaEntries = searchResults.edges.map {
-        CachedMovies.Movie(it.node, isBookmarked = false, isWatched = false, cacheDate = System.currentTimeMillis())
-    }
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
         buildULHtml {
-            for (movie in mediaEntries) {
+            for (movie in searchResults.movies) {
                 MovieListItem(movie)
             }
         },

@@ -109,8 +109,21 @@ object CachedMovies {
         WatchedDB.deleteWatch(id)
     }
 
-    suspend fun search(title: String?, cursor: String? = null, numResults: Int = 4): SearchTitles?
-        = if (title.isNullOrBlank()) null else justWatch.search(title = title, cursor = cursor, count = numResults)
+    data class SearchResults(
+        val movies: List<Movie>,
+        val pageInfo: PageInfo
+    )
+
+    suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults {
+        val res = justWatch.search(title = title, cursor = cursor, count = numResults)
+
+        return SearchResults(
+            res.edges
+                .mapNotNull { it.node.id }
+                .mapNotNull { get(it) },
+            res.pageInfo
+        )
+    }
 
     suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
     suspend inline fun getBookmarkedMovies(

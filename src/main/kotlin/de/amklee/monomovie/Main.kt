@@ -38,8 +38,13 @@ fun Route.miscRoutes() {
         val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
         call.respondHtml {
-            HtmlTemplate(title?.let { "$it Search" } ?: "Search") {
-                SearchPage(title ?: "", CachedMovies.search(title = title, cursor = null, numResults = numResults))
+            if (title.isNullOrBlank()) HtmlTemplate("Search") {
+                EmptySearchPage()
+            } else HtmlTemplate("$title Search") {
+                SearchPage(
+                    title,
+                    CachedMovies.search(title = title, cursor = null, numResults = numResults)
+                )
             }
         }
     }
@@ -52,9 +57,7 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        val searchResults = CachedMovies.search(title, cursor)
-
-        call.respond(MoreSearchResults(searchResults))
+        call.respond(MoreSearchResults(CachedMovies.search(title, cursor)))
     }
     post("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]
