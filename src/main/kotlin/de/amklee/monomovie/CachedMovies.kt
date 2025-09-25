@@ -24,6 +24,7 @@ object CachedMovies {
 
     private var _cache: MutableMap<String, Movie>? = null
     private val cacheFile = Path("cached_movies.json")
+    private val countries = setOf("DE", "US", "FR", "IT", "ES", "GB")
 
     val cache: MutableMap<String, Movie>
         get() {
@@ -124,6 +125,11 @@ object CachedMovies {
                 .mapNotNull { get(it) },
             res.pageInfo
         )
+    }
+
+    suspend fun getAllOffers(movie: Movie, countries: Set<String> = CachedMovies.countries): Map<String, List<Offer>> {
+        if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
+        return justWatch.offersForCountries(movie.mediaEntry.id, countries)
     }
 
     suspend inline fun getWatchedMovies() = WatchedDB.getWatched()

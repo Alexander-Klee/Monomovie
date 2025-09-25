@@ -140,51 +140,87 @@ class JustWatch(
         )
     }
 
+    private fun prepareOffersByCountryQuery(countries: Set<String>): String {
+        val countryEntries = countries.joinToString("\n") { code ->
+            $$"""
+              $${code.uppercase()}: offers(country: $${code.uppercase()}, platform: WEB, filter: $filter) {
+                ...TitleOffer
+              }
+            """.trimIndent()
+        }
+
+        // TODO: nodeID is ! so it should never be null? change this maybe in media Entry
+        return $$"""
+            query GetTitleOffers(
+              $nodeId: ID!,
+              $language: Language!,
+              $formatOfferIcon: ImageFormat,
+              $filter: OfferFilter!
+            ) {
+              node(id: $nodeId) {
+                ... on MovieOrShow {
+                  $$countryEntries
+                }
+              }
+            }
+            """.trimIndent() + OFFER_FRAGMENT
+    }
+
     suspend fun offersForCountries(
         nodeId: String,
         countries: Set<String>,
         bestOnly: Boolean = true
     ): Map<String, List<Offer>> {
+
         if (countries.isEmpty()) return emptyMap()
-        val countryEntries = countries.joinToString("\n") { code ->
-            $$"${code.uppercase()}: offers(country: ${code.uppercase()}, platform: WEB, filter: $filter) { ...TitleOffer __typename }"
-        }
-        val query = OFFERS_BY_COUNTRY_QUERY.replace("{country_entries}", countryEntries) + OFFER_FRAGMENT
-        val response: OffersByCountryResponse = client.post {
+
+        val query = prepareOffersByCountryQuery(countries)
+
+        val response = client.post {
             setBody(OffersByCountryRequestBody(
-                operationName = "GetTitleOffers",
                 variables = OffersByCountryRequestBody.OffersByCountryVariables(
                     nodeId = nodeId,
-                    language = language,
-                    formatPoster = "JPG",
-                    formatOfferIcon = "PNG",
-                    profile = "S718",
-                    backdropProfile = "S1920",
                     filter = mapOf("bestOnly" to bestOnly)
                 ),
                 query = query
             ))
-        }.body()
-        val offersNode = response.data.node
+        }
+
+        // TODO: handle errors better
+        if (!response.status.isSuccess()) {
+//            println("Error fetching offers for countries $countries: ${response.status}")
+//            println("Response text: ${response.bodyAsText()}")
+            return countries.associateWith { emptyList() }
+        }
+
+        // TODO handle parse error better
+        val body: OffersByCountryResponse = try {
+            response.body()
+        } catch (e: Exception) {
+//            println("Error fetching offers for countries $countries: ${e.message}")
+//            println("Response text: ${response.bodyAsText()}")
+            return countries.associateWith { emptyList<Offer>() }
+        }
+        val offersNode = body.data?.node
         return countries.associateWith { code ->
-            offersNode[code.uppercase()] ?: emptyList()
+            offersNode?.get(code.uppercase()) ?: emptyList()
         }
     }
 
     @Serializable
     private data class OffersByCountryRequestBody(
-        val operationName: String,
+        val operationName: String = "GetTitleOffers",
         val variables: OffersByCountryVariables,
         val query: String
     ) {
         @Serializable
         data class OffersByCountryVariables(
             val nodeId: String,
-            val language: String,
-            val formatPoster: String,
-            val formatOfferIcon: String,
-            val profile: String,
-            val backdropProfile: String,
+            val language: String = "en",
+            val formatPoster: String = "JPG",
+            val formatOfferIcon: String = "PNG",
+            val profile: String = "S718",
+            val backdropProfile: String = "S1920",
             val filter: Map<String, Boolean>
         )
     }
@@ -321,23 +357,6 @@ class JustWatch(
               audioLanguages
               __typename
             }
-            """.trimIndent()
-        private val OFFERS_BY_COUNTRY_QUERY = $$"""
-            query GetTitleOffers(
-              $nodeId: ID!,
-              $language: Language!,
-              $formatOfferIcon: ImageFormat,
-              $filter: OfferFilter!,
-            ) {{
-              node(id: $nodeId) {{
-                ... on MovieOrShow {{
-                  {country_entries}
-                  __typename
-                }}
-                __typename
-              }}
-              __typename
-            }}
             """.trimIndent()
         private val DETAILS_QUERY = $$"""
             query GetTitleNode(
@@ -476,6 +495,6 @@ data class DetailsResponse(val data: DetailsData)
 data class DetailsData(val node: MediaEntry? = null)
 
 @Serializable
-data class OffersByCountryResponse(val data: OffersByCountryData)
+data class OffersByCountryResponse(val data: OffersByCountryData? = null)
 @Serializable
 data class OffersByCountryData(val node: Map<String, List<Offer>> = emptyMap())

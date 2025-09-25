@@ -17,6 +17,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import kotlinx.html.a
 import kotlinx.html.h1
 import kotlinx.html.p
 
@@ -125,6 +126,42 @@ fun Route.miscRoutes() {
 
         CachedMovies.deleteWatch(movieId)
         call.respond(HttpStatusCode.OK)
+    }
+    get("/countries/{movieId}") {
+        val movieId = call.parameters["movieId"]
+
+        if (movieId == null) {
+            call.respond(HttpStatusCode.BadRequest, "Missing movie ID")
+            return@get
+        }
+
+        val movie = CachedMovies.get(movieId)
+        if (movie == null) {
+            call.respond(HttpStatusCode.NotFound, "Movie not found")
+            return@get
+        }
+
+        val offers = CachedMovies.getAllOffers(movie)
+        call.respondHtml {
+            HtmlTemplate("Countries for ${movie.mediaEntry.content?.title ?: "null"}") {
+                for ((country, offers) in offers) {
+                    h1 { +country }
+                    if (offers.isEmpty()) {
+                        p { +"No offers found" }
+                    } else {
+                        for (offer in offers) {
+                            p {
+                                +(offer.`package`?.clearName + " - " + offer.monetizationType + " - " + (offer.retailPrice?.let { "$it ${offer.currency}" } ?: "Free"))
+                            }
+                            a {
+                                href = offer.standardWebURL ?: ""
+                                +(offer.standardWebURL ?: "No link")
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     post("/roulette") {
         val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
