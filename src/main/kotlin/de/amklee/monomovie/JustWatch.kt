@@ -33,6 +33,7 @@ class JustWatch(
             json(Json {
                 prettyPrint = true
                 ignoreUnknownKeys = true
+                encodeDefaults = true
             })
         }
         install(HttpTimeout) {
@@ -54,20 +55,12 @@ class JustWatch(
         // Be aware that the JustWatch API returns duplicate titles when searching.
         val response: SearchResponse = client.post {
             setBody(SearchRequestBody(
-                operationName = "GetSearchTitles",
                 variables = SearchRequestBody.SearchVariables(
                     country = country.uppercase(),
-                    language = language,
                     first = count,
-                    searchTitlesSortBy = "POPULAR",
                     searchAfterCursor = cursor,
                     searchTitlesFilter = mapOf("searchQuery" to title),
-                    formatPoster = "JPG",
-                    formatOfferIcon = "PNG",
-                    profile = "S718",
-                    backdropProfile = "S1920",
-                    filter = mapOf("bestOnly" to bestOnly),
-                    location = "SearchPage"
+                    filter = mapOf("bestOnly" to bestOnly)
                 ),
                 query = SEARCH_QUERY
             ))
@@ -77,24 +70,24 @@ class JustWatch(
 
     @Serializable
     private data class SearchRequestBody(
-        val operationName: String,
+        val operationName: String = "GetSearchTitles",
         val variables: SearchVariables,
         val query: String
     ) {
         @Serializable
         data class SearchVariables(
             val country: String,
-            val language: String,
+            val language: String = "en",
             val first: Int,
             val searchAfterCursor: String? = null,
-            val searchTitlesSortBy: String,
+            val searchTitlesSortBy: String = "POPULAR",
             val searchTitlesFilter: Map<String, String>,
-            val formatPoster: String,
-            val formatOfferIcon: String,
-            val profile: String,
-            val backdropProfile: String,
+            val formatPoster: String = "JPG",
+            val formatOfferIcon: String = "PNG",
+            val profile: String = "S718",
+            val backdropProfile: String = "S1920",
             val filter: Map<String, Boolean>,
-            val location: String
+            val location: String = "SearchPage"
         )
     }
 
