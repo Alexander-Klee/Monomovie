@@ -17,7 +17,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import kotlinx.html.a
 import kotlinx.html.h1
 import kotlinx.html.p
 
@@ -127,7 +126,7 @@ fun Route.miscRoutes() {
         CachedMovies.deleteWatch(movieId)
         call.respond(HttpStatusCode.OK)
     }
-    get("/countries/{movieId}") {
+    get("/offers/{movieId}") {
         val movieId = call.parameters["movieId"]
 
         if (movieId == null) {
@@ -144,22 +143,7 @@ fun Route.miscRoutes() {
         val offers = CachedMovies.getAllOffers(movie)
         call.respondHtml {
             HtmlTemplate("Countries for ${movie.mediaEntry.content?.title ?: "null"}") {
-                for ((country, offers) in offers) {
-                    h1 { +country }
-                    if (offers.isEmpty()) {
-                        p { +"No offers found" }
-                    } else {
-                        for (offer in offers) {
-                            p {
-                                +(offer.`package`?.clearName + " - " + offer.monetizationType + " - " + (offer.retailPrice?.let { "$it ${offer.currency}" } ?: "Free"))
-                            }
-                            a {
-                                href = offer.standardWebURL ?: ""
-                                +(offer.standardWebURL ?: "No link")
-                            }
-                        }
-                    }
-                }
+                OfferPage(movie, offers)
             }
         }
     }
