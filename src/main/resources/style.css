@@ -232,7 +232,17 @@ h1 {
     margin: 0.3rem;
     max-width: 20%;
 }
-
+.more-offers-box {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+}
+.more-offers-link {
+    font-size: 0.8rem;
+    color: var(--text-color-light);
+    border-radius: 4px;
+    padding: 0.1rem 0.3rem;
+}
 .offer-list {
     list-style: none;
     justify-content: center;

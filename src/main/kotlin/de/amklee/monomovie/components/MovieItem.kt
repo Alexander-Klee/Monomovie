@@ -26,12 +26,29 @@ private fun FlowContent.Offers(movie: CachedMovies.Movie) {
                 }
             }
         }
+        div(classes = "more-offers-box") {
+            MoreOffersButton(movie)
+        }
     }
 }
 
-private fun FlowContent.SimpleLink(target: String?, content: FlowContent.() -> Unit) {
+private fun FlowContent.MoreOffersButton(movie: CachedMovies.Movie) {
+    val movieId = movie.mediaEntry.id ?: return
+    val offersLink = "/offers/$movieId"
+
+    SimpleLink(offersLink, classes = "more-offers-link") {
+        +"More Offers"
+    }
+}
+
+private fun FlowContent.SimpleLink(target: String?, classes: String = "no-link-style", content: FlowContent.() -> Unit) {
     if (target.isNullOrBlank()) return
-    a(href = target, target = "_blank", classes = "no-link-style") {
+    a(href = target, classes = classes) { content() }
+}
+
+private fun FlowContent.SimpleLinkNewTab(target: String?, classes: String = "no-link-style", content: FlowContent.() -> Unit) {
+    if (target.isNullOrBlank()) return
+    a(href = target, target = "_blank", classes = classes) {
         rel = "noopener noreferrer"
         content()
     }
@@ -49,7 +66,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
 
     val imdbLink = movie.mediaEntry.content?.externalIds?.imdbId?.let { id -> "https://www.imdb.com/title/$id" }
     movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
-        SimpleLink(imdbLink) {
+        SimpleLinkNewTab(imdbLink) {
             div(classes = "movie-rating") {
                 i(classes = "imdb-icon rating-logo")
                 p { +formatScore(score) }
@@ -64,7 +81,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     }
     val tmdbLink = movie.mediaEntry.content?.externalIds?.tmdbId?.let { id -> "https://www.themoviedb.org/$tmdbLinkType/$id" }
     movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
-        SimpleLink(tmdbLink) {
+        SimpleLinkNewTab(tmdbLink) {
             div(classes = "movie-rating") {
                 i(classes = "tmdb-icon rating-logo")
                 p { +formatScore(score) }
