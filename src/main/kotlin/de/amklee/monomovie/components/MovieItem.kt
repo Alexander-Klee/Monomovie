@@ -90,7 +90,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     }
 }
 
-private fun FlowContent.MovieItem(movie: CachedMovies.Movie) {
+fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
     val posterUrl = movie.mediaEntry.content?.posterUrl?.let {
@@ -121,9 +121,10 @@ private fun FlowContent.MovieItem(movie: CachedMovies.Movie) {
                 +(movie.mediaEntry.content?.shortDescription ?: "No description available.")
             }
         }
-
-        div(classes = "movie-offers") {
-            Offers(movie)
+        if (showOffers) {
+            div(classes = "movie-offers") {
+                Offers(movie)
+            }
         }
     }
 }
