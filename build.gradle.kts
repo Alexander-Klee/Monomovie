@@ -2,11 +2,11 @@ import java.util.*
 import kotlin.experimental.xor
 
 plugins {
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.2.20"
     application
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
-    id("io.ktor.plugin") version "3.2.0"
-    id("com.gradleup.shadow") version "8.3.6"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+    id("io.ktor.plugin") version "3.3.0"
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 group = "de.amklee"
