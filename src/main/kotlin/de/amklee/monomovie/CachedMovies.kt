@@ -116,8 +116,8 @@ object CachedMovies {
         val pageInfo: PageInfo
     )
 
-    suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults {
-        val res = justWatch.search(title = title, cursor = cursor, count = numResults)
+    suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
+        val res = justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
 
         return SearchResults(
             res.edges

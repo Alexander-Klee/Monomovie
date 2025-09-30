@@ -41,10 +41,13 @@ fun Route.miscRoutes() {
             if (title.isNullOrBlank()) HtmlTemplate("Search") {
                 EmptySearchPage()
             } else HtmlTemplate("$title Search") {
-                SearchPage(
-                    title,
-                    CachedMovies.search(title = title, cursor = null, numResults = numResults)
-                )
+                val searchResults = CachedMovies.search(title = title, cursor = null, numResults = numResults)
+                searchResults?.let {
+                    SearchPage(
+                        title,
+                        it
+                    )
+                }
             }
         }
     }
@@ -57,7 +60,12 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respond(MoreSearchResults(CachedMovies.search(title, cursor)))
+        val searchResults = CachedMovies.search(title, cursor)
+        searchResults?.let {
+            call.respond(MoreSearchResults(it))
+            return@post
+        }
+        call.respond(HttpStatusCode.InternalServerError, "Search failed")
     }
     post("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]

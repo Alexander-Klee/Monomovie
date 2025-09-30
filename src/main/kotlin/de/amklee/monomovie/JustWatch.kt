@@ -51,9 +51,9 @@ class JustWatch(
         count: Int = 4,
         bestOnly: Boolean = true,
         cursor: String? = null
-    ): SearchTitles {
+    ): SearchTitles? {
         // Be aware that the JustWatch API returns duplicate titles when searching.
-        val response: SearchResponse = client.post {
+        val response = client.post {
             setBody(SearchRequestBody(
                 variables = SearchRequestBody.SearchVariables(
                     country = country.uppercase(),
@@ -64,8 +64,18 @@ class JustWatch(
                 ),
                 query = SEARCH_QUERY
             ))
-        }.body()
-        return response.data.searchTitles
+        }
+
+
+        if (!response.status.isSuccess()) return null
+
+        val body = try {
+            response.body<SearchResponse>()
+        } catch (e: Exception) {
+            return null
+        }
+
+        return body.data.searchTitles
     }
 
     @Serializable
@@ -95,23 +105,28 @@ class JustWatch(
         nodeId: String,
         bestOnly: Boolean = true
     ): MediaEntry? {
-        val response: DetailsResponse = client.post {
+        val response = client.post {
             setBody(DetailsRequestBody(
                 operationName = "GetTitleNode",
                 variables = DetailsRequestBody.DetailsVariables(
                     nodeId = nodeId,
                     language = language,
                     country = country.uppercase(),
-                    formatPoster = "JPG",
-                    formatOfferIcon = "PNG",
-                    profile = "S718",
-                    backdropProfile = "S1920",
                     filter = mapOf("bestOnly" to bestOnly)
                 ),
                 query = DETAILS_QUERY
             ))
-        }.body()
-        return response.data.node
+        }
+
+        if (!response.status.isSuccess()) return null
+
+        val body = try {
+            response.body<DetailsResponse>()
+        } catch (e: Exception) {
+            return null
+        }
+
+        return body.data.node
     }
 
     @Serializable
@@ -125,10 +140,10 @@ class JustWatch(
             val nodeId: String,
             val language: String,
             val country: String,
-            val formatPoster: String,
-            val formatOfferIcon: String,
-            val profile: String,
-            val backdropProfile: String,
+            val formatPoster: String = "JPG",
+            val formatOfferIcon: String = "PNG",
+            val profile: String = "S718",
+            val backdropProfile: String = "S1920",
             val filter: Map<String, Boolean>
         )
     }
@@ -166,7 +181,6 @@ class JustWatch(
     ): Map<String, List<Offer>> {
 
         if (countries.isEmpty()) return emptyMap()
-
         val query = prepareOffersByCountryQuery(countries)
 
         val response = client.post {
@@ -179,21 +193,14 @@ class JustWatch(
             ))
         }
 
-        // TODO: handle errors better
-        if (!response.status.isSuccess()) {
-//            println("Error fetching offers for countries $countries: ${response.status}")
-//            println("Response text: ${response.bodyAsText()}")
-            return countries.associateWith { emptyList() }
-        }
+        if (!response.status.isSuccess()) return countries.associateWith { emptyList() }
 
-        // TODO handle parse error better
-        val body: OffersByCountryResponse = try {
-            response.body()
+        val body = try {
+            response.body<OffersByCountryResponse>()
         } catch (e: Exception) {
-//            println("Error fetching offers for countries $countries: ${e.message}")
-//            println("Response text: ${response.bodyAsText()}")
             return countries.associateWith { emptyList<Offer>() }
         }
+
         val offersNode = body.data?.node
         return countries.associateWith { code ->
             offersNode?.get(code.uppercase()) ?: emptyList()
