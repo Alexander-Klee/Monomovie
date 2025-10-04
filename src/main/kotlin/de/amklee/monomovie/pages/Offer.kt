@@ -4,13 +4,7 @@ import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Offer
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
-import kotlinx.html.FlowContent
-import kotlinx.html.div
-import kotlinx.html.h1
-import kotlinx.html.p
-import kotlinx.html.table
-import kotlinx.html.td
-import kotlinx.html.tr
+import kotlinx.html.*
 
 private val monetizationTypes = setOf("Flatrate", "Rent", "Buy", "Free")
 
@@ -22,7 +16,7 @@ private fun FlowContent.offerTable(offers: List<Offer>) {
                 if (typeOffers.isNotEmpty()) {
                     td(classes = "offerType-td") { +type }
                     td(classes = "offer-td") {
-                        OfferList(typeOffers)
+                        OfferList(typeOffers.sortedBy { it.`package`?.clearName })
                     }
                 }
             }
@@ -34,13 +28,22 @@ fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Of
     div {
         MovieItem(movie, showOffers = false)
 
-        for ((country, offers) in offers) {
+        // sort countries by number of flatrate offers descending
+        val sortedOffers = offers.toList().sortedByDescending {
+            (_, offers) -> offers.filter {
+                it.monetizationType.equals("Flatrate", ignoreCase = true)
+            }.size }
+
+        // countries with offers
+        for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
             h1 { +country }
-            if (offers.isEmpty()) {
-                p { +"No offers found" }
-            } else {
-                offerTable(offers)
-            }
+            offerTable(offers)
+        }
+
+        val countriesWithoutOffers = offers.filter { it.value.isEmpty() }.keys.sorted()
+        if (countriesWithoutOffers.isNotEmpty()) {
+            h1 { +"No offers for:"}
+            p { +countriesWithoutOffers.joinToString(", ") }
         }
     }
 }
