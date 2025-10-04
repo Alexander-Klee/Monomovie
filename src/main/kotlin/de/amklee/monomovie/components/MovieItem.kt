@@ -2,6 +2,7 @@ package de.amklee.monomovie.components
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
+import de.amklee.monomovie.Offer
 import kotlinx.html.*
 
 private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
@@ -13,22 +14,28 @@ private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
     }
 }
 
-private fun FlowContent.Offers(movie: CachedMovies.Movie) {
-    ul(classes = "offer-list") {
-        for (offer in movie.getOffers()) {
-            li(classes = "offer-item") {
-                a(href = offer.standardWebURL ?: "", classes = "offer-link") {
-                    img(
-                        src = "https://images.justwatch.com${offer.`package`?.icon}",
-                        alt = offer.`package`?.clearName ?: "Unknown",
-                        classes = "offer-icon"
-                    )
-                }
+private fun UL.OfferItem(offer: Offer) {
+    li(classes = "offer-item") {
+        a(href = offer.standardWebURL ?: "", classes = "offer-link") {
+            if (offer.`package`?.clearName != null) {
+                title = offer.`package`.clearName
             }
+
+            img(
+                src = "https://images.justwatch.com${offer.`package`?.icon}",
+                alt = offer.`package`?.clearName ?: "Unknown",
+                classes = "offer-icon"
+            )
         }
-        div(classes = "more-offers-box") {
-            MoreOffersButton(movie)
+    }
+}
+
+fun FlowContent.OfferList(offers: List<Offer>, extraElements: FlowContent.() -> Unit = {}) {
+    ul(classes = "offer-list") {
+        for (offer in offers) {
+            OfferItem(offer)
         }
+        extraElements()
     }
 }
 
@@ -123,7 +130,11 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true)
         }
         if (showOffers) {
             div(classes = "movie-offers") {
-                Offers(movie)
+                OfferList(movie.getOffers()) {
+                    div(classes = "more-offers-box") {
+                        MoreOffersButton(movie)
+                    }
+                }
             }
         }
     }
