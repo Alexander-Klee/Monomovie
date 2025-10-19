@@ -5,6 +5,7 @@ import de.amklee.monomovie.Offer
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
 import kotlinx.html.*
+import java.util.Locale
 
 private val monetizationTypes = setOf("Flatrate", "Rent", "Buy", "Free")
 
@@ -24,6 +25,17 @@ private fun FlowContent.offerTable(offers: List<Offer>) {
     }
 }
 
+private fun getCountryName(countryCode: String): String {
+    return try {
+        val locale = Locale.Builder()
+            .setRegion(countryCode)
+            .build()
+        locale.getDisplayCountry(Locale.ENGLISH)
+    } catch (e: Exception) {
+        countryCode
+    }
+}
+
 fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>) {
     div {
         MovieItem(movie, showOffers = false)
@@ -37,6 +49,7 @@ fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Of
         // countries with offers
         for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
             h1 { +country }
+            p{ +getCountryName(country) }
             offerTable(offers)
         }
 

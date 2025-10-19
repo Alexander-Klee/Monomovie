@@ -4,6 +4,7 @@ import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.Locale
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -24,7 +25,6 @@ object CachedMovies {
 
     private var _cache: MutableMap<String, Movie>? = null
     private val cacheFile = Path("cached_movies.json")
-    private val countries = setOf("DE", "US", "FR", "IT", "ES", "GB")
 
     val cache: MutableMap<String, Movie>
         get() {
@@ -127,7 +127,7 @@ object CachedMovies {
         )
     }
 
-    suspend fun getAllOffers(movie: Movie, countries: Set<String> = CachedMovies.countries): Map<String, List<Offer>> {
+    suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
         if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
         return justWatch.offersForCountries(movie.mediaEntry.id, countries)
     }
