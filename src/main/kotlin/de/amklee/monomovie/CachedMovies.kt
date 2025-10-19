@@ -61,22 +61,30 @@ object CachedMovies {
 
     private val justWatch = JustWatch(country = "DE", language = "en")
 
-    suspend fun get(id: String): Movie? {
-        // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
-        return cache[id] ?: run {
-            val details = justWatch.details(id)
-            if (details != null) {
-                val movie = Movie(
-                    mediaEntry = details,
-                    isBookmarked = BookmarksDB.isBookmarked(id),
-                    isWatched = id in WatchedDB,
-                    cacheDate = System.currentTimeMillis())
-                cache[id] = movie
-                saveCache()
-                return@run movie
-            }
-            null
+    private suspend fun newMovie(id: String): Movie? {
+        val details = justWatch.details(id)
+        if (details != null) {
+            return Movie(
+                mediaEntry = details,
+                isBookmarked = BookmarksDB.isBookmarked(id),
+                isWatched = id in WatchedDB,
+                cacheDate = System.currentTimeMillis())
         }
+        return null
+    }
+
+    suspend fun get(id: String): Movie? {
+        val STALE_MS = 30L * 24 * 60 * 60 * 1000 // 30 days in ms
+
+        val cached = cache[id]
+
+        // populate cache if missing or older than 30 days
+        if (cached == null || cached.cacheDate < System.currentTimeMillis() - STALE_MS) {
+            val movie = newMovie(id) ?: return null
+            cache[id] = movie
+            saveCache()
+        }
+        return cache[id]
     }
 
     suspend fun setBookmark(id: String): Movie? {
