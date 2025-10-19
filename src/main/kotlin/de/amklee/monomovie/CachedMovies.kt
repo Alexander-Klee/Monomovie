@@ -74,7 +74,7 @@ object CachedMovies {
     }
 
     suspend fun get(id: String): Movie? {
-        val STALE_MS = 30L * 24 * 60 * 60 * 1000 // 30 days in ms
+        val STALE_MS = 15L * 24 * 60 * 60 * 1000 // 30 days in ms
 
         val cached = cache[id]
 
