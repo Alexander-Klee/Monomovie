@@ -151,7 +151,7 @@ fun Route.miscRoutes() {
         val offers = CachedMovies.getAllOffers(movie)
         call.respondHtml {
             HtmlTemplate("Countries for ${movie.mediaEntry.content?.title ?: "null"}") {
-                OfferPage(movie, offers)
+                OfferPage(movie, offers, "DE")
             }
         }
     }

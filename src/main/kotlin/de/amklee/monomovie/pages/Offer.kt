@@ -36,20 +36,25 @@ private fun getCountryName(countryCode: String): String {
     }
 }
 
-fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>) {
+fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
         MovieItem(movie, showOffers = false)
 
-        // sort countries by number of flatrate offers descending
-        val sortedOffers = offers.toList().sortedByDescending {
-            (_, offers) -> offers.filter {
-                it.monetizationType.equals("Flatrate", ignoreCase = true)
-            }.size }
+        // sort countries by number of flatrate offers descending, prioritize main country
+        val sortedOffers = offers.toList()
+            .sortedByDescending {
+                (_, offers) -> offers.filter {
+                    it.monetizationType.equals("Flatrate", ignoreCase = true)
+                }.size }
+            .sortedBy {
+                (country, _) -> if (country == mainCountry) 0 else 1
+            }
 
         // countries with offers
         for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
-            h1 { +country }
-            p{ +getCountryName(country) }
+            h1 { +country
+                 +" - "
+                 +getCountryName(country) }
             offerTable(offers)
         }
 
