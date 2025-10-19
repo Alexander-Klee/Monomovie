@@ -7,15 +7,20 @@ import de.amklee.monomovie.components.OfferList
 import kotlinx.html.*
 import java.util.Locale
 
-private val monetizationTypes = setOf("Flatrate", "Rent", "Buy", "Free")
+enum class MonetizationTypes(val type: String) {
+    FLATRATE("Flatrate"),
+    RENT("Rent"),
+    BUY("Buy"),
+    FREE("Free")
+}
 
 private fun FlowContent.offerTable(offers: List<Offer>) {
     table {
-        for (type in monetizationTypes) {
+        for (type in MonetizationTypes.entries) {
             tr {
-                val typeOffers = offers.filter { it.monetizationType.equals(type, ignoreCase = true) }
+                val typeOffers = offers.filter { it.monetizationType.equals(type.name, ignoreCase = true) }
                 if (typeOffers.isNotEmpty()) {
-                    td(classes = "offerType-td") { +type }
+                    td(classes = "offerType-td") { +type.type }
                     td(classes = "offer-td") {
                         OfferList(typeOffers.sortedBy { it.`package`?.clearName })
                     }

@@ -2,6 +2,7 @@ package de.amklee.monomovie
 
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
+import de.amklee.monomovie.pages.MonetizationTypes
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.Locale
@@ -21,7 +22,10 @@ object CachedMovies {
         val cacheDate: Long
     )
 
-    fun Movie.getOffers() = mediaEntry.offers?.filter { it.monetizationType !in bannedTypes } ?: emptyList()
+    fun Movie.getOffers() = mediaEntry.offers?.filter {
+        it.monetizationType.equals(MonetizationTypes.FREE.name, ignoreCase = true)
+                || it.monetizationType.equals(MonetizationTypes.FLATRATE.name, ignoreCase = true)
+    } ?: emptyList()
 
     private var _cache: MutableMap<String, Movie>? = null
     private val cacheFile = Path("cached_movies.json")
@@ -56,7 +60,6 @@ object CachedMovies {
     }
 
     private val justWatch = JustWatch(country = "DE", language = "en")
-    private val bannedTypes = setOf("BUY", "RENT")
 
     suspend fun get(id: String): Movie? {
         // TODO: invalidate cache entry, if older than ... (remember to keep isBookmarked state)
