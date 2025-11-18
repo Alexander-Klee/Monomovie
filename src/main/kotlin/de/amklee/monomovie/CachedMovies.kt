@@ -13,7 +13,6 @@ import kotlin.io.path.writeText
 import kotlin.math.sqrt
 
 object CachedMovies {
-
     @Serializable
     data class Movie(
         val mediaEntry: MediaEntry,
@@ -141,6 +140,16 @@ object CachedMovies {
     suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
         if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
         return justWatch.offersForCountries(movie.mediaEntry.id, countries)
+    }
+
+    suspend fun getJellyfinLink(movie: Movie): String? {
+        val tmdbId = movie.mediaEntry.content?.externalIds?.tmdbId
+        val imdbId = movie.mediaEntry.content?.externalIds?.imdbId
+
+        val tmdb = tmdbId?.let { JellyfinClient.findTmdbOnJellyfin(it) }
+        val imdb = imdbId?.let { JellyfinClient.findImdbOnJellyfin(it) }
+
+        return tmdb ?: imdb
     }
 
     suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
