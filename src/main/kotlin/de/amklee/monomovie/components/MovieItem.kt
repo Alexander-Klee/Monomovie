@@ -165,6 +165,7 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
                 }
             }
         }
+        extraElements()
     }
 }
 
@@ -192,12 +193,17 @@ fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         label {
             htmlFor = movie.mediaEntry.id ?: ""
-            numberInput(classes = "roulette-weight", name = movie.mediaEntry.id) {
-                id = movie.mediaEntry.id ?: ""
-                min = "1"
-                value = "1"
+            MovieItem(movie) {
+                div("roulette-weight-container") {
+                    button(type = ButtonType.button, classes = "roulette-weight-button decrement") { +"−" }
+                    numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
+                        id = movie.mediaEntry.id ?: ""
+                        min = "1"
+                        value = "1"
+                    }
+                    button(type = ButtonType.button, classes = "roulette-weight-button increment") { +"+" }
+                }
             }
-            MovieItem(movie)
         }
     }
 }

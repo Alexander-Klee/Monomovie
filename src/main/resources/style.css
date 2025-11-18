@@ -347,13 +347,34 @@ td, th {
     cursor: not-allowed;
 }
 
-.roulette-weight {
-    height: fit-content;
-    width: 4em;
-    align-self: center;
-    padding: 0.3em 0.7em;
-    margin: 0.3em 0.7em;
-    border-radius: 8px;
+.roulette-weight-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.roulette-weight-button {
+    background: transparent;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-color-light);
+    padding: 0.5em;
+}
+
+.roulette-weight-input {
+    -webkit-appearance: textfield;
+    appearance: textfield;
+    border: none;
+    background: transparent;
+    width: 2em;
+    text-align: center;
+    font-size: 2em;
 }
 
 /* SEARCH BAR*/
@@ -510,6 +531,12 @@ td, th {
 }
 
 @media (max-width: 600px) {
+    .roulette-weight-container {
+        display: flex;
+        flex-direction: row;
+        align-self: center;
+    }
+
     .bookmark-icon {
         width: 3em;
         height: calc(3em * 1.33); /* Maintain aspect ratio */

@@ -13,6 +13,7 @@ inline fun FlowContent.MovieList(script: String, crossinline body: UL.() -> Unit
         }
     }
     ul(classes = "movie-list") {
+        id = "movie-list"
         body()
     }
 }
@@ -52,7 +53,7 @@ fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieLis
 }
 
 fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
-    Resources.watchedJs
+    Resources.watchedJs + Resources.rouletteWeigthJs
 ) {
     for (movie in movies) {
         RouletteMovieListItem(movie)
