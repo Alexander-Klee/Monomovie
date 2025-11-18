@@ -97,6 +97,13 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     }
 }
 
+fun formatTime(minutes: Int): String {
+    val m = minutes % 60
+    val h = minutes / 60
+
+    return if (h > 0) {String.format("%dh %dm", h, m)} else String.format("%dm", m)
+}
+
 fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
@@ -120,9 +127,26 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true)
                     Ratings(movie)
                 }
             }
-            p(classes = "movie-year") {
-                +(movie.mediaEntry.content?.originalReleaseYear?.toString() ?: "Unknown Year")
+
+            val releaseYear = movie.mediaEntry.content?.originalReleaseYear
+            val runtime = movie.mediaEntry.content?.runtime?.takeIf { it != 0 }
+
+            if (releaseYear != null && runtime != null) {
+                p(classes = "movie-info-line") {
+                    +releaseYear.toString()
+                    +" • "
+                    +formatTime(runtime)
+                }
+            } else if (releaseYear != null) {
+                p(classes = "movie-info-line") {
+                    +releaseYear.toString()
+                }
+            } else if (runtime != null) {
+                p(classes = "movie-info-line") {
+                    +runtime.toString()
+                }
             }
+
             p(classes = "movie-short-description") {
                 onClick = "this.classList.add('expanded')"
                 +(movie.mediaEntry.content?.shortDescription ?: "No description available.")
