@@ -104,7 +104,28 @@ fun formatTime(minutes: Int): String {
     return if (h > 0) {String.format("%dh %dm", h, m)} else String.format("%dm", m)
 }
 
-fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true) {
+fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
+    val releaseYear = movie.mediaEntry.content?.originalReleaseYear
+    val runtime = movie.mediaEntry.content?.runtime?.takeIf { it != 0 }
+
+    if (releaseYear != null && runtime != null) {
+        p(classes = "movie-info-line") {
+            +releaseYear.toString()
+            +" • "
+            +formatTime(runtime)
+        }
+    } else if (releaseYear != null) {
+        p(classes = "movie-info-line") {
+            +releaseYear.toString()
+        }
+    } else if (runtime != null) {
+        p(classes = "movie-info-line") {
+            +runtime.toString()
+        }
+    }
+}
+
+fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
     val posterUrl = movie.mediaEntry.content?.posterUrl?.let {
@@ -128,24 +149,7 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true)
                 }
             }
 
-            val releaseYear = movie.mediaEntry.content?.originalReleaseYear
-            val runtime = movie.mediaEntry.content?.runtime?.takeIf { it != 0 }
-
-            if (releaseYear != null && runtime != null) {
-                p(classes = "movie-info-line") {
-                    +releaseYear.toString()
-                    +" • "
-                    +formatTime(runtime)
-                }
-            } else if (releaseYear != null) {
-                p(classes = "movie-info-line") {
-                    +releaseYear.toString()
-                }
-            } else if (runtime != null) {
-                p(classes = "movie-info-line") {
-                    +runtime.toString()
-                }
-            }
+            YearDurationInfo(movie)
 
             p(classes = "movie-short-description") {
                 onClick = "this.classList.add('expanded')"
