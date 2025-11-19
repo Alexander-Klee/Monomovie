@@ -3,6 +3,7 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
 import de.amklee.monomovie.Offer
+import kotlinx.coroutines.runBlocking
 import kotlinx.html.*
 
 private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
@@ -14,27 +15,41 @@ private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
     }
 }
 
-private fun UL.OfferItem(offer: Offer) {
+private fun UL.OfferItem(offer: Offer) = OfferItem(
+    offer.standardWebURL ?: "",
+    "https://images.justwatch.com${offer.`package`?.icon}",
+    offer.`package`?.clearName ?: "Unknown Title"
+)
+
+private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
     li(classes = "offer-item") {
-        a(href = offer.standardWebURL ?: "", classes = "offer-link") {
-            if (offer.`package`?.clearName != null) {
-                title = offer.`package`.clearName
-            }
+        a(href = offerUrl, classes = "offer-link") {
+            title = offerName
 
             img(
-                src = "https://images.justwatch.com${offer.`package`?.icon}",
-                alt = offer.`package`?.clearName ?: "Unknown",
+                src = iconUrl,
+                alt = offerName,
                 classes = "offer-icon"
             )
         }
     }
 }
 
-fun FlowContent.OfferList(offers: List<Offer>, extraElements: FlowContent.() -> Unit = {}) {
+fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, extraElements: FlowContent.() -> Unit = {}) {
     ul(classes = "offer-list") {
+        // Add the jellyfin offer if available
+        if (jellyfinLink != null) {
+            OfferItem(
+                jellyfinLink,
+                "https://jellyfin.amklee.de/web/f5bbb798cb2c65908633.png",
+                "Jellyfin"
+            )
+        }
+
         for (offer in offers) {
             OfferItem(offer)
         }
+
         extraElements()
     }
 }
@@ -156,9 +171,12 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
                 +(movie.mediaEntry.content?.shortDescription ?: "No description available.")
             }
         }
+
+        val jellyfinLink = runBlocking { CachedMovies.getJellyfinLink(movie) }
+
         if (showOffers) {
             div(classes = "movie-offers") {
-                OfferList(movie.getOffers()) {
+                OfferList(movie.getOffers(), jellyfinLink) {
                     div(classes = "more-offers-box") {
                         MoreOffersButton(movie)
                     }

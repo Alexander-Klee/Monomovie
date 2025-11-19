@@ -142,6 +142,16 @@ object CachedMovies {
         return justWatch.offersForCountries(movie.mediaEntry.id, countries)
     }
 
+    suspend fun getJellyfinLink(movie: Movie): String? {
+        val tmdbId = movie.mediaEntry.content?.externalIds?.tmdbId
+        val imdbId = movie.mediaEntry.content?.externalIds?.imdbId
+
+        val tmdb = tmdbId?.let { JellyfinClient.findTmdbOnJellyfin(it) }
+        val imdb = imdbId?.let { JellyfinClient.findImdbOnJellyfin(it) }
+
+        return tmdb ?: imdb
+    }
+
     suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
     suspend inline fun getBookmarkedMovies(
         displayHidden: Boolean,

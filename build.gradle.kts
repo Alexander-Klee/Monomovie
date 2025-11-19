@@ -33,6 +33,8 @@ repositories {
     maven("https://maven.frohnmeyer-wds.de/artifacts")
 }
 
+val jellyfinSdkVersion = "1.7.1"
+
 dependencies {
     implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
 
@@ -45,6 +47,10 @@ dependencies {
     implementation("io.ktor:ktor-client-core")
     implementation("io.ktor:ktor-client-cio")
     implementation("io.ktor:ktor-client-content-negotiation")
+
+    // Jellyfin SDK
+    implementation("org.jellyfin.sdk:jellyfin-core:${jellyfinSdkVersion}")
+    implementation("org.jellyfin.sdk:jellyfin-api-ktor-jvm:${jellyfinSdkVersion}")
 
     // server for MonoMovie
     implementation("io.ktor:ktor-server-content-negotiation")
