@@ -13,7 +13,6 @@ object Resources {
     val topbuttonJs by Resource("topbutton.js")
     val bookmarkJs by Resource("bookmark.js")
     val watchedJs by Resource("watched.js")
-    val rouletteWeigthJs by Resource("roulette-weight.js")
     val selectableJs by Resource("selectable.js")
     val searchSvg by Resource("graphics/search.svg")
     val infiniteScrollJs by Resource("infinite-scroll.js")

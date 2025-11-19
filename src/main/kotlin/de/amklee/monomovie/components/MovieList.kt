@@ -53,7 +53,7 @@ fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieLis
 }
 
 fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
-    Resources.watchedJs + Resources.rouletteWeigthJs
+    Resources.watchedJs
 ) {
     for (movie in movies) {
         RouletteMovieListItem(movie)

@@ -195,13 +195,21 @@ fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
             htmlFor = movie.mediaEntry.id ?: ""
             MovieItem(movie) {
                 div("roulette-weight-container") {
-                    button(type = ButtonType.button, classes = "roulette-weight-button decrement") { +"−" }
+                    button(type = ButtonType.button, classes = "roulette-weight-button") {
+                        attributes["mmv_for"] = movie.mediaEntry.id ?: ""
+                        onClick = "document.getElementById(attributes.mmv_for.value).stepDown();"
+                        +"−"
+                    }
                     numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
                         id = movie.mediaEntry.id ?: ""
                         min = "1"
                         value = "1"
                     }
-                    button(type = ButtonType.button, classes = "roulette-weight-button increment") { +"+" }
+                    button(type = ButtonType.button, classes = "roulette-weight-button") {
+                        attributes["mmv_for"] = movie.mediaEntry.id ?: ""
+                        onClick = "document.getElementById(attributes.mmv_for.value).stepUp();"
+                        +"+"
+                    }
                 }
             }
         }
