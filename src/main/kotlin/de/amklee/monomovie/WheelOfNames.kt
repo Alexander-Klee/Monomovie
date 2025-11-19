@@ -60,8 +60,8 @@ class WheelOfNames(private val apiKey: String) {
         val wheel = Wheel(
             shareMode = "copyable",
             wheelConfig = Wheel.WheelConfig(
-                title = "My wheel",
-                description = "I created this wheel using the API!",
+                title = "Vie Randomover",
+                description = "I created this cyberwheel using the API!",
                 entries = entries,
                 isAdvanced = true
             )
