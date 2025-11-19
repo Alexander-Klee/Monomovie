@@ -52,6 +52,7 @@ fun Route.miscRoutes() {
         }
     }
     post("/moreSearchResults") {
+        //TODO implement circuit breaker in JS to prevent spamming this
         val title = call.request.queryParameters["title"]
         val cursor = call.request.queryParameters["cursor"]
 
@@ -192,6 +193,8 @@ fun Route.miscRoutes() {
     staticResources("/static", "static")
 }
 
+private val LOG = SystemLoggerPlus.forName("MMV/Router")
+
 fun main() {
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) {
@@ -202,7 +205,7 @@ fun main() {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                SystemLoggerPlus.forName(call.request.path()).error("Uncaught exception", cause)
+                LOG.error("Uncaught exception for path {0}", cause, call.request.path())
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
 //             TODO: remove, for debugging

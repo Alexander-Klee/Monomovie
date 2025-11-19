@@ -3,6 +3,7 @@ package de.amklee.monomovie
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.MonetizationTypes
+import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.Locale
@@ -13,6 +14,7 @@ import kotlin.io.path.writeText
 import kotlin.math.sqrt
 
 object CachedMovies {
+    private val log = SystemLoggerPlus.forName("MMV/CachedMovies")
 
     @Serializable
     data class Movie(
@@ -44,7 +46,7 @@ object CachedMovies {
                 val jsonString = cacheFile.readText()
                 Json.decodeFromString<Map<String, Movie>>(jsonString).toMutableMap()
             } catch (e: Exception) {
-                // TODO: log error
+                log.error("Unable to parse json for the cached movies.")
                 mutableMapOf()
             }
         } else {
@@ -107,10 +109,7 @@ object CachedMovies {
 
     suspend fun setWatch(id: String) {
         val movie = get(id) ?: return
-        if (movie.isWatched) {
-            // TODO maybe increment watch count or unwatch
-            return
-        }
+        if (movie.isWatched) return
         movie.isWatched = true
         WatchedDB.setWatch(id)
     }
