@@ -36,12 +36,13 @@ repositories {
 val jellyfinSdkVersion = "1.7.1"
 
 dependencies {
-    implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
+//    implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
 
     testImplementation(kotlin("test"))
 
-    implementation("io.gitlab.jfronny:commons-logger")
-    implementation("io.gitlab.jfronny:slf4j-over-jpl")
+    // Logging
+    implementation("org.slf4j:slf4j-api:2.0.12")
+    implementation("ch.qos.logback:logback-classic:1.5.3")
 
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")

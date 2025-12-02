@@ -1,14 +1,11 @@
 package de.amklee.monomovie
-import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
-import io.ktor.http.URLBuilder
-import io.ktor.http.appendPathSegments
-import io.ktor.http.parseQueryString
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ItemFields
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -19,7 +16,7 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 object JellyfinClient {
-    private val log = SystemLoggerPlus.forName("MMV/Jellyfin")
+    private val log = LoggerFactory.getLogger("MMV/Jellyfin")
 
     private val jellyfin = createJellyfin {
         clientInfo = ClientInfo(name = "monomovie", version = "1.0.0",)

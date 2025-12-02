@@ -4,7 +4,6 @@ import de.amklee.monomovie.components.HtmlTemplate
 import de.amklee.monomovie.components.WatchedMovieList
 import de.amklee.monomovie.pages.*
 import de.amklee.monomovie.util.respondHtml
-import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -19,6 +18,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.html.h1
 import kotlinx.html.p
+import org.slf4j.LoggerFactory
 
 
 val wheelOfNames = WheelOfNames(
@@ -193,7 +193,7 @@ fun Route.miscRoutes() {
     staticResources("/static", "static")
 }
 
-private val LOG = SystemLoggerPlus.forName("MMV/Router")
+private val LOG = LoggerFactory.getLogger("MMV/Router")
 
 fun main() {
     embeddedServer(Netty, port = 8080) {
@@ -205,12 +205,12 @@ fun main() {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                LOG.error("Uncaught exception for path {0}", cause, call.request.path())
+                LOG.error("Uncaught exception for path $cause, ${call.request.path()}")
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
 //             TODO: remove, for debugging
 //            status(HttpStatusCode.NotFound) {
-//                SystemLoggerPlus.forName(call.request.path()).warn("404 Not Found: ${call.request.uri}")
+//                LOG.warn("404 Not Found: ${call.request.uri}")
 //                call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
 //            }
         }

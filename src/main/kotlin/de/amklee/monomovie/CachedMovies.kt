@@ -3,10 +3,10 @@ package de.amklee.monomovie
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.MonetizationTypes
-import io.gitlab.jfronny.commons.logger.SystemLoggerPlus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.util.Locale
+import org.slf4j.LoggerFactory
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -14,7 +14,7 @@ import kotlin.io.path.writeText
 import kotlin.math.sqrt
 
 object CachedMovies {
-    private val log = SystemLoggerPlus.forName("MMV/CachedMovies")
+    private val log = LoggerFactory.getLogger("MMV/CachedMovies")
 
     @Serializable
     data class Movie(
