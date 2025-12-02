@@ -49,6 +49,7 @@ object JellyfinClient {
                     id to it.actualUrl()
                 }.toMap()
             )
+            lastAccessed = Clock.System.now()
             return cache!!
         } catch (e: Throwable) {
             log.error("Could not fetch items", e)

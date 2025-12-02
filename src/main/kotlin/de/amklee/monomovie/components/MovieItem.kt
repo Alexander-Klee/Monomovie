@@ -172,6 +172,7 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
             }
         }
 
+        // TODO consider not blocking ...
         val jellyfinLink = runBlocking { CachedMovies.getJellyfinLink(movie) }
 
         if (showOffers) {
