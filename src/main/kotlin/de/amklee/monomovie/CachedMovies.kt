@@ -63,16 +63,17 @@ object CachedMovies {
 
     private val justWatch = JustWatch(country = "DE", language = "en")
 
-    private suspend fun newMovie(id: String): Movie? {
-        val details = justWatch.details(id)
-        if (details != null) {
-            return Movie(
-                mediaEntry = details,
-                isBookmarked = BookmarksDB.isBookmarked(id),
-                isWatched = id in WatchedDB,
-                cacheDate = System.currentTimeMillis())
-        }
-        return null
+    private fun populateCache(mediaEntry: MediaEntry) {
+        if (mediaEntry.id == null) return
+
+        val movie =  Movie(
+            mediaEntry = mediaEntry,
+            isBookmarked = BookmarksDB.isBookmarked(mediaEntry.id),
+            isWatched = mediaEntry.id in WatchedDB,
+            cacheDate = System.currentTimeMillis()
+        )
+
+        cache[mediaEntry.id] = movie
     }
 
     suspend fun get(id: String): Movie? {
@@ -80,10 +81,10 @@ object CachedMovies {
 
         val cached = cache[id]
 
-        // populate cache if missing or older than 30 days
+        // update cache if missing or older than 30 days
         if (cached == null || cached.cacheDate < System.currentTimeMillis() - STALE_MS) {
-            val movie = newMovie(id) ?: return null
-            cache[id] = movie
+            val details = justWatch.details(id) ?: return null
+            populateCache(details)
             saveCache()
         }
         return cache[id]
@@ -127,14 +128,18 @@ object CachedMovies {
     )
 
     suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
-        val res = justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
+        val response = justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
 
-        return SearchResults(
-            res.edges
-                .mapNotNull { it.node.id }
-                .mapNotNull { get(it) },
-            res.pageInfo
+        val searchResult = SearchResults(
+            response.edges.mapNotNull {
+                if (it.node.id == null) return null
+                populateCache(it.node)
+                cache[it.node.id]
+            },
+            response.pageInfo
         )
+        saveCache()
+        return searchResult
     }
 
     suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
