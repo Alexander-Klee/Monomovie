@@ -17,6 +17,15 @@ object Resources {
     val searchSvg by Resource("graphics/search.svg")
     val infiniteScrollJs by Resource("infinite-scroll.js")
 
+    // svgs
+    val menuSvg by Resource("graphics/svg/menu.svg")
+    val arrowUpSvg by Resource("graphics/svg/arrowup.svg")
+    val searchSvg by Resource("graphics/svg/search.svg")
+    val eyeTemplateSvg by Resource("graphics/svgTemplates/eye-template.svg")
+    val eyePlusTemplateSvg by Resource("graphics/svgTemplates/eye-plus-template.svg")
+    val bookmarkTemplateSvg by Resource("graphics/svgTemplates/bookmark-template.svg")
+    val bookmarkPlusTemplateSvg by Resource("graphics/svgTemplates/bookmark-plus-template.svg")
+
     private class Resource(private val name: String) {
         private val resource: String by lazy {
             Resources::class.java.getResource("/$name")?.readText()

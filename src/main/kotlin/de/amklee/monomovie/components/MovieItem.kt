@@ -3,17 +3,13 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
 import de.amklee.monomovie.Offer
+import de.amklee.monomovie.util.BookmarkIconSvg
+import de.amklee.monomovie.util.BookmarkPlusIconSvg
+import de.amklee.monomovie.util.EyeIconSvg
+import de.amklee.monomovie.util.EyePlusIconSvg
 import kotlinx.coroutines.runBlocking
 import kotlinx.html.*
 
-private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
-    if (movie.mediaEntry.id == null) return
-
-    span(classes = "watched-button${if (movie.isWatched) " watched" else ""}") {
-        onClick = "watch('${movie.mediaEntry.id}', this)"
-        i(classes = "watched-icon rating-logo")
-    }
-}
 
 private fun UL.OfferItem(offer: Offer) = OfferItem(
     offer.standardWebURL ?: "",
@@ -148,10 +144,25 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
     }
 
     div(classes = "movie-item bookmark-container") {
-        span(classes = "movie-poster" + if (movie.isBookmarked) " bookmarked" else "") {
-            onClick = "return bookmark('$movieId', this, false)"
-            onDoubleClick = "return bookmark('$movieId', this, true)"
-            span(classes = "bookmark-icon")
+        BookmarkIconSvg("bookmark-icon" + if (movie.isBookmarked) " bookmarked" else "")
+
+        div(classes = "movie-action-container hidden-movie-action-bar-element") {
+            // TODO: action-bar is not working on mobile
+            div(classes = "movie-action-bar hidden-movie-action-bar-element") {
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button") {
+                    onClick = "watch('${movie.mediaEntry.id}', this)"
+
+                    if (movie.isWatched) EyeIconSvg("") else EyePlusIconSvg("")
+                }
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button") {
+                    onClick = "bookmark('$movieId', this)"
+
+                    if (movie.isBookmarked) BookmarkIconSvg("") else BookmarkPlusIconSvg("")
+                }
+            }
+        }
+
+        span(classes = "movie-poster") {
             img(classes = "movie-poster", src = posterUrl, alt = movieTitle)
         }
 
@@ -159,7 +170,6 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
             div(classes = "movie-title-bar") {
                 p(classes = "movie-title") { +movieTitle }
                 div(classes = "movie-rating-container") {
-                    WatchedButton(movie)
                     Ratings(movie)
                 }
             }

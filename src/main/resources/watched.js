@@ -1,31 +1,34 @@
-function watch(movieId, el) {
-    if (el.classList.contains('watched')) {
-        deleteWatch(movieId, el);
+function watch(movieId, buttonElement) {
+    const useElement = buttonElement.querySelector('use');
+    const currentIcon = useElement.getAttribute('href');
+
+    if (currentIcon === "#eye-icon") {
+        deleteWatch(movieId, useElement);
     } else {
-        setWatch(movieId, el);
+        setWatch(movieId, useElement);
     }
 }
 
-function deleteWatch(movieId, el) {
+function deleteWatch(movieId, useElement) {
     fetch(`/watch/${movieId}`, {
         method: 'DELETE'
     })
-        .then(() => {
-            el.classList.remove('watched');
-        })
-        .catch(error => {
-            console.error("Delete watch error:", error);
-        });
+    .then(() => {
+        useElement.setAttribute('href', '#eye-plus-icon')
+    })
+    .catch(error => {
+        console.error("Delete watch error:", error);
+    });
 }
 
-function setWatch(movieId, el) {
+function setWatch(movieId, useElement) {
     fetch(`/watch/${movieId}`, {
         method: 'POST'
     })
-        .then(() => {
-            el.classList.add('watched');
-        })
-        .catch(error => {
-            console.error("Watch error:", error);
-        });
+    .then(() => {
+        useElement.setAttribute('href', '#eye-icon')
+    })
+    .catch(error => {
+        console.error("Watch error:", error);
+    });
 }
