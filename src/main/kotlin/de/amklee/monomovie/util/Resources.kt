@@ -7,14 +7,14 @@ import kotlin.io.path.readText
 import kotlin.reflect.KProperty
 
 object Resources {
+    // styles
     val style by Resource("style.css")
-    val menuSvg by Resource("graphics/menu.svg")
-    val arrowUpSvg by Resource("graphics/arrowup.svg")
+
+    // scripts
     val topbuttonJs by Resource("topbutton.js")
     val bookmarkJs by Resource("bookmark.js")
     val watchedJs by Resource("watched.js")
     val selectableJs by Resource("selectable.js")
-    val searchSvg by Resource("graphics/search.svg")
     val infiniteScrollJs by Resource("infinite-scroll.js")
 
     // svgs
@@ -25,6 +25,9 @@ object Resources {
     val eyePlusTemplateSvg by Resource("graphics/svgTemplates/eye-plus-template.svg")
     val bookmarkTemplateSvg by Resource("graphics/svgTemplates/bookmark-template.svg")
     val bookmarkPlusTemplateSvg by Resource("graphics/svgTemplates/bookmark-plus-template.svg")
+    val rottenTomatoesSvg by Resource("graphics/svgTemplates/rotten-tomatoes-template.svg")
+    val tmdbSvg by Resource("graphics/svgTemplates/tmdb-template.svg")
+    val imdbSvg by Resource("graphics/svgTemplates/imdb-template.svg")
 
     private class Resource(private val name: String) {
         private val resource: String by lazy {

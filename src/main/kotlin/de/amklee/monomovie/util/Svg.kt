@@ -11,6 +11,9 @@ fun FlowContent.IncludeSvgTemplates() {
         +Resources.eyePlusTemplateSvg
         +Resources.bookmarkTemplateSvg
         +Resources.bookmarkPlusTemplateSvg
+        +Resources.rottenTomatoesSvg
+        +Resources.tmdbSvg
+        +Resources.imdbSvg
     }
 }
 
@@ -26,3 +29,6 @@ fun FlowContent.BookmarkIconSvg(classes: String = "bookmark-icon") = templatedSv
 fun FlowContent.BookmarkPlusIconSvg(classes: String = "bookmark-icon") = templatedSvg("#bookmark-plus-icon", classes = classes)
 fun FlowContent.EyeIconSvg(classes: String = "") = templatedSvg("#eye-icon", classes = classes)
 fun FlowContent.EyePlusIconSvg(classes: String = "") = templatedSvg("#eye-plus-icon", classes = classes)
+fun FlowContent.RottenTomatoesSvg(classes: String = "") = templatedSvg("#rotten-tomatoes-icon", classes = classes)
+fun FlowContent.TmdbSvg(classes: String = "") = templatedSvg("#tmdb-icon", classes = classes)
+fun FlowContent.ImdbSvg(classes: String = "") = templatedSvg("#imdb-icon", classes = classes)
