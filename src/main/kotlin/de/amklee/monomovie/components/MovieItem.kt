@@ -7,6 +7,9 @@ import de.amklee.monomovie.util.BookmarkIconSvg
 import de.amklee.monomovie.util.BookmarkPlusIconSvg
 import de.amklee.monomovie.util.EyeIconSvg
 import de.amklee.monomovie.util.EyePlusIconSvg
+import de.amklee.monomovie.util.ImdbSvg
+import de.amklee.monomovie.util.RottenTomatoesSvg
+import de.amklee.monomovie.util.TmdbSvg
 import kotlinx.coroutines.runBlocking
 import kotlinx.html.*
 
@@ -77,7 +80,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
 
     movie.mediaEntry.content?.scoring?.tomatoMeter?.let { score ->
         div(classes = "movie-rating") {
-            i(classes = "tomato-icon rating-logo")
+            RottenTomatoesSvg()
             p { +"$score%" }
         }
     }
@@ -86,7 +89,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
         SimpleLinkNewTab(imdbLink) {
             div(classes = "movie-rating") {
-                i(classes = "imdb-icon rating-logo")
+                ImdbSvg()
                 p { +formatScore(score) }
             }
         }
@@ -101,7 +104,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
         SimpleLinkNewTab(tmdbLink) {
             div(classes = "movie-rating") {
-                i(classes = "tmdb-icon rating-logo")
+                TmdbSvg()
                 p { +formatScore(score) }
             }
         }
