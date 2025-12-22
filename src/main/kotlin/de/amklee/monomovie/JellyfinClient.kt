@@ -20,7 +20,7 @@ object JellyfinClient {
     private val log = LoggerFactory.getLogger("MMV/Jellyfin")
 
     private val jellyfin = createJellyfin {
-        clientInfo = ClientInfo(name = "monomovie", version = "1.0.0",)
+        clientInfo = ClientInfo(name = "monomovie", version = "1.0.0")
         deviceInfo = DeviceInfo("monomovie", "monomovie")
     }
 

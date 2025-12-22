@@ -50,8 +50,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation")
 
     // Jellyfin SDK
-    implementation("org.jellyfin.sdk:jellyfin-core:${jellyfinSdkVersion}")
-    implementation("org.jellyfin.sdk:jellyfin-api-ktor-jvm:${jellyfinSdkVersion}")
+    implementation("org.jellyfin.sdk:jellyfin-core:1.8.5")
 
     // server for MonoMovie
     implementation("io.ktor:ktor-server-content-negotiation")
