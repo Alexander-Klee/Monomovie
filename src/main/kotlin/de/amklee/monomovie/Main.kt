@@ -20,10 +20,7 @@ import kotlinx.html.h1
 import kotlinx.html.p
 import org.slf4j.LoggerFactory
 
-
-val wheelOfNames = WheelOfNames(
-    System.getenv("WHEEL_OF_NAMES_API_KEY")
-        ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
+val hostname = System.getenv("MMV_HOSTNAME") ?: "http://localhost:8080"
 
 fun Route.miscRoutes() {
     get("/") {
@@ -180,12 +177,7 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respondRedirect(
-            wheelOfNames.createWheel(
-                selectedMovies.map { (movie, weight) ->
-                    WheelOfNames.Entry(movie.mediaEntry.content?.title ?: "null", weight)
-                }
-            ))
+        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies))
     }
     get("/CachedMovies.json") {
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
