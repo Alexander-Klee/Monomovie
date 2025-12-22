@@ -3,7 +3,6 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
 import de.amklee.monomovie.Offer
-import kotlinx.coroutines.runBlocking
 import kotlinx.html.*
 
 private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
@@ -140,7 +139,7 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
     }
 }
 
-fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
+suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
     val posterUrl = movie.mediaEntry.content?.posterUrl?.let {
@@ -172,8 +171,7 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
             }
         }
 
-        // TODO consider not blocking ...
-        val jellyfinLink = runBlocking { CachedMovies.getJellyfinLink(movie) }
+        val jellyfinLink = CachedMovies.getJellyfinLink(movie)
 
         if (showOffers) {
             div(classes = "movie-offers") {
@@ -188,13 +186,13 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
     }
 }
 
-fun UL.MovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         MovieItem(movie)
     }
 }
 
-fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         label {
             htmlFor = movie.mediaEntry.id ?: ""
@@ -208,7 +206,7 @@ fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     }
 }
 
-fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         label {
             htmlFor = movie.mediaEntry.id ?: ""

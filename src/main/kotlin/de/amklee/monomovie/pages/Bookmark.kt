@@ -4,7 +4,7 @@ import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.components.SelectableMovieList
 import kotlinx.html.*
 
-fun FlowContent.BookmarkPage(movies: List<CachedMovies.Movie>) {
+suspend fun FlowContent.BookmarkPage(movies: List<CachedMovies.Movie>) {
     h1 { +"Bookmarked Movies:" }
     if (movies.isEmpty()) {
         p { +"No bookmarked movies found" }

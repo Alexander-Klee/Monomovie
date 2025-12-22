@@ -71,7 +71,7 @@ class JustWatch(
 
         val body = try {
             response.body<SearchResponse>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
 
@@ -122,7 +122,7 @@ class JustWatch(
 
         val body = try {
             response.body<DetailsResponse>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
 
@@ -197,7 +197,7 @@ class JustWatch(
 
         val body = try {
             response.body<OffersByCountryResponse>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return countries.associateWith { emptyList<Offer>() }
         }
 

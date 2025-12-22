@@ -41,7 +41,7 @@ private fun getCountryName(countryCode: String): String {
     }
 }
 
-fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
+suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
         MovieItem(movie, showOffers = false)
 

@@ -6,7 +6,7 @@ import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 import java.time.format.DateTimeFormatter
 
-inline fun FlowContent.MovieList(script: String, crossinline body: UL.() -> Unit) {
+inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
     script {
         unsafe {
             +script
@@ -18,7 +18,7 @@ inline fun FlowContent.MovieList(script: String, crossinline body: UL.() -> Unit
     }
 }
 
-fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+suspend fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
     Resources.bookmarkJs + Resources.watchedJs
 ) {
     id = "infinite-list"
@@ -28,7 +28,7 @@ fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
-fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
+suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
     Resources.bookmarkJs + Resources.watchedJs
 ) {
     for ((date, movies) in movies
@@ -44,7 +44,7 @@ fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieLis
     }
 }
 
-fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieList(
     Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs
 ) {
     for (movie in movies) {
@@ -52,7 +52,7 @@ fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieLis
     }
 }
 
-fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+suspend fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
     Resources.watchedJs
 ) {
     for (movie in movies) {
