@@ -2,11 +2,11 @@ import java.util.*
 import kotlin.experimental.xor
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    kotlin("jvm") version "2.3.0"
     application
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
-    id("io.ktor.plugin") version "3.3.0"
-    id("com.gradleup.shadow") version "9.2.2"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+    id("io.ktor.plugin") version "3.3.3"
+    id("com.gradleup.shadow") version "9.3.0"
 }
 
 group = "de.amklee"
@@ -33,16 +33,13 @@ repositories {
     maven("https://maven.frohnmeyer-wds.de/artifacts")
 }
 
-val jellyfinSdkVersion = "1.7.1"
-
 dependencies {
-//    implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
-
     testImplementation(kotlin("test"))
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.12")
-    implementation("ch.qos.logback:logback-classic:1.5.3")
+    val slf4jVersion = "2.0.17"
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
 
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")
