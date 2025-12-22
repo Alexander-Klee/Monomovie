@@ -205,7 +205,7 @@ fun main() {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                LOG.error("Uncaught exception for path $cause, ${call.request.path()}")
+                LOG.error("Uncaught exception for path ${call.request.path()}", cause)
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
 //             TODO: remove, for debugging
