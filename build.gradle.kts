@@ -41,7 +41,7 @@ dependencies {
     val slf4jVersion = "2.0.17"
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("org.slf4j:slf4j-jdk-platform-logging:$slf4jVersion")
-    implementation("ch.qos.logback:logback-classic:1.5.23")
+    implementation("io.avaje:avaje-simple-logger:1.2")
 
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")
@@ -70,7 +70,7 @@ kotlin {
 
 runtime {
     addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
-    addModules("java.logging", "java.xml", "java.naming")
+    addModules("java.logging")
     enableCds()
     launcher {
         jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
