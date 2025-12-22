@@ -365,6 +365,7 @@ td, th {
     cursor: pointer;
     color: var(--text-color-light);
     padding: 0.5em;
+    user-select: none;
 }
 
 .roulette-weight-input {
