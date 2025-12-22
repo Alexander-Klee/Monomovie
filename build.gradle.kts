@@ -7,6 +7,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
     id("io.ktor.plugin") version "3.3.3"
     id("com.gradleup.shadow") version "9.3.0"
+    id("org.beryx.runtime") version "2.0.1"
 }
 
 group = "de.amklee"
@@ -39,6 +40,7 @@ dependencies {
     // Logging
     val slf4jVersion = "2.0.17"
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.slf4j:slf4j-jdk-platform-logging:$slf4jVersion")
     implementation("ch.qos.logback:logback-classic:1.5.23")
 
     // client for JustWatch API
@@ -53,7 +55,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-server-cio")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.2")
@@ -63,11 +65,25 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
+}
+
+runtime {
+    addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
+    addModules("java.logging", "java.xml", "java.naming")
+    enableCds()
+    launcher {
+        jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
+    }
 }
 
 tasks {
     shadowJar {
         archiveFileName = "app.jar"
+    }
+    register<Exec>("runImage") {
+        dependsOn(runtime)
+        group = "application"
+        executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
     }
 }

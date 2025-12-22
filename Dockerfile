@@ -1,11 +1,11 @@
 # Build stage
-FROM gradle:jdk21-jammy AS build
+FROM gradle:jdk25-alpine AS build
 WORKDIR /app
 COPY . .
-RUN gradle clean build --no-daemon
+RUN gradle clean :runtime --no-daemon
 
 # Runtime stage
-FROM eclipse-temurin:21-jre-alpine
+FROM alpine:latest
 WORKDIR /data
-COPY --from=build /app/build/libs/app.jar /app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+COPY --from=build /app/build/image /app
+ENTRYPOINT ["/app/bin/monomovie"]
