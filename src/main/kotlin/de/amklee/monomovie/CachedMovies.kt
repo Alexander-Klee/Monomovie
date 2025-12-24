@@ -95,6 +95,7 @@ object CachedMovies {
         if (!movie.isBookmarked) {
             movie.isBookmarked = true
             BookmarksDB.addBookmark(id)
+            saveCache()
         }
         return movie
     }
@@ -104,6 +105,7 @@ object CachedMovies {
         if (movie.isBookmarked) {
             movie.isBookmarked = false
             BookmarksDB.removeBookmark(id)
+            saveCache()
         }
         return movie
     }
@@ -113,6 +115,7 @@ object CachedMovies {
         if (movie.isWatched) return
         movie.isWatched = true
         WatchedDB.setWatch(id)
+        saveCache()
     }
 
     suspend fun deleteWatch(id: String) {
@@ -120,6 +123,7 @@ object CachedMovies {
         if (!movie.isWatched) return
         movie.isWatched = false
         WatchedDB.deleteWatch(id)
+        saveCache()
     }
 
     data class SearchResults(
