@@ -3,7 +3,9 @@ package de.amklee.monomovie
 import de.amklee.monomovie.components.HtmlTemplate
 import de.amklee.monomovie.components.WatchedMovieList
 import de.amklee.monomovie.pages.*
+import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.respondHtml
+import de.amklee.monomovie.util.setupLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -18,7 +20,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.html.h1
 import kotlinx.html.p
-import org.slf4j.LoggerFactory
 
 
 val wheelOfNames = WheelOfNames(
@@ -193,9 +194,10 @@ fun Route.miscRoutes() {
     staticResources("/static", "static")
 }
 
-private val LOG = LoggerFactory.getLogger("MMV/Router")
+private val LOG = System.getLogger("MMV/Router")
 
 fun main() {
+    setupLogging()
     embeddedServer(CIO, port = 8080) {
         install(ContentNegotiation) {
             json()
@@ -205,7 +207,7 @@ fun main() {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                LOG.error("Uncaught exception for path ${call.request.path()}", cause)
+                LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
 //             TODO: remove, for debugging

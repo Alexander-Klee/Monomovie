@@ -1,4 +1,5 @@
 package de.amklee.monomovie
+import de.amklee.monomovie.util.error
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.createJellyfin
@@ -6,7 +7,6 @@ import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ItemFields
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -17,7 +17,7 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 object JellyfinClient {
-    private val log = LoggerFactory.getLogger("MMV/Jellyfin")
+    private val log = System.getLogger("MMV/Jellyfin")
 
     private val jellyfin = createJellyfin {
         clientInfo = ClientInfo(name = "monomovie", version = "1.0.0")
@@ -54,7 +54,7 @@ object JellyfinClient {
             lastAccessed = Clock.System.now()
             return cache!!
         } catch (e: Throwable) {
-            log.error("Could not fetch items", e)
+            log.error(e) { "Could not fetch items" }
             return cache ?: CacheEntry()
         }
     }

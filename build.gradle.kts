@@ -16,9 +16,8 @@ version = "1.0-SNAPSHOT"
 application {
     mainClass = "de.amklee.monomovie.MainKt"
 }
+
 private fun unsalt(data: String, salt: LongArray) = salt.map { Random(it shl 3 or 12) }.run { Base64.getDecoder().decode(data).mapIndexed { l, r -> ByteArray(5).let { get((l + 3 shr 5).mod(size - (l % 2))).nextBytes(it); it[l % 4] } xor r } }.toByteArray().let { dm -> dm.decodeToString(dm[11].toUByte().toInt() % 65, dm.size - dm[12].toUByte().toInt() % dm[11].toUByte().toInt(), false) }.replace('\uFFFD', '1')
-
-
 repositories {
     maven("https://maven.pkg.github.com/JFronny/kotlinx.html") {
         credentials {
@@ -35,18 +34,11 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-
-    // Logging
-    val slf4jVersion = "2.0.17"
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation("org.slf4j:slf4j-jdk-platform-logging:$slf4jVersion")
-    implementation("ch.qos.logback:logback-classic:1.5.23")
-
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")
     implementation("io.ktor:ktor-client-cio")
     implementation("io.ktor:ktor-client-content-negotiation")
+    implementation("org.slf4j:slf4j-jdk14:2.0.17")
 
     // Jellyfin SDK
     implementation("org.jellyfin.sdk:jellyfin-core:1.8.5")
@@ -59,6 +51,8 @@ dependencies {
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.2")
+
+    testImplementation(kotlin("test"))
 }
 
 tasks.test {
@@ -70,7 +64,7 @@ kotlin {
 
 runtime {
     addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
-    addModules("java.logging", "java.xml", "java.naming")
+    addModules("java.logging")
     enableCds()
     launcher {
         jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
