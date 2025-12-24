@@ -2,8 +2,10 @@ package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Offer
+import de.amklee.monomovie.components.Mode
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
+import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 import java.util.Locale
 
@@ -43,6 +45,13 @@ private fun getCountryName(countryCode: String): String {
 
 suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
+        script {
+            unsafe {
+                +Resources.bookmarkJs
+                +Resources.watchedJs
+                +Resources.sseJs(Mode.OFFERS)
+            }
+        }
         MovieItem(movie, showOffers = false)
 
         // sort countries by number of flatrate offers descending, prioritize main country

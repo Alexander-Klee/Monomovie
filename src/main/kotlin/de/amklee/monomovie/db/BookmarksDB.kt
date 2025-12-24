@@ -1,5 +1,6 @@
 package de.amklee.monomovie.db
 
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.nio.file.Path
@@ -10,6 +11,8 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 object BookmarksDB {
+    val eventFlow = MutableSharedFlow<Event>()
+
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
@@ -25,7 +28,7 @@ object BookmarksDB {
     operator fun contains(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id }
     fun isBookmarked(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id && it.isBookmarked }
 
-    fun addBookmark(id: String) {
+    suspend fun addBookmark(id: String) {
         if (contains(id)) {
             markBookmark(id)
             return
@@ -35,9 +38,10 @@ object BookmarksDB {
                 BookmarkItem3(id, Instant.now().epochSecond, true)
             ))
         save()
+        eventFlow.emit(Event.Added(id))
     }
 
-    fun markBookmark(id: String) {
+    private suspend fun markBookmark(id: String) {
         bookmarksDB = bookmarksDB.copy(
             bookmarks = bookmarksDB.bookmarks
                 .map {
@@ -46,9 +50,10 @@ object BookmarksDB {
                 }
         )
         save()
+        eventFlow.emit(Event.Added(id))
     }
 
-    fun removeBookmark(id: String) {
+    suspend fun removeBookmark(id: String) {
         bookmarksDB = bookmarksDB.copy(
             bookmarks = bookmarksDB.bookmarks
                 .map {
@@ -57,11 +62,13 @@ object BookmarksDB {
                 }
         )
         save()
+        eventFlow.emit(Event.Removed(id))
     }
 
-    fun deleteBookmark(id: String) {
+    suspend fun deleteBookmark(id: String) {
         bookmarksDB = bookmarksDB.copy(bookmarks = bookmarksDB.bookmarks.filterNot { it.id == id })
         save()
+        eventFlow.emit(Event.Removed(id))
     }
 
     fun getBookmarks(): List<BookmarkItem> = bookmarksDB.bookmarks
@@ -79,8 +86,7 @@ object BookmarksDB {
             val db1 = json.decodeFromString<List<String>>(string)
             return BookmarksDB1(db1).migrate()
         }
-        val version = json.decodeFromString<Versioned>(string).version
-        return when (version) {
+        return when (val version = json.decodeFromString<Versioned>(string).version) {
             1 -> json.decodeFromString<BookmarksDB1>(string).migrate()
             2 -> json.decodeFromString<BookmarksDB2>(string).migrate()
             3 -> json.decodeFromString<BookmarksDB3>(string).migrate()
