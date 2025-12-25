@@ -9,6 +9,7 @@ private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
     if (movie.mediaEntry.id == null) return
 
     span(classes = "watched-button${if (movie.isWatched) " watched" else ""}") {
+        id = "watched-${movie.mediaEntry.id}"
         onClick = "watch('${movie.mediaEntry.id}', this)"
         i(classes = "watched-icon rating-logo")
     }
@@ -148,6 +149,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
 
     div(classes = "movie-item bookmark-container") {
         span(classes = "movie-poster" + if (movie.isBookmarked) " bookmarked" else "") {
+            id = "bookmark-$movieId"
             onClick = "return bookmark('$movieId', this, false)"
             onDoubleClick = "return bookmark('$movieId', this, true)"
             span(classes = "bookmark-icon")

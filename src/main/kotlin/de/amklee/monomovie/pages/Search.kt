@@ -32,7 +32,7 @@ suspend fun FlowContent.SearchPage(title: String, searchResults: CachedMovies.Se
 
     script {
         unsafe {
-            +Resources.infiniteScrollJs.replace($$"$endCursor$", searchResults.pageInfo.endCursor)
+            +Resources.infiniteScrollJs(searchResults.pageInfo.endCursor)
         }
     }
 

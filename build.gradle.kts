@@ -50,6 +50,7 @@ dependencies {
     implementation("io.ktor:ktor-server-cio")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
+    implementation("io.ktor:ktor-server-sse")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.2")
 
     testImplementation(kotlin("test"))

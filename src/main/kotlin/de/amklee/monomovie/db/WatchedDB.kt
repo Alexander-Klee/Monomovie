@@ -1,6 +1,7 @@
 package de.amklee.monomovie.db
 
 import de.amklee.monomovie.CachedMovies
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.nio.file.Path
@@ -13,6 +14,8 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 object WatchedDB {
+    val eventFlow = MutableSharedFlow<Event>()
+
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
@@ -27,7 +30,7 @@ object WatchedDB {
 
     operator fun contains(id: String): Boolean = watchedDB.watched.any { it.id == id }
 
-    fun setWatch(id: String) {
+    suspend fun setWatch(id: String) {
         if (contains(id)) {
             // maybe increment watch count or something
             return
@@ -37,13 +40,15 @@ object WatchedDB {
             WatchedItem1(id, Instant.now().epochSecond)
         ))
         save()
+        eventFlow.emit(Event.Added(id))
     }
 
-    fun deleteWatch(id: String) {
+    suspend fun deleteWatch(id: String) {
         watchedDB = watchedDB.copy(
             watched = watchedDB.watched.filter { it.id != id }
         )
         save()
+        eventFlow.emit(Event.Removed(id))
     }
 
     suspend fun getWatched(): List<WatchedItem> = watchedDB.watched
