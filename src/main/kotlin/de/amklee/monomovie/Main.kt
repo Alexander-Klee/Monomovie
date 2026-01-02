@@ -129,6 +129,7 @@ fun Route.miscRoutes() {
             WatchedDB.eventFlow.map { Kind.WATCHED to it }
         ).collect { (kind, event) ->
             send(convertBookmarkSse(event, mode, kind) ?: return@collect)
+
         }
     }
     get("/watched") {
@@ -188,7 +189,11 @@ fun Route.miscRoutes() {
         }
     }
     post("/roulette") {
-        val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
+        val items = call.receiveParameters()
+        val selectedMovies = items.names()
+            .filter { it.startsWith("tm") }
+            .flatMap { items.getAll(it).orEmpty() }
+            .mapNotNull { CachedMovies.get(it) }
 
         if (selectedMovies.isEmpty() || selectedMovies.size < 2) {
             call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")

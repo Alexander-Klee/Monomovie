@@ -196,11 +196,12 @@ suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
 
 suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
+        val name = movie.mediaEntry.id ?: ""
         label {
-            htmlFor = movie.mediaEntry.id ?: ""
-            checkBoxInput(classes = "movie-checkbox", name = "selected[]") {
-                value = movie.mediaEntry.id ?: ""
-                id = movie.mediaEntry.id ?: ""
+            htmlFor = name
+            checkBoxInput(classes = "movie-checkbox", name = name) {
+                value = name
+                id = name
                 onClick = "selectedChanged()"
             }
             MovieItem(movie)
