@@ -8,7 +8,9 @@ import de.amklee.monomovie.components.convertBookmarkSse
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.*
+import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.respondHtml
+import de.amklee.monomovie.util.setupLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -35,7 +37,6 @@ import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.seconds
 
 val wheelOfNames = WheelOfNames(
@@ -231,9 +232,10 @@ fun Route.miscRoutes() {
     staticResources("/static", "static")
 }
 
-private val LOG = LoggerFactory.getLogger("MMV/Router")
+private val LOG = System.getLogger("MMV/Router")
 
 fun main() {
+    setupLogging()
     embeddedServer(CIO, port = 8080) {
         install(ContentNegotiation) {
             json()
@@ -247,7 +249,7 @@ fun main() {
                 // Client disconnected, no need to log
             }
             exception<Throwable> { call, cause ->
-                LOG.error("Uncaught exception for path ${call.request.path()}", cause)
+                LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
 //             TODO: remove, for debugging
