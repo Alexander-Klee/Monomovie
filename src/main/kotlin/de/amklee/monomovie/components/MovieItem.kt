@@ -199,7 +199,7 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
         val name = movie.mediaEntry.id ?: ""
         label {
             htmlFor = name
-            checkBoxInput(classes = "movie-checkbox", name = name) {
+            checkBoxInput(classes = "movie-checkbox", name = "selected[]") {
                 value = name
                 id = name
                 onClick = "selectedChanged()"

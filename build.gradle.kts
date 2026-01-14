@@ -70,7 +70,6 @@ kotlin {
 }
 
 runtime {
-
     addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
     addModules("java.logging", "java.xml", "java.naming")
     enableCds()

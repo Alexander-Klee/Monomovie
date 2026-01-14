@@ -192,9 +192,9 @@ fun Route.miscRoutes() {
     }
     post("/roulette") {
         val items = call.receiveParameters()
-        val selectedMovies = items.names()
-            .filter { it.startsWith("tm") }
-            .flatMap { items.getAll(it).orEmpty() }
+        val selectedMovies = items
+            .getAll("selected[]")
+            .orEmpty()
             .mapNotNull { CachedMovies.get(it) }
 
         if (selectedMovies.isEmpty() || selectedMovies.size < 2) {
