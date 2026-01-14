@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const eventSource = new EventSource('/sse-stream?mode=' + mode);
 
     eventSource.onmessage = function(event) {
+        console.log(event.data)
         if (event.data === "heartbeat") return;
         const data = JSON.parse(event.data);
         console.log('Received SSE:', data);

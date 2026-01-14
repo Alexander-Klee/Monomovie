@@ -20,15 +20,22 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.Heartbeat
 import io.ktor.server.sse.SSE
 import io.ktor.server.sse.heartbeat
 import io.ktor.server.sse.send
 import io.ktor.server.sse.sse
 import io.ktor.sse.ServerSentEvent
 import io.ktor.util.*
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.serialization.json.Json
@@ -120,16 +127,49 @@ fun Route.miscRoutes() {
         Json.encodeToString(serializer, it)
     }) {
         val mode = call.request.queryParameters["mode"]?.let { Mode.valueOf(it) } ?: Mode.OVERVIEW
-        heartbeat {
+        val heartbeat = Heartbeat().apply {
             period = 15.seconds
             event = ServerSentEvent("heartbeat")
+        }
+        val heartbeatJob = Job(call.coroutineContext[Job])
+        val sseJob = Job(call.coroutineContext[Job])
+        suspend fun cancel() {
+            LOG.error("WHUUUUUYY")
+            heartbeatJob.cancel()
+            sseJob.cancel()
+            close()
+            coroutineContext.cancel()
+        }
+        launch(heartbeatJob + CoroutineName("sse-heartbeat")) {
+            try {
+                while (true) {
+                    send(heartbeat.event)
+                    delay(heartbeat.period)
+                }
+            } catch (_ : CancellationException) {
+                cancel()
+            } catch (e: Throwable) {
+                LOG.warn("SSE heartbeat terminated with error", e)
+                cancel()
+            }
         }
         val eventFlow = merge(
             BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
             WatchedDB.eventFlow.map { Kind.WATCHED to it }
         ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
-        eventFlow.collect { event ->
-            send(event)
+
+        launch(sseJob + CoroutineName("sse-stream")) {
+            try {
+                eventFlow.collect { event ->
+                    LOG.info("Sending SSE event to client: ${call.request}")
+                    send(event)
+                }
+            } catch (_: CancellationException) {
+                cancel()
+            } catch (e: Throwable) {
+                LOG.warn("SSE stream terminated with error", e)
+                cancel()
+            }
         }
     }
     get("/watched") {
