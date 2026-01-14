@@ -16,6 +16,7 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -26,6 +27,7 @@ import io.ktor.server.sse.send
 import io.ktor.server.sse.sse
 import io.ktor.sse.ServerSentEvent
 import io.ktor.util.*
+import io.ktor.utils.io.ClosedWriteChannelException
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
@@ -121,7 +123,7 @@ fun Route.miscRoutes() {
     }) {
         val mode = call.request.queryParameters["mode"]?.let { Mode.valueOf(it) } ?: Mode.OVERVIEW
         heartbeat {
-            period = 15.seconds
+            period = 5.seconds
             event = ServerSentEvent("heartbeat")
         }
         val eventFlow = merge(
@@ -241,6 +243,9 @@ fun main() {
             miscRoutes()
         }
         install(StatusPages) {
+            exception<ClosedWriteChannelException> { _, _ ->
+                // Client disconnected, no need to log
+            }
             exception<Throwable> { call, cause ->
                 LOG.error("Uncaught exception for path ${call.request.path()}", cause)
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)

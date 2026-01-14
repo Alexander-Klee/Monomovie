@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     eventSource.onerror = function(err) {
+        //TODO reconnect on network change (or similar)
         console.error('EventSource failed:', err);
         eventSource.close();
     };
