@@ -27,6 +27,7 @@ import io.ktor.server.sse.sse
 import io.ktor.sse.ServerSentEvent
 import io.ktor.util.*
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.html.h1
 import kotlinx.html.p
@@ -34,7 +35,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.seconds
-
 
 val wheelOfNames = WheelOfNames(
     System.getenv("WHEEL_OF_NAMES_API_KEY")
@@ -124,12 +124,12 @@ fun Route.miscRoutes() {
             period = 15.seconds
             event = ServerSentEvent("heartbeat")
         }
-        merge(
+        val eventFlow = merge(
             BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
             WatchedDB.eventFlow.map { Kind.WATCHED to it }
-        ).collect { (kind, event) ->
-            send(convertBookmarkSse(event, mode, kind) ?: return@collect)
-
+        ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
+        eventFlow.collect { event ->
+            send(event)
         }
     }
     get("/watched") {
