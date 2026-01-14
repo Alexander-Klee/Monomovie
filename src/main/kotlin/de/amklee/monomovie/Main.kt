@@ -1,10 +1,6 @@
 package de.amklee.monomovie
 
-import de.amklee.monomovie.components.HtmlTemplate
-import de.amklee.monomovie.components.Kind
-import de.amklee.monomovie.components.Mode
-import de.amklee.monomovie.components.WatchedMovieList
-import de.amklee.monomovie.components.convertBookmarkSse
+import de.amklee.monomovie.components.*
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.*
@@ -14,22 +10,18 @@ import de.amklee.monomovie.util.setupLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.cio.CIO
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sse.SSE
-import io.ktor.server.sse.heartbeat
-import io.ktor.server.sse.send
-import io.ktor.server.sse.sse
-import io.ktor.sse.ServerSentEvent
+import io.ktor.server.sse.*
+import io.ktor.sse.*
 import io.ktor.util.*
-import io.ktor.utils.io.ClosedWriteChannelException
+import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
@@ -39,9 +31,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
 
-val wheelOfNames = WheelOfNames(
-    System.getenv("WHEEL_OF_NAMES_API_KEY")
-        ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
+val hostname = System.getenv("MMV_HOSTNAME") ?: "http://localhost:8080"
 
 fun Route.miscRoutes() {
     get("/") {
@@ -219,12 +209,7 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respondRedirect(
-            wheelOfNames.createWheel(
-                selectedMovies.map { (movie, weight) ->
-                    WheelOfNames.Entry(movie.mediaEntry.content?.title ?: "null", weight)
-                }
-            ))
+        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies))
     }
     get("/CachedMovies.json") {
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
