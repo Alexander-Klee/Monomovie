@@ -409,6 +409,18 @@ data class MediaEntry(
     val offers: List<Offer>? = null
 )
 
+val MediaEntry.title: String
+    get() = content?.title ?: "Unknown Title"
+
+val MediaEntry.fullPosterUrl: String?
+    get() = content?.posterUrl?.let { "https://images.justwatch.com$it" }
+
+val MediaEntry.imdbLink: String?
+    get() = content?.externalIds?.imdbId?.let { "https://www.imdb.com/title/$it" }
+
+val MediaEntry.tmdbLink: String?
+    get() = content?.externalIds?.tmdbId?.let { "https://www.themoviedb.org/movie/$it" }
+
 @Serializable
 data class Content(
     val title: String? = null,

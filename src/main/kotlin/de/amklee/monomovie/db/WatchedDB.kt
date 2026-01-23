@@ -68,8 +68,7 @@ object WatchedDB {
             return WatchedDB1(emptyList())
         }
         val string = path.readText().trim()
-        val version = json.decodeFromString<Versioned>(string).version
-        return when (version) {
+        return when (val version = json.decodeFromString<Versioned>(string).version) {
             1 -> json.decodeFromString<WatchedDB1>(string).migrate()
             else -> throw IllegalStateException("Unsupported WatchedDB version: $version")
         }

@@ -18,7 +18,7 @@ object BookmarksDB {
         ignoreUnknownKeys = true
     }
 
-    data class BookmarkItem(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true)
+    data class BookmarkItem(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true, val colour: String? = null)
     private var bookmarksDB: BookmarksDB3 = openBookmarksDb()
 
     private fun save() = synchronized(this) {
@@ -74,7 +74,18 @@ object BookmarksDB {
     fun getBookmarks(): List<BookmarkItem> = bookmarksDB.bookmarks
         .filter { it.isBookmarked }
         .sortedByDescending { it.bookmarkedAt }
-        .map { BookmarkItem(it.id, it.bookmarkedAt, it.isBookmarked) }
+        .map { BookmarkItem(it.id, it.bookmarkedAt, it.isBookmarked, it.colour) }
+
+    suspend fun setColour(id: String, colour: String?) {
+        bookmarksDB = bookmarksDB.copy(
+            bookmarks = bookmarksDB.bookmarks
+                .map {
+                    if (it.id == id) it.copy(colour = colour)
+                    else it
+                }
+        )
+        save()
+    }
 
     private fun openBookmarksDb(path: Path = Path("bookmarks.json")): BookmarksDB3 {
         if (!path.exists()) {
@@ -116,17 +127,18 @@ object BookmarksDB {
     private data class BookmarksDB3(
         val bookmarks: List<BookmarkItem3>
     ) : Versioned(3)
+    @Serializable
+    private data class BookmarkItem2(
+        val id: String,
+        val bookmarkedAt: Long
+    )
 
     @Serializable
     private data class BookmarkItem3(
         val id: String,
         val bookmarkedAt: Long,
-        val isBookmarked: Boolean
-    )
-    @Serializable
-    private data class BookmarkItem2(
-        val id: String,
-        val bookmarkedAt: Long
+        val isBookmarked: Boolean,
+        val colour: String? = null
     )
 
     private fun BookmarksDB1.migrate(): BookmarksDB3 {

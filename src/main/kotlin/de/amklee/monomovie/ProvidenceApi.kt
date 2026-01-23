@@ -29,14 +29,14 @@ object ProvidenceApi {
         val actions: List<WheelAction>,
     )
 
-    fun createWheel(entries: List<Pair<CachedMovies.Movie, Int>>): Url {
+    suspend fun createWheel(entries: List<Pair<CachedMovies.Movie, Int>>): Url {
         val config = WheelConfig(
             hash = null,
             options = entries.map { (movie, weight) -> WheelOption(
                 id = movie.mediaEntry.id!!,
                 label = movie.mediaEntry.content?.title ?: "Unknown Title",
                 weight = weight,
-                color = null,
+                color = TmColour[movie],
             ) },
             actions = listOf(
                 WheelAction("View Offers", "$hostname/offers/{id}")

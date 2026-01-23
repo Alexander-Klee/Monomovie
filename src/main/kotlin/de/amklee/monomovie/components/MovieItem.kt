@@ -3,6 +3,10 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
 import de.amklee.monomovie.Offer
+import de.amklee.monomovie.fullPosterUrl
+import de.amklee.monomovie.imdbLink
+import de.amklee.monomovie.title
+import de.amklee.monomovie.tmdbLink
 import kotlinx.html.*
 
 private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
@@ -86,7 +90,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
         }
     }
 
-    val imdbLink = movie.mediaEntry.content?.externalIds?.imdbId?.let { id -> "https://www.imdb.com/title/$id" }
+    val imdbLink = movie.mediaEntry.imdbLink
     movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
         SimpleLinkNewTab(imdbLink) {
             div(classes = "movie-rating") {
@@ -101,7 +105,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
         "show" -> "tv"
         else -> "movie" // Default
     }
-    val tmdbLink = movie.mediaEntry.content?.externalIds?.tmdbId?.let { id -> "https://www.themoviedb.org/$tmdbLinkType/$id" }
+    val tmdbLink = movie.mediaEntry.tmdbLink
     movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
         SimpleLinkNewTab(tmdbLink) {
             div(classes = "movie-rating") {
@@ -142,10 +146,8 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
 
 suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
-    val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
-    val posterUrl = movie.mediaEntry.content?.posterUrl?.let {
-        "https://images.justwatch.com$it"
-    }
+    val movieTitle = movie.mediaEntry.title
+    val posterUrl = movie.mediaEntry.fullPosterUrl
 
     div(classes = "movie-item bookmark-container") {
         span(classes = "movie-poster" + if (movie.isBookmarked) " bookmarked" else "") {
