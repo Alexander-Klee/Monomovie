@@ -29,6 +29,7 @@ object Resources {
     val eyeTemplateSvg by Resource("graphics/svgTemplates/eye-template.svg")
     val eyePlusTemplateSvg by Resource("graphics/svgTemplates/eye-plus-template.svg")
     val bookmarkTemplateSvg by Resource("graphics/svgTemplates/bookmark-template.svg")
+    val bookmarkSquareTemplateSvg by Resource("graphics/svgTemplates/bookmark-square-template.svg")
     val bookmarkPlusTemplateSvg by Resource("graphics/svgTemplates/bookmark-plus-template.svg")
     val rottenTomatoesSvg by Resource("graphics/svgTemplates/rotten-tomatoes-template.svg")
     val tmdbSvg by Resource("graphics/svgTemplates/tmdb-template.svg")

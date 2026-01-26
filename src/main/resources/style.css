@@ -173,7 +173,7 @@ h1 {
     position: absolute;
     z-index: 2;
     width: 1.5em;
-    height: calc(1.5em * 1.33); /* SVG is 384x512, so 1:1.33 ratio */
+    height: calc(1.5em * 720/560); /* SVG is 560x720, so maintain ratio */
     margin-left: 1rem;
     margin-top: -1px;
     color: yellow;
@@ -586,7 +586,7 @@ td, th {
 
     .bookmark-icon {
         width: 3em;
-        height: calc(3em * 1.33); /* Maintain aspect ratio */
+        height: calc(3em * 720/560); /* Maintain aspect ratio */
     }
 
     .content {

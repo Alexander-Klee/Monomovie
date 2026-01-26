@@ -14,6 +14,7 @@ import de.amklee.monomovie.fullPosterUrl
 import de.amklee.monomovie.imdbLink
 import de.amklee.monomovie.title
 import de.amklee.monomovie.tmdbLink
+import de.amklee.monomovie.util.BookmarkSquareIconSvg
 import kotlinx.html.*
 
 
@@ -145,7 +146,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
     div(classes = "movie-item bookmark-container") {
         val bookmarkedClass = if (movie.isBookmarked) "bookmarked" else ""
         val watchedClass = if (movie.isWatched) "watched" else ""
-        BookmarkIconSvg("bookmark-icon $bookmarkedClass") {
+        BookmarkSquareIconSvg("bookmark-icon $bookmarkedClass") {
             id = "bookmark-$movieId"
         }
 

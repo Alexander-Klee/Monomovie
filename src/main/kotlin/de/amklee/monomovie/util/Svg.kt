@@ -9,6 +9,7 @@ fun FlowContent.IncludeSvgTemplates() {
         +Resources.eyeTemplateSvg
         +Resources.eyePlusTemplateSvg
         +Resources.bookmarkTemplateSvg
+        +Resources.bookmarkSquareTemplateSvg
         +Resources.bookmarkPlusTemplateSvg
         +Resources.rottenTomatoesSvg
         +Resources.tmdbSvg
@@ -26,6 +27,7 @@ inline fun FlowContent.templatedSvg(href: String, classes: String = "", block: S
 }
 
 inline fun FlowContent.BookmarkIconSvg(classes: String = "bookmark-icon", block: SVG.() -> Unit = {}) = templatedSvg("#bookmark-icon", classes = classes, block = block)
+inline fun FlowContent.BookmarkSquareIconSvg(classes: String = "bookmark-icon", block: SVG.() -> Unit = {}) = templatedSvg("#bookmark-square-icon", classes = classes, block = block)
 inline fun FlowContent.BookmarkPlusIconSvg(classes: String = "bookmark-icon", block: SVG.() -> Unit = {}) = templatedSvg("#bookmark-plus-icon", classes = classes, block = block)
 inline fun FlowContent.EyeIconSvg(classes: String = "", block: SVG.() -> Unit = {}) = templatedSvg("#eye-icon", classes = classes, block = block)
 inline fun FlowContent.EyePlusIconSvg(classes: String = "", block: SVG.() -> Unit = {}) = templatedSvg("#eye-plus-icon", classes = classes, block = block)
