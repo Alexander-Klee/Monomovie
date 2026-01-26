@@ -21,6 +21,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.*
+import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -231,6 +232,9 @@ fun main() {
         }
         install(StatusPages) {
             exception<ClosedWriteChannelException> { _, _ ->
+                // Client disconnected, no need to log
+            }
+            exception<ChannelWriteException> { _, _ ->
                 // Client disconnected, no need to log
             }
             exception<Throwable> { call, cause ->
