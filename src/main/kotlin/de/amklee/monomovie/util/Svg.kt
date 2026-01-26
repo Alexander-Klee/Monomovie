@@ -3,8 +3,6 @@ package de.amklee.monomovie.util
 import kotlinx.html.FlowContent
 import kotlinx.html.SVG
 import kotlinx.html.svg
-import kotlinx.html.unsafe
-
 
 fun FlowContent.IncludeSvgTemplates() {
     consumer.onTagContentUnsafe {
@@ -21,8 +19,8 @@ fun FlowContent.IncludeSvgTemplates() {
 inline fun FlowContent.templatedSvg(href: String, classes: String = "", block: SVG.() -> Unit = {}) {
     svg(classes = classes) {
         block()
-        unsafe {
-            +"<use href=\"$href\"></use>"
+        custom("use") {
+            attributes["href"] = href
         }
     }
 }

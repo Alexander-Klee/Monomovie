@@ -31,3 +31,13 @@ suspend inline fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStat
     }
     respond(TextContent(text, ContentType.Text.Html.withCharset(Charsets.UTF_8), status))
 }
+
+class CustomDomElement(tagName: String, consumer: TagConsumer<*>) :
+    HTMLTag(tagName, consumer, emptyMap(),
+        inlineTag = true,
+        emptyTag = false),
+    HtmlInlineTag
+
+fun FlowContent.custom(tagName: String, block: CustomDomElement.() -> Unit = {}) {
+    CustomDomElement(tagName, consumer).visit(block)
+}
