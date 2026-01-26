@@ -100,11 +100,6 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
         }
     }
 
-    val tmdbLinkType = when (movie.mediaEntry.objectType?.lowercase()) {
-        "movie" -> "movie"
-        "show" -> "tv"
-        else -> "movie" // Default
-    }
     val tmdbLink = movie.mediaEntry.tmdbLink
     movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
         SimpleLinkNewTab(tmdbLink) {
