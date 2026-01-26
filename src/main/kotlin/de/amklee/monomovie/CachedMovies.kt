@@ -3,9 +3,9 @@ package de.amklee.monomovie
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.MonetizationTypes
+import de.amklee.monomovie.util.error
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.slf4j.LoggerFactory
 import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.exists
@@ -14,7 +14,7 @@ import kotlin.io.path.writeText
 import kotlin.math.sqrt
 
 object CachedMovies {
-    private val log = LoggerFactory.getLogger("MMV/CachedMovies")
+    private val log = System.getLogger("MMV/CachedMovies")
 
     @Serializable
     data class Movie(
@@ -46,7 +46,7 @@ object CachedMovies {
                 val jsonString = cacheFile.readText()
                 Json.decodeFromString<Map<String, Movie>>(jsonString).toMutableMap()
             } catch (e: Exception) {
-                log.error("Unable to parse json for the cached movies.")
+                log.error(e) { "Unable to parse json for the cached movies." }
                 mutableMapOf()
             }
         } else {
@@ -95,6 +95,7 @@ object CachedMovies {
         if (!movie.isBookmarked) {
             movie.isBookmarked = true
             BookmarksDB.addBookmark(id)
+            saveCache()
         }
         return movie
     }
@@ -104,6 +105,7 @@ object CachedMovies {
         if (movie.isBookmarked) {
             movie.isBookmarked = false
             BookmarksDB.removeBookmark(id)
+            saveCache()
         }
         return movie
     }
@@ -113,6 +115,7 @@ object CachedMovies {
         if (movie.isWatched) return
         movie.isWatched = true
         WatchedDB.setWatch(id)
+        saveCache()
     }
 
     suspend fun deleteWatch(id: String) {
@@ -120,6 +123,7 @@ object CachedMovies {
         if (!movie.isWatched) return
         movie.isWatched = false
         WatchedDB.deleteWatch(id)
+        saveCache()
     }
 
     data class SearchResults(

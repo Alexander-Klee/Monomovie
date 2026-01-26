@@ -71,7 +71,7 @@ class JustWatch(
 
         val body = try {
             response.body<SearchResponse>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
 
@@ -122,7 +122,7 @@ class JustWatch(
 
         val body = try {
             response.body<DetailsResponse>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
 
@@ -197,7 +197,7 @@ class JustWatch(
 
         val body = try {
             response.body<OffersByCountryResponse>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return countries.associateWith { emptyList<Offer>() }
         }
 
@@ -408,6 +408,25 @@ data class MediaEntry(
     val streamingCharts: StreamingChartsWrapper? = null,
     val offers: List<Offer>? = null
 )
+
+val MediaEntry.title: String
+    get() = content?.title ?: "Unknown Title"
+
+val MediaEntry.fullPosterUrl: String?
+    get() = content?.posterUrl?.let { "https://images.justwatch.com$it" }
+
+val MediaEntry.imdbLink: String?
+    get() = content?.externalIds?.imdbId?.let { "https://www.imdb.com/title/$it" }
+
+val MediaEntry.tmdbLink: String?
+    get() {
+        val tmdbLinkType = when (objectType?.lowercase()) {
+            "movie" -> "movie"
+            "show" -> "tv"
+            else -> "movie" // Default
+        }
+        return content?.externalIds?.tmdbId?.let { "https://www.themoviedb.org/$tmdbLinkType/$it" }
+    }
 
 @Serializable
 data class Content(

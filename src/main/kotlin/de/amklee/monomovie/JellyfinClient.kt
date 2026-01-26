@@ -1,11 +1,12 @@
 package de.amklee.monomovie
+import de.amklee.monomovie.util.error
+import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ItemFields
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -16,23 +17,24 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 object JellyfinClient {
-    private val log = LoggerFactory.getLogger("MMV/Jellyfin")
+    private val log = System.getLogger("MMV/Jellyfin")
 
     private val jellyfin = createJellyfin {
-        clientInfo = ClientInfo(name = "monomovie", version = "1.0.0",)
+        clientInfo = ClientInfo(name = "monomovie", version = "1.0.0")
         deviceInfo = DeviceInfo("monomovie", "monomovie")
     }
 
     private val api by lazy {
         jellyfin.createApi(
-            baseUrl = System.getenv("MMV_JELLYFIN_HOST"),
-            accessToken = System.getenv("MMV_JELLYFIN_TOKEN")
+            baseUrl = System.getenv("MMV_JELLYFIN_HOST") ?: return@lazy null,
+            accessToken = System.getenv("MMV_JELLYFIN_TOKEN") ?: return@lazy null,
         )
     }
 
     private var cache: CacheEntry? = null
     private var lastAccessed = Instant.fromEpochSeconds(0)
     private suspend fun getItems(): CacheEntry {
+        val api = api ?: return CacheEntry()
         if (cache != null && (Clock.System.now() - lastAccessed) < 3.hours) {
             return cache!!
         }
@@ -42,23 +44,23 @@ object JellyfinClient {
             cache = CacheEntry(
                 tmdb = items.content.items.mapNotNull {
                     val id = it.providerIds?.get("Tmdb") ?: return@mapNotNull null
-                    id to it.actualUrl()
+                    id to api.actualUrl(it)
                 }.toMap(),
                 imdb = items.content.items.mapNotNull {
                     val id = it.providerIds?.get("Imdb") ?: return@mapNotNull null
-                    id to it.actualUrl()
+                    id to api.actualUrl(it)
                 }.toMap()
             )
             lastAccessed = Clock.System.now()
             return cache!!
         } catch (e: Throwable) {
-            log.error("Could not fetch items", e)
-            return cache ?: CacheEntry(emptyMap(), emptyMap())
+            log.error(e) { "Could not fetch items" }
+            return cache ?: CacheEntry()
         }
     }
 
-    private fun BaseItemDto.actualUrl(): String {
-        return "${api.baseUrl}/web/#/details?id=${this.id.toString().urlEncode()}&serverId=${this.serverId?.urlEncode()}"
+    private fun ApiClient.actualUrl(item: BaseItemDto): String {
+        return "$baseUrl/web/#/details?id=${item.id.toString().urlEncode()}&serverId=${item.serverId?.urlEncode()}"
     }
 
     private fun String.urlEncode() = URLEncoder.encode(this, StandardCharsets.UTF_8)
@@ -66,5 +68,7 @@ object JellyfinClient {
     suspend fun findTmdbOnJellyfin(tmdbId: String) = getItems().tmdb[tmdbId]
     suspend fun findImdbOnJellyfin(imdbId: String) = getItems().imdb[imdbId]
 
-    private data class CacheEntry(val tmdb: Map<String, String>, val imdb: Map<String, String>)
+    private data class CacheEntry(val tmdb: Map<String, String>, val imdb: Map<String, String>) {
+        constructor() : this(emptyMap(), emptyMap())
+    }
 }

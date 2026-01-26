@@ -381,6 +381,7 @@ td, th {
     cursor: pointer;
     color: var(--text-color-light);
     padding: 0.5em;
+    user-select: none !important;
 }
 
 .roulette-weight-input {
@@ -527,6 +528,34 @@ td, th {
 
 .show-top-button {
     display: block;
+}
+
+.in-bookmarked {
+    display: none;
+}
+
+.bookmarked {
+    .in-bookmarked {
+        display: inherit;
+    }
+
+    .in-not-bookmarked {
+        display: none;
+    }
+}
+
+.in-watched {
+    display: none;
+}
+
+.watched {
+    .in-watched {
+        display: inherit;
+    }
+
+    .in-not-watched {
+        display: none;
+    }
 }
 
 /* For Phones*/

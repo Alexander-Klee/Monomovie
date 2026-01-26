@@ -27,12 +27,12 @@ fun FlowContent.EmptySearchPage() {
     p { +"Please enter a title to search for." }
 }
 
-fun FlowContent.SearchPage(title: String, searchResults: CachedMovies.SearchResults) {
+suspend fun FlowContent.SearchPage(title: String, searchResults: CachedMovies.SearchResults) {
     SearchBar(title)
 
     script {
         unsafe {
-            +Resources.infiniteScrollJs.replace($$"$endCursor$", searchResults.pageInfo.endCursor)
+            +Resources.infiniteScrollJs(searchResults.pageInfo.endCursor)
         }
     }
 
@@ -51,7 +51,7 @@ data class MoreSearchResultsResponse(
     val hasNextPage: Boolean
 )
 
-fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSearchResultsResponse {
+suspend fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSearchResultsResponse {
     if (searchResults.movies.isEmpty()) return MoreSearchResultsResponse("", "", false)
 
     return MoreSearchResultsResponse(

@@ -2,11 +2,12 @@ import java.util.*
 import kotlin.experimental.xor
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    kotlin("jvm") version "2.3.0"
     application
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
-    id("io.ktor.plugin") version "3.3.0"
-    id("com.gradleup.shadow") version "9.2.2"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+    id("io.ktor.plugin") version "3.3.3"
+    id("com.gradleup.shadow") version "9.3.0"
+    id("org.beryx.runtime") version "2.0.1"
 }
 
 group = "de.amklee"
@@ -15,9 +16,8 @@ version = "1.0-SNAPSHOT"
 application {
     mainClass = "de.amklee.monomovie.MainKt"
 }
+
 private fun unsalt(data: String, salt: LongArray) = salt.map { Random(it shl 3 or 12) }.run { Base64.getDecoder().decode(data).mapIndexed { l, r -> ByteArray(5).let { get((l + 3 shr 5).mod(size - (l % 2))).nextBytes(it); it[l % 4] } xor r } }.toByteArray().let { dm -> dm.decodeToString(dm[11].toUByte().toInt() % 65, dm.size - dm[12].toUByte().toInt() % dm[11].toUByte().toInt(), false) }.replace('\uFFFD', '1')
-
-
 repositories {
     maven("https://maven.pkg.github.com/JFronny/kotlinx.html") {
         credentials {
@@ -33,33 +33,24 @@ repositories {
     maven("https://maven.frohnmeyer-wds.de/artifacts")
 }
 
-val jellyfinSdkVersion = "1.7.1"
-
 dependencies {
-//    implementation(platform("io.gitlab.jfronny:commons-bom:1.8.0-SNAPSHOT"))
-
-    testImplementation(kotlin("test"))
-
-    // Logging
-    implementation("org.slf4j:slf4j-api:2.0.12")
-    implementation("ch.qos.logback:logback-classic:1.5.3")
-
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")
     implementation("io.ktor:ktor-client-cio")
     implementation("io.ktor:ktor-client-content-negotiation")
+    implementation("org.slf4j:slf4j-jdk14:2.0.17")
 
     // Jellyfin SDK
-    implementation("org.jellyfin.sdk:jellyfin-core:${jellyfinSdkVersion}")
-    implementation("org.jellyfin.sdk:jellyfin-api-ktor-jvm:${jellyfinSdkVersion}")
+    implementation("org.jellyfin.sdk:jellyfin-core:1.8.5")
 
     // server for MonoMovie
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-server-cio")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
+    implementation("io.ktor:ktor-server-sse")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.2")
 }
 
@@ -67,11 +58,25 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
+}
+
+runtime {
+    addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
+    addModules("java.logging")
+    enableCds()
+    launcher {
+        jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
+    }
 }
 
 tasks {
     shadowJar {
         archiveFileName = "app.jar"
+    }
+    register<Exec>("runImage") {
+        dependsOn(runtime)
+        group = "application"
+        executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
     }
 }

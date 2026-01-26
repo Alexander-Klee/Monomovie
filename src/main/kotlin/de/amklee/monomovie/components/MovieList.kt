@@ -6,7 +6,7 @@ import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 import java.time.format.DateTimeFormatter
 
-inline fun FlowContent.MovieList(script: String, crossinline body: UL.() -> Unit) {
+inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
     script {
         unsafe {
             +script
@@ -18,8 +18,8 @@ inline fun FlowContent.MovieList(script: String, crossinline body: UL.() -> Unit
     }
 }
 
-fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
-    Resources.bookmarkJs + Resources.watchedJs
+suspend fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH)
 ) {
     id = "infinite-list"
     for (movie in movies) {
@@ -28,8 +28,8 @@ fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
-fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
-    Resources.bookmarkJs + Resources.watchedJs
+suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.WATCHED)
 ) {
     for ((date, movies) in movies
         .groupBy { it.watchedAt.toLocalDate() }
@@ -44,16 +44,16 @@ fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieLis
     }
 }
 
-fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieList(
-    Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs
+suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs + Resources.sseJs(Mode.OVERVIEW)
 ) {
     for (movie in movies) {
         SelectableMovieListItem(movie)
     }
 }
 
-fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
-    Resources.watchedJs
+suspend fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+    Resources.watchedJs + Resources.sseJs(Mode.ROULETTE)
 ) {
     for (movie in movies) {
         RouletteMovieListItem(movie)

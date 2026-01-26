@@ -1,5 +1,6 @@
 package de.amklee.monomovie.util
 
+import de.amklee.monomovie.components.Mode
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
 import kotlin.io.path.exists
@@ -15,7 +16,11 @@ object Resources {
     val bookmarkJs by Resource("bookmark.js")
     val watchedJs by Resource("watched.js")
     val selectableJs by Resource("selectable.js")
-    val infiniteScrollJs by Resource("infinite-scroll.js")
+    private val infiniteScrollJs by Resource("infinite-scroll.js")
+    private val sseJs by Resource("sse.js")
+
+    fun infiniteScrollJs(endCursor: String) = infiniteScrollJs.replace($$"$endCursor$", endCursor)
+    fun sseJs(mode: Mode) = sseJs.replace($$"$mode$", mode.toString())
 
     // svgs
     val menuSvg by Resource("graphics/svg/menu.svg")

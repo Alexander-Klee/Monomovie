@@ -10,7 +10,10 @@ import de.amklee.monomovie.util.EyePlusIconSvg
 import de.amklee.monomovie.util.ImdbSvg
 import de.amklee.monomovie.util.RottenTomatoesSvg
 import de.amklee.monomovie.util.TmdbSvg
-import kotlinx.coroutines.runBlocking
+import de.amklee.monomovie.fullPosterUrl
+import de.amklee.monomovie.imdbLink
+import de.amklee.monomovie.title
+import de.amklee.monomovie.tmdbLink
 import kotlinx.html.*
 
 
@@ -85,7 +88,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
         }
     }
 
-    val imdbLink = movie.mediaEntry.content?.externalIds?.imdbId?.let { id -> "https://www.imdb.com/title/$id" }
+    val imdbLink = movie.mediaEntry.imdbLink
     movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
         SimpleLinkNewTab(imdbLink) {
             div(classes = "movie-rating") {
@@ -95,12 +98,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
         }
     }
 
-    val tmdbLinkType = when (movie.mediaEntry.objectType?.lowercase()) {
-        "movie" -> "movie"
-        "show" -> "tv"
-        else -> "movie" // Default
-    }
-    val tmdbLink = movie.mediaEntry.content?.externalIds?.tmdbId?.let { id -> "https://www.themoviedb.org/$tmdbLinkType/$id" }
+    val tmdbLink = movie.mediaEntry.tmdbLink
     movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
         SimpleLinkNewTab(tmdbLink) {
             div(classes = "movie-rating") {
@@ -139,28 +137,34 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
     }
 }
 
-fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
+suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
-    val movieTitle = movie.mediaEntry.content?.title ?: "Unknown Title"
-    val posterUrl = movie.mediaEntry.content?.posterUrl?.let {
-        "https://images.justwatch.com$it"
-    }
+    val movieTitle = movie.mediaEntry.title
+    val posterUrl = movie.mediaEntry.fullPosterUrl
 
     div(classes = "movie-item bookmark-container") {
-        BookmarkIconSvg("bookmark-icon" + if (movie.isBookmarked) " bookmarked" else "")
+        val bookmarkedClass = if (movie.isBookmarked) "bookmarked" else ""
+        val watchedClass = if (movie.isWatched) "watched" else ""
+        BookmarkIconSvg("bookmark-icon $bookmarkedClass") {
+            id = "bookmark-$movieId"
+        }
 
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
             // TODO: action-bar is not working on mobile
             div(classes = "movie-action-bar hidden-movie-action-bar-element") {
-                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button") {
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $watchedClass") {
+                    id = "watched-${movie.mediaEntry.id}"
                     onClick = "watch('${movie.mediaEntry.id}', this)"
 
-                    if (movie.isWatched) EyeIconSvg("") else EyePlusIconSvg("")
+                    EyeIconSvg("in-watched")
+                    EyePlusIconSvg("in-not-watched")
                 }
-                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button") {
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $bookmarkedClass") {
+                    id = "bookmark-$movieId"
                     onClick = "bookmark('$movieId', this)"
 
-                    if (movie.isBookmarked) BookmarkIconSvg("") else BookmarkPlusIconSvg("")
+                    BookmarkIconSvg("in-bookmarked")
+                    BookmarkPlusIconSvg("in-not-bookmarked")
                 }
             }
         }
@@ -185,8 +189,7 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
             }
         }
 
-        // TODO consider not blocking ...
-        val jellyfinLink = runBlocking { CachedMovies.getJellyfinLink(movie) }
+        val jellyfinLink = CachedMovies.getJellyfinLink(movie)
 
         if (showOffers) {
             div(classes = "movie-offers") {
@@ -201,19 +204,20 @@ fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true,
     }
 }
 
-fun UL.MovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         MovieItem(movie)
     }
 }
 
-fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
+        val name = movie.mediaEntry.id ?: ""
         label {
-            htmlFor = movie.mediaEntry.id ?: ""
+            htmlFor = name
             checkBoxInput(classes = "movie-checkbox", name = "selected[]") {
-                value = movie.mediaEntry.id ?: ""
-                id = movie.mediaEntry.id ?: ""
+                value = name
+                id = name
                 onClick = "selectedChanged()"
             }
             MovieItem(movie)
@@ -221,7 +225,7 @@ fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     }
 }
 
-fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         label {
             htmlFor = movie.mediaEntry.id ?: ""

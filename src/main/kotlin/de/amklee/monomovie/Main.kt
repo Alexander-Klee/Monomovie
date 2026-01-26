@@ -1,29 +1,37 @@
 package de.amklee.monomovie
 
-import de.amklee.monomovie.components.HtmlTemplate
-import de.amklee.monomovie.components.WatchedMovieList
+import de.amklee.monomovie.components.*
+import de.amklee.monomovie.db.BookmarksDB
+import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.*
+import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.respondHtml
+import de.amklee.monomovie.util.setupLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
-import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.*
+import io.ktor.sse.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import kotlinx.html.h1
 import kotlinx.html.p
-import org.slf4j.LoggerFactory
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import kotlin.time.Duration.Companion.seconds
 
-
-val wheelOfNames = WheelOfNames(
-    System.getenv("WHEEL_OF_NAMES_API_KEY")
-        ?: throw IllegalStateException("WHEEL_OF_NAMES_API_KEY not set"))
+val hostname = System.getenv("MMV_HOSTNAME") ?: "http://localhost:8080"
 
 fun Route.miscRoutes() {
     get("/") {
@@ -100,6 +108,23 @@ fun Route.miscRoutes() {
             }
         }
     }
+    sse("/sse-stream", serialize = { typeInfo, it ->
+        val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+        Json.encodeToString(serializer, it)
+    }) {
+        val mode = call.request.queryParameters["mode"]?.let { Mode.valueOf(it) } ?: Mode.OVERVIEW
+        heartbeat {
+            period = 5.seconds
+            event = ServerSentEvent("heartbeat")
+        }
+        val eventFlow = merge(
+            BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
+            WatchedDB.eventFlow.map { Kind.WATCHED to it }
+        ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
+        eventFlow.collect { event ->
+            send(event)
+        }
+    }
     get("/watched") {
         val watchedMovies = CachedMovies.getWatchedMovies()
         call.respondHtml {
@@ -157,7 +182,11 @@ fun Route.miscRoutes() {
         }
     }
     post("/roulette") {
-        val selectedMovies = call.receiveParameters().getAll("selected[]")?.mapNotNull { CachedMovies.get(it) } ?: emptyList()
+        val items = call.receiveParameters()
+        val selectedMovies = items
+            .getAll("selected[]")
+            .orEmpty()
+            .mapNotNull { CachedMovies.get(it) }
 
         if (selectedMovies.isEmpty() || selectedMovies.size < 2) {
             call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")
@@ -180,12 +209,7 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        call.respondRedirect(
-            wheelOfNames.createWheel(
-                selectedMovies.map { (movie, weight) ->
-                    WheelOfNames.Entry(movie.mediaEntry.content?.title ?: "null", weight)
-                }
-            ))
+        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies))
     }
     get("/CachedMovies.json") {
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
@@ -193,19 +217,24 @@ fun Route.miscRoutes() {
     staticResources("/static", "static")
 }
 
-private val LOG = LoggerFactory.getLogger("MMV/Router")
+private val LOG = System.getLogger("MMV/Router")
 
 fun main() {
-    embeddedServer(Netty, port = 8080) {
+    setupLogging()
+    embeddedServer(CIO, port = 8080) {
         install(ContentNegotiation) {
             json()
         }
+        install(SSE)
         routing {
             miscRoutes()
         }
         install(StatusPages) {
+            exception<ClosedWriteChannelException> { _, _ ->
+                // Client disconnected, no need to log
+            }
             exception<Throwable> { call, cause ->
-                LOG.error("Uncaught exception for path $cause, ${call.request.path()}")
+                LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
 //             TODO: remove, for debugging
