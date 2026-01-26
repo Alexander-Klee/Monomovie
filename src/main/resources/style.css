@@ -144,7 +144,8 @@ h1 {
     display: none;
 }
 .movie-checkbox:checked + .movie-item {
-    border: 2px solid var(--border-color-highlight);
+    border: 1px solid var(--secondary-highlight-color);
+    outline: 2px solid var(--border-color-highlight);
     background-color: var(--secondary-highlight-color);
     box-shadow: 0 0 40px var(--border-color-highlight);
 }
@@ -153,7 +154,7 @@ h1 {
     display: flex;
     width: 15%;
     /*round corners on the left*/
-    border-radius: calc(var(--border-radius) - var(--border-width)) 0 0 calc(var(--border-radius) - var(--border-width));
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
     object-fit: cover;
 }
 
@@ -164,6 +165,7 @@ h1 {
     margin-left: -1px;
     margin-top: -1px;
     margin-bottom: -1px;
+    overflow: hidden;
 }
 
 .bookmark-icon {
@@ -631,10 +633,9 @@ td, th {
         align-items: flex-start;
     }
     .movie-poster {
-        width: 100%;
+        width: calc(100% + 2px);
         /*round corners on the top*/
-        border-radius: calc(var(--border-radius) - var(--border-width)) calc(var(--border-radius) - var(--border-width)) 0 0;
-        overflow: hidden;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
 
     .hidden-movie-action-bar-element {
