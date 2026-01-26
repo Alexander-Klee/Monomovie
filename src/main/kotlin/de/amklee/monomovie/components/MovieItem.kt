@@ -149,8 +149,10 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
             id = "bookmark-$movieId"
         }
 
+        span(classes = "movie-poster") {
+            img(classes = "movie-poster", src = posterUrl, alt = movieTitle)
+        }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
-            // TODO: action-bar is not working on mobile
             div(classes = "movie-action-bar hidden-movie-action-bar-element") {
                 button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $watchedClass") {
                     id = "watched-${movie.mediaEntry.id}"
@@ -167,10 +169,6 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
                     BookmarkPlusIconSvg("in-not-bookmarked")
                 }
             }
-        }
-
-        span(classes = "movie-poster") {
-            img(classes = "movie-poster", src = posterUrl, alt = movieTitle)
         }
 
         div(classes = "movie-details") {
