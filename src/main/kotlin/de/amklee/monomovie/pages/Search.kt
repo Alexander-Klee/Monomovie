@@ -15,6 +15,7 @@ fun FlowContent.SearchBar(title: String) {
                 unsafe { +Resources.searchSvg }
             }
             textInput(name = "title", classes = "search-input") {
+                autoFocus = true
                 placeholder = "Search for a movie…"
                 value = title
             }
