@@ -48,20 +48,16 @@ suspend fun FlowContent.SearchPage(title: String, searchResults: CachedMovies.Se
 @Serializable
 data class MoreSearchResultsResponse(
     val cursor: String,
-    val html: String,
+    val html: Map<String, String>,
     val hasNextPage: Boolean
 )
 
 suspend fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSearchResultsResponse {
-    if (searchResults.movies.isEmpty()) return MoreSearchResultsResponse("", "", false)
+    if (searchResults.movies.isEmpty()) return MoreSearchResultsResponse("", mapOf(), false)
 
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
-        buildULHtml {
-            for (movie in searchResults.movies) {
-                MovieListItem(movie)
-            }
-        },
+        searchResults.movies.associate { (it.mediaEntry.id ?: "null") to buildULHtml { MovieListItem(it) } },
         searchResults.pageInfo.hasNextPage
     )
 }

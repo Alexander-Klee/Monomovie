@@ -144,6 +144,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
     val posterUrl = movie.mediaEntry.fullPosterUrl
 
     div(classes = "movie-item bookmark-container") {
+        id = "movie-item-$movieId"
         val bookmarkedClass = if (movie.isBookmarked) "bookmarked" else ""
         val watchedClass = if (movie.isWatched) "watched" else ""
         BookmarkSquareIconSvg("bookmark-icon $bookmarkedClass") {

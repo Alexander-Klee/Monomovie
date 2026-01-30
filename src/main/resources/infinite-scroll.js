@@ -21,7 +21,20 @@ function getMoreMovies(infinite_list, callback) {
         }
         return response.json();
     }).then(data => {
-        infinite_list.insertAdjacentHTML('beforeend', data.html );
+        const htmlMap = data.html || {};
+
+        const allIds = Object.keys(htmlMap);
+        const filteredIds = allIds.filter(id => !document.getElementById(`movie-item-${id}`));
+        const idsToUse = filteredIds.length > 0 ? filteredIds : allIds;
+
+        console.log(`infinite-scroll: adding ${idsToUse.length} of ${allIds.length} new items: ${idsToUse}`)
+
+        const htmlToInsert = idsToUse.map(id => htmlMap[id]).join('');
+
+        if (htmlToInsert) {
+            infinite_list.insertAdjacentHTML('beforeend', htmlToInsert);
+        }
+
         hasNextPage = data.hasNextPage;
         lastCursor = data.cursor;
     }).catch(error => {
