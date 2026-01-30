@@ -39,6 +39,7 @@ class JustWatch(
         install(HttpTimeout) {
             requestTimeoutMillis = 10000 // Set a timeout for requests
             socketTimeoutMillis = 10000 // Set a timeout for sockets
+            connectTimeoutMillis = 10000 // Set a timeout for connections
         }
         defaultRequest {
             url("https://apis.justwatch.com/graphql")
