@@ -38,20 +38,18 @@ private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
     }
 }
 
+fun UL.JellyfinOfferItem(jellyfinLink: String) =
+    OfferItem(
+        jellyfinLink,
+        "https://jellyfin.amklee.de/web/f5bbb798cb2c65908633.png",
+        "Jellyfin"
+    )
+
 fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, extraElements: FlowContent.() -> Unit = {}) {
     ul(classes = "offer-list") {
-        // Add the jellyfin offer if available
-        if (jellyfinLink != null) {
-            OfferItem(
-                jellyfinLink,
-                "https://jellyfin.amklee.de/web/f5bbb798cb2c65908633.png",
-                "Jellyfin"
-            )
-        }
-
-        for (offer in offers) {
-            OfferItem(offer)
-        }
+        // Offers
+        jellyfinLink?.let { JellyfinOfferItem(it) }
+        for (offer in offers) OfferItem(offer)
 
         extraElements()
     }

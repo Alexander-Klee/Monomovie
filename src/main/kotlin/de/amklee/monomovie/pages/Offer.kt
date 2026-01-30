@@ -2,6 +2,7 @@ package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Offer
+import de.amklee.monomovie.components.JellyfinOfferItem
 import de.amklee.monomovie.components.Mode
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
@@ -43,6 +44,20 @@ private fun getCountryName(countryCode: String): String {
     }
 }
 
+private fun FlowContent.JellyfinTable(jellyfinLink: String) {
+    h1 { +"Jellyfin" }
+    table {
+        tr {
+            td(classes = "offerType-td") { +"Jellyfin" }
+            td(classes = "offer-td") {
+                ul(classes = "offer-list") {
+                    JellyfinOfferItem(jellyfinLink)
+                }
+            }
+        }
+    }
+}
+
 suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
         script {
@@ -53,6 +68,9 @@ suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String,
             }
         }
         MovieItem(movie, showOffers = false)
+
+        val jellyfinLink = CachedMovies.getJellyfinLink(movie)
+        jellyfinLink?.let { JellyfinTable(it) }
 
         // sort countries by number of flatrate offers descending, prioritize main country
         val sortedOffers = offers.toList()
