@@ -14,6 +14,7 @@ fun FlowContent.IncludeSvgTemplates() {
         +Resources.rottenTomatoesSvg
         +Resources.tmdbSvg
         +Resources.imdbSvg
+        +Resources.imagePlaceholderSvg
     }
 }
 
@@ -34,3 +35,4 @@ inline fun FlowContent.EyePlusIconSvg(classes: String = "", block: SVG.() -> Uni
 inline fun FlowContent.RottenTomatoesSvg(classes: String = "rating-logo", block: SVG.() -> Unit = {}) = templatedSvg("#rotten-tomatoes-icon", classes = classes, block = block)
 inline fun FlowContent.TmdbSvg(classes: String = "rating-logo tmdb-icon", block: SVG.() -> Unit = {}) = templatedSvg("#tmdb-icon", classes = classes, block = block)
 inline fun FlowContent.ImdbSvg(classes: String = "rating-logo", block: SVG.() -> Unit = {}) = templatedSvg("#imdb-icon", classes = classes, block = block)
+inline fun FlowContent.ImagePlaceholderSvg(classes: String = "image-placeholder", block: SVG.() -> Unit = {}) = templatedSvg("#image-placeholder-icon", classes = classes, block = block)

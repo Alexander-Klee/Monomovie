@@ -62,6 +62,7 @@ suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String,
     div {
         script {
             unsafe {
+                +Resources.imageErrorJs
                 +Resources.bookmarkJs
                 +Resources.watchedJs
                 +Resources.sseJs(Mode.OFFERS)

@@ -15,6 +15,7 @@ import de.amklee.monomovie.imdbLink
 import de.amklee.monomovie.title
 import de.amklee.monomovie.tmdbLink
 import de.amklee.monomovie.util.BookmarkSquareIconSvg
+import de.amklee.monomovie.util.ImagePlaceholderSvg
 import kotlinx.html.*
 
 
@@ -149,8 +150,14 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
             id = "bookmark-$movieId"
         }
 
-        span(classes = "movie-poster") {
-            img(classes = "movie-poster", src = posterUrl, alt = movieTitle)
+        span(classes = "movie-poster ${if (posterUrl.isNullOrBlank()) "error" else ""}") {
+            div(classes = "movie-poster-placeholder") {
+                ImagePlaceholderSvg()
+            }
+            if (posterUrl.isNullOrBlank()) return@span
+            img(classes = "movie-poster-img", src = posterUrl, alt = movieTitle) {
+                attributes["onerror"] = "handleImageError(this)"
+            }
         }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
             div(classes = "movie-action-bar hidden-movie-action-bar-element") {

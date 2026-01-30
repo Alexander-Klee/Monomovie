@@ -16,6 +16,7 @@ object Resources {
     val bookmarkJs by Resource("bookmark.js")
     val watchedJs by Resource("watched.js")
     val selectableJs by Resource("selectable.js")
+    val imageErrorJs by Resource("image-error.js")
     private val infiniteScrollJs by Resource("infinite-scroll.js")
     private val sseJs by Resource("sse.js")
 
@@ -34,6 +35,7 @@ object Resources {
     val rottenTomatoesSvg by Resource("graphics/svgTemplates/rotten-tomatoes-template.svg")
     val tmdbSvg by Resource("graphics/svgTemplates/tmdb-template.svg")
     val imdbSvg by Resource("graphics/svgTemplates/imdb-template.svg")
+    val imagePlaceholderSvg by Resource("graphics/svgTemplates/image-placeholder-template.svg")
 
     private class Resource(private val name: String) {
         private val resource: String by lazy {
