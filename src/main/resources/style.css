@@ -12,7 +12,7 @@
     --border-radius: 12px;
     --border-width: 1px;
 
-    --movie-action-bar-offset: 2.5em;
+    --movie-action-bar-offset: 3.5em;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,7 +59,7 @@ main {
     display: flex;
     flex-direction: column;
     width: fit-content;
-    max-width: min(60em, 90%);
+    max-width: min(60em, 85%);
 }
 
 .content:has(.movie-list) {
@@ -114,8 +114,8 @@ h1 {
 }
 
 .eye-button {
-    width: 2em;
-    height: 2em;
+    width: 3em;
+    height: 3em;
     padding: 0.2em;
     background: none;
     color: inherit;
