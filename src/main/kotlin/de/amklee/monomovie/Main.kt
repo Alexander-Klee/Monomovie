@@ -63,7 +63,7 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        val searchResults = CachedMovies.search(title, cursor)
+        val searchResults = CachedMovies.search(title, cursor, numResults = if (cursor == null) 8 else 4)
         searchResults?.let {
             call.respond(MoreSearchResults(it))
             return@post

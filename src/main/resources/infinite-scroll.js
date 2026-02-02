@@ -36,8 +36,8 @@ async function getMoreMovies(infiniteList, sentinel) {
         hasNextPage = !!data.hasNextPage;
 
         if (!hasNextPage) {
-            const notice = document.createElement("p");
-            notice.innerText = lastCursor ? "No more results found." : "No results found.";
+            const notice = document.createElement("h3");
+            notice.innerText = (lastCursor || htmlToInsert) ? "No more results found." : "No results found.";
             infiniteList.append(notice);
         }
 
@@ -65,6 +65,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
+    function isElementVisibleInRoot(el, root, extra = 400) {
+        const rect = el.getBoundingClientRect();
+        const rootRect = root.getBoundingClientRect();
+        return rect.bottom >= (rootRect.top - extra) && rect.top <= (rootRect.bottom + extra);
+    }
+
     async function handleEndReached() {
         console.log('requesting more movies');
         await getMoreMovies(infiniteList, sentinel);
@@ -72,8 +78,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.log('infinite scroll is not so infinite after all');
             observer.disconnect();
             sentinel.remove();
-            infiniteList.append();
         } else {
+            // move sentinel to the end so newly added items are before it
             infiniteList.appendChild(sentinel);
             console.log('more movies added')
         }
@@ -82,7 +88,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const observer = new IntersectionObserver(async (entries) => {
         for (const entry of entries) {
             if (entry.isIntersecting && hasNextPage && !isLoading) {
-                await handleEndReached()
+                do {
+                    await handleEndReached();
+                } while (hasNextPage && !isLoading && isElementVisibleInRoot(sentinel, observerRoot));
             }
         }
     }, {
@@ -92,8 +100,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     observer.observe(sentinel);
-
-    if (infiniteList.children.length === 0) {
-        await handleEndReached();
-    }
 });
