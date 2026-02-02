@@ -22,10 +22,7 @@ suspend fun FlowContent.SearchMovieList() = MovieList(
     Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH) + Resources.infiniteScrollJs
 ) {
     id = "infinite-list"
-    div {
-        id = "infinite-sentinel"
-        style = "width: 100%; height: 1px;"
-    }
+    MovieListSentinel()
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")

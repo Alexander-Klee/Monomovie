@@ -215,6 +215,30 @@ suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
     }
 }
 
+suspend fun UL.MovieListSentinel() {
+    li(classes = "movie-list-item") {
+        id = "infinite-sentinel"
+        div(classes = "movie-item bookmark-container") {
+            span(classes = "movie-poster error") {
+                div(classes = "movie-poster-placeholder") {
+                    ImagePlaceholderSvg()
+                }
+            }
+
+            div(classes = "movie-details") {
+                div(classes = "movie-title-bar") {
+                    p(classes = "movie-title") { +"Loading" }
+                }
+
+                p(classes = "movie-short-description") {
+                    onClick = "this.classList.add('expanded')"
+                    +"Loading..."
+                }
+            }
+        }
+    }
+}
+
 suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         val name = movie.mediaEntry.id ?: ""

@@ -143,6 +143,11 @@ h1 {
 .movie-list-item {
     display: flex;
     max-width: 150em;
+    min-height: 10em;
+}
+
+#infinite-sentinel {
+    interactivity: inert;
 }
 
 .movie-checkbox {
