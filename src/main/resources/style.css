@@ -59,7 +59,7 @@ main {
     display: flex;
     flex-direction: column;
     width: fit-content;
-    max-width: 75%;
+    max-width: min(60em, 90%);
 }
 
 .content:has(.movie-list) {
@@ -500,9 +500,7 @@ td, th {
 /* NAV BAR */
 .navbar {
     display: flex;
-    flex: 0 1 75%;
-    max-width: 220px;
-    /*min-width: 220px;*/
+    flex: 0 0 auto;
     flex-direction: column;
     z-index: 100;
     top: 0;
@@ -617,25 +615,11 @@ td, th {
     visibility: hidden;
 }
 
-@media (max-width: 600px) {
-    .roulette-weight-container {
-        display: flex;
-        flex-direction: row;
-        align-self: center;
-    }
-
-    .bookmark-icon {
-        width: 3em;
-        height: calc(3em * 720/560); /* Maintain aspect ratio */
-    }
-
-    .content {
-        max-width: 100%;
-    }
+/* Menu Bar Collapse */
+@media (max-width: 900px) {
     .navbar {
         position: fixed;
         height: 100vh;
-        width: 60%;
         background: var(--secondary-color);
         display: block;
         pointer-events: none;
@@ -668,6 +652,24 @@ td, th {
         padding: 0.5rem 0.5rem;
         max-width: 100%;
     }
+}
+
+/* Vertical Movie List */
+@media (max-width: 600px) {
+    .content {
+        max-width: 100%;
+    }
+    .roulette-weight-container {
+        display: flex;
+        flex-direction: row;
+        align-self: center;
+    }
+
+    .bookmark-icon {
+        width: 3em;
+        height: calc(3em * 720/560); /* Maintain aspect ratio */
+    }
+
     .movie-item {
         flex-direction: column;
         align-items: flex-start;
