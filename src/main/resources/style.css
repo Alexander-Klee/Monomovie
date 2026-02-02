@@ -106,6 +106,7 @@ h1 {
 }
 
 .movie-action-bar {
+    display: flex;
     flex-direction: column;
     gap: 0.5em;
     background: var(--secondary-color);
@@ -114,6 +115,9 @@ h1 {
 }
 
 .eye-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 3em;
     height: 3em;
     padding: 0.2em;
@@ -570,32 +574,31 @@ td, th {
     display: block;
 }
 
-.in-bookmarked {
+.in-bookmarked,
+.in-watched {
     display: none;
 }
 
 .bookmarked {
     .in-bookmarked {
-        display: inherit;
+        display: inline-block;
     }
 
     .in-not-bookmarked {
         display: none;
     }
-}
-
-.in-watched {
-    display: none;
+    vertical-align: middle;
 }
 
 .watched {
     .in-watched {
-        display: inherit;
+        display: inline-block;
     }
 
     .in-not-watched {
         display: none;
     }
+    vertical-align: middle;
 }
 
 /* For Phones*/
