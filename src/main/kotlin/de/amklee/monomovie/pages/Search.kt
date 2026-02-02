@@ -30,13 +30,6 @@ fun FlowContent.EmptySearchPage() {
 
 suspend fun FlowContent.SearchPage(title: String) {
     SearchBar(title)
-
-    script {
-        unsafe {
-            +Resources.infiniteScrollJs
-        }
-    }
-
     SearchMovieList()
 }
 

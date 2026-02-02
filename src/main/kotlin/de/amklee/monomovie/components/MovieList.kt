@@ -19,7 +19,7 @@ inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
 }
 
 suspend fun FlowContent.SearchMovieList() = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH)
+    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH) + Resources.infiniteScrollJs
 ) {
     id = "infinite-list"
     div {
