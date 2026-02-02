@@ -30,6 +30,9 @@ fun FlowContent.EmptySearchPage() {
 
 suspend fun FlowContent.SearchPage(title: String) {
     SearchBar(title)
+    h4 {
+        +"Search Results:"
+    }
     SearchMovieList()
 }
 

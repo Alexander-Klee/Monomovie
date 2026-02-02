@@ -25,11 +25,6 @@ async function getMoreMovies(infiniteList, sentinel) {
 
         const htmlToInsert = idsToUse.map(id => htmlMap[id]).join('');
         if (htmlToInsert) {
-            if (!lastCursor) {
-                const header = document.createElement("h4");
-                header.innerText = "Search Results:";
-                infiniteList.insertAdjacentElement('beforebegin', header)
-            }
             sentinel.insertAdjacentHTML('beforebegin', htmlToInsert);
         }
 
