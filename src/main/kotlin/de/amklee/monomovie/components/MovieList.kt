@@ -25,6 +25,10 @@ suspend fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = Movi
     for (movie in movies) {
         MovieListItem(movie)
     }
+    div {
+        id = "infinite-sentinel"
+        style = "width: 100%; height: 1px;"
+    }
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")

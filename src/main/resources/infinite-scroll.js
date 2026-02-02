@@ -2,60 +2,84 @@ let hasNextPage = true;
 let lastCursor = "$endCursor$";
 let isLoading = false;
 
-function getMoreMovies(infinite_list, callback) {
-    if (isLoading) return;
+async function getMoreMovies(infiniteList) {
+    if (isLoading || !hasNextPage) return;
     isLoading = true;
 
-    const currentParams = new URLSearchParams(window.location.search);
-    let currentTitle = currentParams.get('title');
+    try {
+        const currentParams = new URLSearchParams(window.location.search);
+        const currentTitle = currentParams.get('title');
 
-    let formData = new URLSearchParams();
-    if (currentTitle) formData.append("title", currentTitle);
-    if (lastCursor) formData.append("cursor", lastCursor);
+        const formData = new URLSearchParams();
+        if (currentTitle) formData.append("title", currentTitle);
+        if (lastCursor) formData.append("cursor", lastCursor);
 
-    fetch("/moreSearchResults?" + formData.toString(), {
-        method: "POST"
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-    }).then(data => {
+        const response = await fetch("/moreSearchResults?" + formData.toString(), { method: "POST" });
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        const data = await response.json();
+
         const htmlMap = data.html || {};
-
         const allIds = Object.keys(htmlMap);
         const filteredIds = allIds.filter(id => !document.getElementById(`movie-item-${id}`));
         const idsToUse = filteredIds.length > 0 ? filteredIds : allIds;
 
-        console.log(`infinite-scroll: adding ${idsToUse.length} of ${allIds.length} new items: ${idsToUse}`)
-
         const htmlToInsert = idsToUse.map(id => htmlMap[id]).join('');
-
         if (htmlToInsert) {
-            infinite_list.insertAdjacentHTML('beforeend', htmlToInsert);
+            // insert before sentinel if sentinel exists, otherwise at end
+            const sentinel = document.getElementById('infinite-sentinel');
+            if (sentinel) {
+                sentinel.insertAdjacentHTML('beforebegin', htmlToInsert);
+            } else {
+                infiniteList.insertAdjacentHTML('beforeend', htmlToInsert);
+            }
         }
 
-        hasNextPage = data.hasNextPage;
+        hasNextPage = !!data.hasNextPage;
         lastCursor = data.cursor;
-    }).catch(error => {
-        console.error("Fetch error:", error);
-    }).finally(() => {
+    } catch (err) {
+        console.error("Fetch error:", err);
+    } finally {
         isLoading = false;
-        if (callback) {
-            callback();
-        }
-    });
-}
-
-function handleScroll(infinite_list) {
-    if (main.scrollTop + main.clientHeight >= main.scrollHeight && hasNextPage) {
-        getMoreMovies(infinite_list, () => handleScroll(infinite_list));
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const infinite_list = document.getElementById('infinite-list');
+document.addEventListener("DOMContentLoaded", async () => {
+    const infiniteList = document.getElementById('infinite-list');
+    if (!infiniteList) {
+        console.error("No infinite-list found.");
+        return;
+    }
 
-    main.addEventListener("scroll", () => handleScroll(infinite_list));
-    handleScroll(infinite_list);
-})
+    const scrollContainerElement = document.getElementById('main');
+    const observerRoot = scrollContainerElement || null;
+    const sentinel = document.getElementById('infinite-sentinel');
+
+    if (!sentinel) {
+        console.error('infinite-sentinel was not found');
+        return;
+    }
+
+    async function handleEndReached() {
+        await getMoreMovies(infiniteList);
+        infiniteList.appendChild(sentinel);
+        if (!hasNextPage) observer.disconnect();
+    }
+
+    const observer = new IntersectionObserver(async (entries) => {
+        for (const entry of entries) {
+            if (entry.isIntersecting && hasNextPage && !isLoading) {
+                await handleEndReached()
+            }
+        }
+    }, {
+        root: observerRoot,
+        rootMargin: '300px',
+        threshold: 0.01
+    });
+
+    observer.observe(sentinel);
+
+    if (infiniteList.children.length === 0) {
+        await handleEndReached();
+    }
+});
