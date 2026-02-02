@@ -1,8 +1,8 @@
 let hasNextPage = true;
-let lastCursor = "$endCursor$";
+let lastCursor = null;
 let isLoading = false;
 
-async function getMoreMovies(infiniteList) {
+async function getMoreMovies(infiniteList, sentinel) {
     if (isLoading || !hasNextPage) return;
     isLoading = true;
 
@@ -25,16 +25,22 @@ async function getMoreMovies(infiniteList) {
 
         const htmlToInsert = idsToUse.map(id => htmlMap[id]).join('');
         if (htmlToInsert) {
-            // insert before sentinel if sentinel exists, otherwise at end
-            const sentinel = document.getElementById('infinite-sentinel');
-            if (sentinel) {
-                sentinel.insertAdjacentHTML('beforebegin', htmlToInsert);
-            } else {
-                infiniteList.insertAdjacentHTML('beforeend', htmlToInsert);
+            if (!lastCursor) {
+                const header = document.createElement("h4");
+                header.innerText = "Search Results:";
+                infiniteList.insertAdjacentElement('beforebegin', header)
             }
+            sentinel.insertAdjacentHTML('beforebegin', htmlToInsert);
         }
 
         hasNextPage = !!data.hasNextPage;
+
+        if (!hasNextPage) {
+            const notice = document.createElement("p");
+            notice.innerText = lastCursor ? "No more results found." : "No results found.";
+            infiniteList.append(notice);
+        }
+
         lastCursor = data.cursor;
     } catch (err) {
         console.error("Fetch error:", err);
@@ -60,9 +66,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function handleEndReached() {
-        await getMoreMovies(infiniteList);
-        infiniteList.appendChild(sentinel);
-        if (!hasNextPage) observer.disconnect();
+        console.log('requesting more movies');
+        await getMoreMovies(infiniteList, sentinel);
+        if (!hasNextPage) {
+            console.log('infinite scroll is not so infinite after all');
+            observer.disconnect();
+            sentinel.remove();
+            infiniteList.append();
+        } else {
+            infiniteList.appendChild(sentinel);
+            console.log('more movies added')
+        }
     }
 
     const observer = new IntersectionObserver(async (entries) => {

@@ -28,21 +28,16 @@ fun FlowContent.EmptySearchPage() {
     p { +"Please enter a title to search for." }
 }
 
-suspend fun FlowContent.SearchPage(title: String, searchResults: CachedMovies.SearchResults) {
+suspend fun FlowContent.SearchPage(title: String) {
     SearchBar(title)
 
     script {
         unsafe {
-            +Resources.infiniteScrollJs(searchResults.pageInfo.endCursor)
+            +Resources.infiniteScrollJs
         }
     }
 
-    if (searchResults.movies.isEmpty()) {
-        p { +"No Search Results" }
-    } else {
-        h4 { +"Search Results:" }
-        SearchMovieList(searchResults.movies)
-    }
+    SearchMovieList()
 }
 
 @Serializable

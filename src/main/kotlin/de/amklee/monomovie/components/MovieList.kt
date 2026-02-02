@@ -18,13 +18,10 @@ inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
     }
 }
 
-suspend fun FlowContent.SearchMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+suspend fun FlowContent.SearchMovieList() = MovieList(
     Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH)
 ) {
     id = "infinite-list"
-    for (movie in movies) {
-        MovieListItem(movie)
-    }
     div {
         id = "infinite-sentinel"
         style = "width: 100%; height: 1px;"

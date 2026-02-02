@@ -44,19 +44,12 @@ fun Route.miscRoutes() {
     }
     get("/search") {
         val title = call.request.queryParameters["title"]
-        val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
         call.respondHtml {
             if (title.isNullOrBlank()) HtmlTemplate("Search") {
                 EmptySearchPage()
             } else HtmlTemplate("$title Search") {
-                val searchResults = CachedMovies.search(title = title, cursor = null, numResults = numResults)
-                searchResults?.let {
-                    SearchPage(
-                        title,
-                        it
-                    )
-                }
+                SearchPage(title)
             }
         }
     }

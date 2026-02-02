@@ -17,10 +17,9 @@ object Resources {
     val watchedJs by Resource("watched.js")
     val selectableJs by Resource("selectable.js")
     val imageErrorJs by Resource("image-error.js")
-    private val infiniteScrollJs by Resource("infinite-scroll.js")
+    val infiniteScrollJs by Resource("infinite-scroll.js")
     private val sseJs by Resource("sse.js")
 
-    fun infiniteScrollJs(endCursor: String) = infiniteScrollJs.replace($$"$endCursor$", endCursor)
     fun sseJs(mode: Mode) = sseJs.replace($$"$mode$", mode.toString())
 
     // svgs
