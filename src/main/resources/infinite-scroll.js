@@ -14,7 +14,7 @@ async function getMoreMovies(infiniteList, sentinel) {
         if (currentTitle) formData.append("title", currentTitle);
         if (lastCursor) formData.append("cursor", lastCursor);
 
-        const response = await fetch("/moreSearchResults?" + formData.toString(), { method: "POST" });
+        const response = await fetch("/search/results?" + formData.toString(), { method: "POST" });
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         const data = await response.json();
 

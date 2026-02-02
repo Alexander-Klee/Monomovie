@@ -53,7 +53,7 @@ fun Route.miscRoutes() {
             }
         }
     }
-    post("/moreSearchResults") {
+    post("/search/results") {
         //TODO implement circuit breaker in JS to prevent spamming this
         val title = call.request.queryParameters["title"]
         val cursor = call.request.queryParameters["cursor"]
