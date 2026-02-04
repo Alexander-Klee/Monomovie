@@ -115,6 +115,13 @@ h1 {
 }
 
 .eye-button {
+    /* These lines need to be only on webkit, otherwise the svg is too large, or the svg gets shifted down :/  */
+    @supports (-webkit-touch-callout: none) {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     width: 3em;
     height: 3em;
     padding: 0.2em;
