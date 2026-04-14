@@ -15,7 +15,7 @@ package de.amklee.monomovie
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -23,12 +23,17 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.net.http.HttpClient.Version as HttpClientVersion
 
 class JustWatch(
     private val country: String = "US",
     private val language: String = "en"
 ) {
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(Java) {
+        engine {
+            pipelining = true
+            protocolVersion = HttpClientVersion.HTTP_2
+        }
         install(ContentNegotiation) {
             json(Json {
                 prettyPrint = true
