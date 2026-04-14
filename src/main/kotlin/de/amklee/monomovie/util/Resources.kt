@@ -18,9 +18,11 @@ object Resources {
     val searchSvg by Resource("graphics/search.svg")
     private val infiniteScrollJs by Resource("infinite-scroll.js")
     private val sseJs by Resource("sse.js")
+    private val rouletteSse by Resource("roulette-sse.js")
 
     fun infiniteScrollJs(endCursor: String) = infiniteScrollJs.replace($$"$endCursor$", endCursor)
     fun sseJs(mode: Mode) = sseJs.replace($$"$mode$", mode.toString())
+    fun rouletteSse(isSelection: Boolean) = rouletteSse.replace($$"$isSelection$", isSelection.toString())
 
     private class Resource(private val name: String) {
         private val resource: String by lazy {

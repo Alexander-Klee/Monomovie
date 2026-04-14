@@ -211,7 +211,7 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     }
 }
 
-suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
+suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) {
     li(classes = "movie-list-item") {
         label {
             htmlFor = movie.mediaEntry.id ?: ""
@@ -225,7 +225,7 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie) {
                     numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
                         id = movie.mediaEntry.id ?: ""
                         min = "1"
-                        value = "1"
+                        value = count.toString()
                     }
                     button(type = ButtonType.button, classes = "roulette-weight-button") {
                         attributes["mmv_for"] = movie.mediaEntry.id ?: ""

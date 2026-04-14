@@ -34,4 +34,4 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error('EventSource failed:', err);
         eventSource.close();
     };
-})
+});

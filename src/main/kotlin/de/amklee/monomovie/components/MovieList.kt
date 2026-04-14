@@ -2,6 +2,7 @@ package de.amklee.monomovie.components
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.db.WatchedDB
+import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 import java.time.format.DateTimeFormatter
@@ -52,10 +53,10 @@ suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = 
     }
 }
 
-suspend fun FlowContent.RouletteMovieList(movies: List<CachedMovies.Movie>) = MovieList(
+suspend fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
     Resources.watchedJs + Resources.sseJs(Mode.ROULETTE)
 ) {
     for (movie in movies) {
-        RouletteMovieListItem(movie)
+        RouletteMovieListItem(movie.movie, movie.votes)
     }
 }

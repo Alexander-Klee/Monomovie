@@ -2,6 +2,10 @@
 
 package de.amklee.monomovie.util
 
+import kotlinx.html.FlowContent
+import kotlinx.html.HTMLTag
+import kotlinx.html.svg
+import kotlinx.html.visit
 import java.util.*
 import kotlin.experimental.or
 import kotlin.experimental.xor
@@ -791,7 +795,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
 object QrCodeRenderer {
     fun renderSVG(qr: QrCode) = renderSVG(qr.size, qr.size) { x, y -> qr.getModule(x, y) }
     fun renderSVG(matrix: BitMatrix) = renderSVG(matrix.width, matrix.height) { x, y -> matrix[x, y] }
-    private fun renderSVG(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) = buildString {
+    private inline fun renderSVG(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) = buildString {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         append("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"0 0 ").append(width).append(" ").append(height).append("\" stroke=\"none\">\n")
         append("<style type=\"text/css\">\n")
@@ -799,13 +803,32 @@ object QrCodeRenderer {
         append("</style>\n")
         append("<path class=\"black\"  d=\"")
 
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                if (isDark(x, y)) append(" M$x,${y}h1v1h-1z")
-            }
-        }
+        renderSvgPath(width, height, isDark)
 
         append("\"/>\n")
         append("</svg>\n")
+    }
+}
+
+private inline fun StringBuilder.renderSvgPath(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) {
+    for (y in 0 until height) {
+        for (x in 0 until width) {
+            if (isDark(x, y)) append(" M$x,${y}h1v1h-1z")
+        }
+    }
+}
+
+fun FlowContent.QrCode(qr: QrCode) {
+    svg {
+        attributes["viewBox"] = "0 0 ${qr.size} ${qr.size}"
+        attributes["stroke"] = "none"
+        HTMLTag(
+            "path",
+            consumer,
+            mapOf("class" to "qrCodePath", "d" to buildString { renderSvgPath(qr.size, qr.size) { x, y -> qr.getModule(x, y) } }),
+            "\"http://www.w3.org/2000/svg\"",
+            inlineTag = true,
+            emptyTag = true,
+        ).apply { visit {} }
     }
 }

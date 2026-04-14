@@ -1,14 +1,12 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.*
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.*
-import de.amklee.monomovie.util.QrCode
-import de.amklee.monomovie.util.QrCodeRenderer
-import de.amklee.monomovie.util.error
-import de.amklee.monomovie.util.respondHtml
-import de.amklee.monomovie.util.setupLogging
+import de.amklee.monomovie.util.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -22,7 +20,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sse.*
 import io.ktor.sse.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -32,6 +29,7 @@ import kotlinx.html.p
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.ExperimentalUuidApi
 
 val hostname = System.getenv("MMV_HOSTNAME") ?: "http://localhost:8080"
 
@@ -183,35 +181,8 @@ fun Route.miscRoutes() {
             }
         }
     }
-    post("/roulette") {
-        val items = call.receiveParameters()
-        val selectedMovies = items
-            .getAll("selected[]")
-            .orEmpty()
-            .mapNotNull { CachedMovies.get(it) }
-
-        if (selectedMovies.isEmpty() || selectedMovies.size < 2) {
-            call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")
-            return@post
-        }
-
-        call.respondHtml {
-            HtmlTemplate("Roulette") {
-                RoulettePage(selectedMovies)
-            }
-        }
-    }
-    post("/roulette/submit") {
-        val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
-            CachedMovies.get(id)?.let { it to count.sumOf { it.toIntOrNull() ?: 0 } }
-        }
-
-        if (selectedMovies.isEmpty()) {
-            call.respond(HttpStatusCode.BadRequest, "No movies selected for roulette")
-            return@post
-        }
-
-        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies))
+    route("/roulette") {
+        rouletteRoutes()
     }
     get("/CachedMovies.json") {
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)

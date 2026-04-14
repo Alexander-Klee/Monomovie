@@ -34,6 +34,10 @@ html, body {
     font-family: "Segoe UI", sans-serif;
 }
 
+input {
+    font: inherit; /* Some browsers like to use a different font here. Avoid that. */
+}
+
 body {
     display: flex;
     min-height: 100vh;
@@ -334,6 +338,8 @@ td, th {
     transition: background-color 0.3s ease;
     margin-bottom: 1rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .roulette-button:hover {
@@ -376,6 +382,22 @@ td, th {
     width: 2em;
     text-align: center;
     font-size: 2em;
+}
+
+.roulette-action-row {
+    flex-direction: row;
+    display: flex;
+    gap: 1em;
+}
+
+.qr-code {
+    background: white;
+    margin-bottom: 1em;
+    width: 20em;
+}
+
+.qrCodePath {
+    fill: black;
 }
 
 /* SEARCH BAR*/
