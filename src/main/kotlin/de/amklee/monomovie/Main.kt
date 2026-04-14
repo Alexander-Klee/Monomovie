@@ -193,7 +193,11 @@ private val LOG = System.getLogger("MMV/Router")
 
 fun main() {
     setupLogging()
-    embeddedServer(CIO, port = 8080) {
+    embeddedServer(CIO, configure = {
+        connector {
+            port = 8080
+        }
+    }) {
         install(ContentNegotiation) {
             json()
         }
