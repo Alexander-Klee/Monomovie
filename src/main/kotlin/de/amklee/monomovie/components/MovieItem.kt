@@ -213,13 +213,14 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
 
 suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) {
     li(classes = "movie-list-item") {
+        id = "roulette-${movie.mediaEntry.id}"
         label {
             htmlFor = movie.mediaEntry.id ?: ""
             MovieItem(movie) {
                 div("roulette-weight-container") {
-                    button(type = ButtonType.button, classes = "roulette-weight-button") {
+                    button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-decrease") {
                         attributes["mmv_for"] = movie.mediaEntry.id ?: ""
-                        onClick = "document.getElementById(attributes.mmv_for.value).stepDown();"
+                        onClick = "const el = document.getElementById(attributes.mmv_for.value); el.stepDown(); el.dispatchEvent(new Event('change'));"
                         +"−"
                     }
                     numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
@@ -227,9 +228,9 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
                         min = "1"
                         value = count.toString()
                     }
-                    button(type = ButtonType.button, classes = "roulette-weight-button") {
+                    button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-increase") {
                         attributes["mmv_for"] = movie.mediaEntry.id ?: ""
-                        onClick = "document.getElementById(attributes.mmv_for.value).stepUp();"
+                        onClick = "const el = document.getElementById(attributes.mmv_for.value); el.stepUp(); el.dispatchEvent(new Event('change'));"
                         +"+"
                     }
                 }

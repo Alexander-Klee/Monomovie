@@ -45,8 +45,8 @@ suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = 
     }
 }
 
-suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>) = MovieList(
-    Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs + Resources.sseJs(Mode.OVERVIEW)
+suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, minSelection: Int = 2) = MovieList(
+    Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs(minSelection) + Resources.sseJs(Mode.OVERVIEW)
 ) {
     for (movie in movies) {
         SelectableMovieListItem(movie)

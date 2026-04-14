@@ -47,7 +47,7 @@ fun Route.rouletteRoutes() {
             }
         } else selectedMovies.map { RouletteCachedMovie(it, 1) }
 
-        if (selectedMovies.isEmpty() || selectedMovies.size < 2) {
+        if (votedMovies.isEmpty() || votedMovies.size < 2) {
             call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")
             return@post
         }
@@ -99,7 +99,7 @@ fun Route.rouletteRoutes() {
 
         call.respondHtml {
             HtmlTemplate("Shared Roulette") {
-                //TODO pre-select movies that are already in the session
+                //TODO pre-select or hide movies that are already in the session
                 SharedRouletteSelectionPage(CachedMovies.getBookmarkedMovies(displayHidden, displayWatched), shareId)
             }
         }
@@ -114,7 +114,7 @@ fun Route.rouletteRoutes() {
             call.respond(HttpStatusCode.BadRequest, "Invalid movieId")
             return@post
         }
-        val count = call.receiveParameters()["count"]?.toIntOrNull()
+        val count = call.receiveText().toIntOrNull()
 
         sharedRouletteSessions.withValueSuspend(shareId) {
             it.add(movie)

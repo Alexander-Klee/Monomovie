@@ -101,7 +101,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
     if (shareId != null) {
         script {
             unsafe {
-                +Resources.rouletteSse(false)
+                +Resources.rouletteSharedJs(false, shareId)
             }
         }
         div(classes = "qr-code") {
@@ -134,7 +134,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
 suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Movie>, shareId: Uuid) {
     script {
         unsafe {
-            +Resources.rouletteSse(true)
+            +Resources.rouletteSharedJs(true, shareId)
         }
     }
     h1 { +"Shared Roulette:" }
@@ -148,8 +148,8 @@ suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Mo
     postForm(action = "/roulette?shareId=$shareId", classes = "roulette-form") {
         submitInput(classes = "roulette-button") {
             disabled = true
-            value = "Roulette"
+            value = "Add to Roulette"
         }
-        SelectableMovieList(movies)
+        SelectableMovieList(movies, minSelection = 1)
     }
 }
