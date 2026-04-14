@@ -37,10 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         });
                     }
                 } else if (bookmarkList) {
-                    const listItem = document.createElement('li');
-                    bookmarkList.prepend(listItem);
-                    listItem.outerHTML = data.body;
-                    injectUpdateCount(listItem);
+                    const element = document.parseHtml(data.body);
+                    bookmarkList.prepend(element);
+                    injectUpdateCount(element);
                 }
                 break;
             case 'de.amklee.monomovie.pages.RouletteSseEvent.Update':

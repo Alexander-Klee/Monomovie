@@ -16,9 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (elements.length > 0) {
                     elements.forEach(element => element.classList.add(className));
                 } else if (bookmarkList && data.insert) {
-                    const listItem = document.createElement('li');
-                    bookmarkList.prepend(listItem);
-                    listItem.outerHTML = data.body;
+                    bookmarkList.prepend(document.parseHtml(data.body));
                 }
                 break;
             case 'de.amklee.monomovie.components.SseEvent.Remove':
