@@ -39,6 +39,7 @@ class JustWatch(
         install(HttpTimeout) {
             requestTimeoutMillis = 10000 // Set a timeout for requests
             socketTimeoutMillis = 10000 // Set a timeout for sockets
+            connectTimeoutMillis = 10000 // Set a timeout for connections
         }
         defaultRequest {
             url("https://apis.justwatch.com/graphql")
@@ -419,7 +420,14 @@ val MediaEntry.imdbLink: String?
     get() = content?.externalIds?.imdbId?.let { "https://www.imdb.com/title/$it" }
 
 val MediaEntry.tmdbLink: String?
-    get() = content?.externalIds?.tmdbId?.let { "https://www.themoviedb.org/movie/$it" }
+    get() {
+        val tmdbLinkType = when (objectType?.lowercase()) {
+            "movie" -> "movie"
+            "show" -> "tv"
+            else -> "movie" // Default
+        }
+        return content?.externalIds?.tmdbId?.let { "https://www.themoviedb.org/$tmdbLinkType/$it" }
+    }
 
 @Serializable
 data class Content(

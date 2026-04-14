@@ -1,5 +1,6 @@
 package de.amklee.monomovie.components
 
+import de.amklee.monomovie.util.IncludeSvgTemplates
 import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 
@@ -38,6 +39,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
                     +Resources.topbuttonJs
                 }
             }
+            IncludeSvgTemplates()
             div(classes = "content") {
                 body()
             }

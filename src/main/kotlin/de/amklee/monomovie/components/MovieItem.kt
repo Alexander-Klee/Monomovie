@@ -3,21 +3,21 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.CachedMovies.getOffers
 import de.amklee.monomovie.Offer
+import de.amklee.monomovie.util.BookmarkIconSvg
+import de.amklee.monomovie.util.BookmarkPlusIconSvg
+import de.amklee.monomovie.util.EyeIconSvg
+import de.amklee.monomovie.util.EyePlusIconSvg
+import de.amklee.monomovie.util.ImdbSvg
+import de.amklee.monomovie.util.RottenTomatoesSvg
+import de.amklee.monomovie.util.TmdbSvg
 import de.amklee.monomovie.fullPosterUrl
 import de.amklee.monomovie.imdbLink
 import de.amklee.monomovie.title
 import de.amklee.monomovie.tmdbLink
+import de.amklee.monomovie.util.BookmarkSquareIconSvg
+import de.amklee.monomovie.util.ImagePlaceholderSvg
 import kotlinx.html.*
 
-private fun FlowContent.WatchedButton(movie: CachedMovies.Movie) {
-    if (movie.mediaEntry.id == null) return
-
-    span(classes = "watched-button${if (movie.isWatched) " watched" else ""}") {
-        id = "watched-${movie.mediaEntry.id}"
-        onClick = "watch('${movie.mediaEntry.id}', this)"
-        i(classes = "watched-icon rating-logo")
-    }
-}
 
 private fun UL.OfferItem(offer: Offer) = OfferItem(
     offer.standardWebURL ?: "",
@@ -39,20 +39,18 @@ private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
     }
 }
 
+fun UL.JellyfinOfferItem(jellyfinLink: String) =
+    OfferItem(
+        jellyfinLink,
+        "https://jellyfin.amklee.de/web/f5bbb798cb2c65908633.png",
+        "Jellyfin"
+    )
+
 fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, extraElements: FlowContent.() -> Unit = {}) {
     ul(classes = "offer-list") {
-        // Add the jellyfin offer if available
-        if (jellyfinLink != null) {
-            OfferItem(
-                jellyfinLink,
-                "https://jellyfin.amklee.de/web/f5bbb798cb2c65908633.png",
-                "Jellyfin"
-            )
-        }
-
-        for (offer in offers) {
-            OfferItem(offer)
-        }
+        // Offers
+        jellyfinLink?.let { JellyfinOfferItem(it) }
+        for (offer in offers) OfferItem(offer)
 
         extraElements()
     }
@@ -85,7 +83,7 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
 
     movie.mediaEntry.content?.scoring?.tomatoMeter?.let { score ->
         div(classes = "movie-rating") {
-            i(classes = "tomato-icon rating-logo")
+            RottenTomatoesSvg()
             p { +"$score%" }
         }
     }
@@ -94,22 +92,17 @@ private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     movie.mediaEntry.content?.scoring?.imdbScore?.let { score ->
         SimpleLinkNewTab(imdbLink) {
             div(classes = "movie-rating") {
-                i(classes = "imdb-icon rating-logo")
+                ImdbSvg()
                 p { +formatScore(score) }
             }
         }
     }
 
-    val tmdbLinkType = when (movie.mediaEntry.objectType?.lowercase()) {
-        "movie" -> "movie"
-        "show" -> "tv"
-        else -> "movie" // Default
-    }
     val tmdbLink = movie.mediaEntry.tmdbLink
     movie.mediaEntry.content?.scoring?.tmdbScore?.let { score ->
         SimpleLinkNewTab(tmdbLink) {
             div(classes = "movie-rating") {
-                i(classes = "tmdb-icon rating-logo")
+                TmdbSvg()
                 p { +formatScore(score) }
             }
         }
@@ -150,19 +143,45 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
     val posterUrl = movie.mediaEntry.fullPosterUrl
 
     div(classes = "movie-item bookmark-container") {
-        span(classes = "movie-poster" + if (movie.isBookmarked) " bookmarked" else "") {
+        id = "movie-item-$movieId"
+        val bookmarkedClass = if (movie.isBookmarked) "bookmarked" else ""
+        val watchedClass = if (movie.isWatched) "watched" else ""
+        BookmarkSquareIconSvg("bookmark-icon $bookmarkedClass") {
             id = "bookmark-$movieId"
-            onClick = "return bookmark('$movieId', this, false)"
-            onDoubleClick = "return bookmark('$movieId', this, true)"
-            span(classes = "bookmark-icon")
-            img(classes = "movie-poster", src = posterUrl, alt = movieTitle)
+        }
+
+        span(classes = "movie-poster ${if (posterUrl.isNullOrBlank()) "error" else ""}") {
+            div(classes = "movie-poster-placeholder") {
+                ImagePlaceholderSvg()
+            }
+            if (posterUrl.isNullOrBlank()) return@span
+            img(classes = "movie-poster-img", src = posterUrl, alt = movieTitle) {
+                attributes["onerror"] = "handleImageError(this)"
+            }
+        }
+        div(classes = "movie-action-container hidden-movie-action-bar-element") {
+            div(classes = "movie-action-bar hidden-movie-action-bar-element") {
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $watchedClass") {
+                    id = "watched-${movie.mediaEntry.id}"
+                    onClick = "watch('${movie.mediaEntry.id}', this)"
+
+                    EyeIconSvg("in-watched")
+                    EyePlusIconSvg("in-not-watched")
+                }
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $bookmarkedClass") {
+                    id = "bookmark-$movieId"
+                    onClick = "bookmark('$movieId', this)"
+
+                    BookmarkIconSvg("in-bookmarked")
+                    BookmarkPlusIconSvg("in-not-bookmarked")
+                }
+            }
         }
 
         div(classes = "movie-details") {
             div(classes = "movie-title-bar") {
                 p(classes = "movie-title") { +movieTitle }
                 div(classes = "movie-rating-container") {
-                    WatchedButton(movie)
                     Ratings(movie)
                 }
             }
@@ -193,6 +212,30 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
 suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         MovieItem(movie)
+    }
+}
+
+suspend fun UL.MovieListSentinel() {
+    li(classes = "movie-list-item") {
+        id = "infinite-sentinel"
+        div(classes = "movie-item bookmark-container") {
+            span(classes = "movie-poster error") {
+                div(classes = "movie-poster-placeholder") {
+                    ImagePlaceholderSvg()
+                }
+            }
+
+            div(classes = "movie-details") {
+                div(classes = "movie-title-bar") {
+                    p(classes = "movie-title") { +"Loading" }
+                }
+
+                p(classes = "movie-short-description") {
+                    onClick = "this.classList.add('expanded')"
+                    +"Loading..."
+                }
+            }
+        }
     }
 }
 

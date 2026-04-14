@@ -1,48 +1,98 @@
 let hasNextPage = true;
-let lastCursor = "$endCursor$";
+let lastCursor = null;
 let isLoading = false;
 
-function getMoreMovies(infinite_list, callback) {
-    if (isLoading) return;
+async function getMoreMovies(infiniteList, sentinel) {
+    if (isLoading || !hasNextPage) return;
     isLoading = true;
 
-    const currentParams = new URLSearchParams(window.location.search);
-    let currentTitle = currentParams.get('title');
+    try {
+        const currentParams = new URLSearchParams(window.location.search);
+        const currentTitle = currentParams.get('title');
 
-    let formData = new URLSearchParams();
-    if (currentTitle) formData.append("title", currentTitle);
-    if (lastCursor) formData.append("cursor", lastCursor);
+        const formData = new URLSearchParams();
+        if (currentTitle) formData.append("title", currentTitle);
+        if (lastCursor) formData.append("cursor", lastCursor);
 
-    fetch("/moreSearchResults?" + formData.toString(), {
-        method: "POST"
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
+        const response = await fetch("/search/results?" + formData.toString(), { method: "POST" });
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        const data = await response.json();
+
+        const htmlMap = data.html || {};
+        const allIds = Object.keys(htmlMap);
+        const filteredIds = allIds.filter(id => !document.getElementById(`movie-item-${id}`));
+        const idsToUse = filteredIds.length > 0 ? filteredIds : allIds;
+
+        const htmlToInsert = idsToUse.map(id => htmlMap[id]).join('');
+        if (htmlToInsert) {
+            sentinel.insertAdjacentHTML('beforebegin', htmlToInsert);
         }
-        return response.json();
-    }).then(data => {
-        infinite_list.insertAdjacentHTML('beforeend', data.html );
-        hasNextPage = data.hasNextPage;
+
+        hasNextPage = !!data.hasNextPage;
+
+        if (!hasNextPage) {
+            const notice = document.createElement("h3");
+            notice.innerText = (lastCursor || htmlToInsert) ? "No more results found." : "No results found.";
+            infiniteList.append(notice);
+        }
+
         lastCursor = data.cursor;
-    }).catch(error => {
-        console.error("Fetch error:", error);
-    }).finally(() => {
+    } catch (err) {
+        console.error("Fetch error:", err);
+    } finally {
         isLoading = false;
-        if (callback) {
-            callback();
-        }
-    });
-}
-
-function handleScroll(infinite_list) {
-    if (main.scrollTop + main.clientHeight >= main.scrollHeight && hasNextPage) {
-        getMoreMovies(infinite_list, () => handleScroll(infinite_list));
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const infinite_list = document.getElementById('infinite-list');
+document.addEventListener("DOMContentLoaded", async () => {
+    const infiniteList = document.getElementById('infinite-list');
+    if (!infiniteList) {
+        console.error("No infinite-list found.");
+        return;
+    }
 
-    main.addEventListener("scroll", () => handleScroll(infinite_list));
-    handleScroll(infinite_list);
-})
+    const scrollContainerElement = document.getElementById('main');
+    const observerRoot = scrollContainerElement || null;
+    const sentinel = document.getElementById('infinite-sentinel');
+
+    if (!sentinel) {
+        console.error('infinite-sentinel was not found');
+        return;
+    }
+
+    function isElementVisibleInRoot(el, root, extra = 400) {
+        const rect = el.getBoundingClientRect();
+        const rootRect = root.getBoundingClientRect();
+        return rect.bottom >= (rootRect.top - extra) && rect.top <= (rootRect.bottom + extra);
+    }
+
+    async function handleEndReached() {
+        console.log('requesting more movies');
+        await getMoreMovies(infiniteList, sentinel);
+        if (!hasNextPage) {
+            console.log('infinite scroll is not so infinite after all');
+            observer.disconnect();
+            sentinel.remove();
+        } else {
+            // move sentinel to the end so newly added items are before it
+            infiniteList.appendChild(sentinel);
+            console.log('more movies added')
+        }
+    }
+
+    const observer = new IntersectionObserver(async (entries) => {
+        for (const entry of entries) {
+            if (entry.isIntersecting && hasNextPage && !isLoading) {
+                do {
+                    await handleEndReached();
+                } while (hasNextPage && !isLoading && isElementVisibleInRoot(sentinel, observerRoot));
+            }
+        }
+    }, {
+        root: observerRoot,
+        rootMargin: '300px',
+        threshold: 0.01
+    });
+
+    observer.observe(sentinel);
+});

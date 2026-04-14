@@ -1,42 +1,36 @@
-function bookmark(movieId, el, isDoubleClick) {
-    const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
-    if (isSmallScreen !== isDoubleClick) return;
+function bookmark(movieId, buttonElement) {
+    const useElement = buttonElement.querySelector('use');
+    const currentIcon = useElement.getAttribute('href');
+    const movieItem = buttonElement.closest('.movie-item');
+    const bookmarkIcon = movieItem.querySelector('.bookmark-icon');
 
-    // TODO the previous element from el is the checkbox, so we can use it to uncheck all checkboxes with the same movieId
-    // el.parentNode
-    document.querySelectorAll("#" + movieId).forEach(checkbox => {
-        checkbox.checked = false;
-    });
-
-    if (el.classList.contains('bookmarked')) {
-        deleteBookmark(movieId, el);
+    if (currentIcon === "#bookmark-icon") {
+        deleteBookmark(movieId, useElement, bookmarkIcon);
     } else {
-        setBookmark(movieId, el);
+        setBookmark(movieId, useElement, bookmarkIcon);
     }
-
-    return false; // prevent default action
 }
 
-function setBookmark(movieId, el) {
+function setBookmark(movieId, useElement, bookmarkIcon) {
     fetch(`/bookmark/${movieId}`, {
         method: 'POST'
+    }).then(r => {
+        useElement.setAttribute('href', '#bookmark-icon');
+        bookmarkIcon.classList.add('bookmarked');
     })
-        .then(() => {
-            el.classList.add('bookmarked');
-        })
-        .catch(error => {
-            console.error("Bookmark error:", error);
-        });
+    .catch(error => {
+        console.error("Bookmark error:", error);
+    });
 }
 
-function deleteBookmark(movieId, el) {
+function deleteBookmark(movieId, useElement, bookmarkIcon) {
     fetch(`/bookmark/${movieId}`, {
         method: 'DELETE'
+    }).then(r => {
+        useElement.setAttribute('href', '#bookmark-plus-icon')
+        bookmarkIcon.classList.remove('bookmarked');
     })
-        .then(() => {
-            el.classList.remove('bookmarked');
-        })
-        .catch(error => {
-            console.error("Delete bookmark error:", error);
-        });
+    .catch(error => {
+        console.error("Delete bookmark error:", error);
+    });
 }

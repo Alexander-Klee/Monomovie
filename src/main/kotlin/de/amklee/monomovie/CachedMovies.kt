@@ -81,11 +81,15 @@ object CachedMovies {
 
         val cached = cache[id]
 
-        // update cache if missing or older than 30 days
+        // try to update cache if missing or older than 30 days
         if (cached == null || cached.cacheDate < System.currentTimeMillis() - STALE_MS) {
-            val details = justWatch.details(id) ?: return null
-            populateCache(details)
-            saveCache()
+            try {
+                val details = justWatch.details(id) ?: return cached
+                populateCache(details)
+                saveCache()
+            } catch (e: Exception) {
+                log.error(e) { "Unable to update cache for $id." }
+            }
         }
         return cache[id]
     }
@@ -132,7 +136,12 @@ object CachedMovies {
     )
 
     suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
-        val response = justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
+        val response = try {
+            justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
+        } catch (e: Exception) {
+            log.error(e) { "Unable to search for $title" }
+            return null
+        }
 
         val searchResult = SearchResults(
             response.edges.mapNotNull {
@@ -148,7 +157,12 @@ object CachedMovies {
 
     suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
         if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
-        return justWatch.offersForCountries(movie.mediaEntry.id, countries)
+        try {
+            return justWatch.offersForCountries(movie.mediaEntry.id, countries)
+        } catch (e: Exception) {
+            log.error(e) { "Unable to get offers for $movie." }
+            return countries.associateWith { emptyList() }
+        }
     }
 
     suspend fun getJellyfinLink(movie: Movie): String? {

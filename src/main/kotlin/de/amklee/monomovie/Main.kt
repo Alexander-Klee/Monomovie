@@ -20,6 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sse.*
 import io.ktor.sse.*
+import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -43,23 +44,16 @@ fun Route.miscRoutes() {
     }
     get("/search") {
         val title = call.request.queryParameters["title"]
-        val numResults = call.request.queryParameters["num"]?.toIntOrNull() ?: 4
 
         call.respondHtml {
             if (title.isNullOrBlank()) HtmlTemplate("Search") {
                 EmptySearchPage()
             } else HtmlTemplate("$title Search") {
-                val searchResults = CachedMovies.search(title = title, cursor = null, numResults = numResults)
-                searchResults?.let {
-                    SearchPage(
-                        title,
-                        it
-                    )
-                }
+                SearchPage(title)
             }
         }
     }
-    post("/moreSearchResults") {
+    post("/search/results") {
         //TODO implement circuit breaker in JS to prevent spamming this
         val title = call.request.queryParameters["title"]
         val cursor = call.request.queryParameters["cursor"]
@@ -69,7 +63,7 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        val searchResults = CachedMovies.search(title, cursor)
+        val searchResults = CachedMovies.search(title, cursor, numResults = if (cursor == null) 8 else 4)
         searchResults?.let {
             call.respond(MoreSearchResults(it))
             return@post
@@ -209,6 +203,9 @@ fun main() {
         }
         install(StatusPages) {
             exception<ClosedWriteChannelException> { _, _ ->
+                // Client disconnected, no need to log
+            }
+            exception<ChannelWriteException> { _, _ ->
                 // Client disconnected, no need to log
             }
             exception<Throwable> { call, cause ->

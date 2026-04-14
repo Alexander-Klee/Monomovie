@@ -1,0 +1,8 @@
+<!-- Based on Google Material Design Icons, Modified (github.com/google/material-design-icons) -->
+<svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="bookmark-icon" viewBox="0 -960 960 960">
+        <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"
+              fill="currentColor"
+              fill-rule="evenodd" />
+    </symbol>
+</svg>
