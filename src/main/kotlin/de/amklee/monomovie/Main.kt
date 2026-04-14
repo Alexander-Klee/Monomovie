@@ -4,6 +4,8 @@ import de.amklee.monomovie.components.*
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.*
+import de.amklee.monomovie.util.QrCode
+import de.amklee.monomovie.util.QrCodeRenderer
 import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.respondHtml
 import de.amklee.monomovie.util.setupLogging
@@ -213,6 +215,11 @@ fun Route.miscRoutes() {
     }
     get("/CachedMovies.json") {
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
+    }
+    get("/qr.svg") {
+        call.request.queryParameters["data"]?.let { data ->
+            call.respondText(QrCodeRenderer.renderSVG(QrCode.encodeText(data, ecl = QrCode.Ecc.HIGH)), contentType = ContentType.Image.SVG)
+        } ?: call.respond(HttpStatusCode.BadRequest, "Missing data parameter")
     }
     staticResources("/static", "static")
 }
