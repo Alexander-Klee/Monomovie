@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         });
                     }
                 } else if (bookmarkList) {
-                    const element = document.parseHtml(data.body);
+                    const element = document.parseHtmlElement(data.body);
                     bookmarkList.prepend(element);
                     injectUpdateCount(element);
                 }

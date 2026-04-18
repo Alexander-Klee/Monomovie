@@ -1,4 +1,4 @@
-document.parseHtml = function(html) {
+document.parseHtmlElement = function(html) {
     const template = document.createElement('template');
     template.innerHTML = html;
     if (template.content.childElementCount !== 1) {
