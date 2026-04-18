@@ -25,6 +25,8 @@ inline fun buildULHtml(build: UL.() -> Unit): String {
 suspend inline fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, crossinline block: suspend HTML.() -> Unit) {
     respondTextWriter(ContentType.Text.Html.withCharset(Charsets.UTF_8), status) {
         append("<!DOCTYPE html>\n")
+        // delayed() delays the current tag head end until we have all attributes
+        // this allows us to change attributes in the block, but shouldn't cause too much overhead
         HTMLStreamBuilder(this, prettyPrint = false, xhtmlCompatible = false).delayed().html {
             block()
         }
