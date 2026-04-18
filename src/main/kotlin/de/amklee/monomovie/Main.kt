@@ -216,7 +216,9 @@ fun main() {
             port = 8080
         }
     }) {
-        LOG.info { "Starting server in ${if (developmentMode) "development" else "production"} mode" }
+        // including the hostname has the side-benefit of ensuring Environment is initialized
+        // and, therefore, that it does not contain errors
+        LOG.info { "Starting server in ${if (developmentMode) "development" else "production"} mode at ${Environment.hostname}" }
         install(ContentNegotiation) {
             json()
         }

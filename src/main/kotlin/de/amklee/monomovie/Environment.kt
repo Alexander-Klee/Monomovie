@@ -1,5 +1,6 @@
 package de.amklee.monomovie
 
+import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.warn
 import io.ktor.util.PlatformUtils
 
@@ -12,7 +13,9 @@ object Environment {
         if (isDevelopment) {
             log.warn { "MMV_HOSTNAME not set, defaulting to http://localhost:8080 for development environment" }
         } else {
-            throw IllegalStateException("MMV_HOSTNAME environment variable must be set in production environment")
+            val msg = "MMV_HOSTNAME environment variable must be set in production environment"
+            log.error { msg } // might not get logged otherwise
+            throw IllegalStateException(msg)
         }
         "http://localhost:8080"
     }

@@ -78,6 +78,6 @@ tasks {
         dependsOn(runtime)
         group = "application"
         executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
-        environment("MMV_ENV" to "prod", "MMV_HOSTNAME" to "http://localhost:8080")
+        environment("MMV_HOSTNAME" to "http://localhost:8080")
     }
 }
