@@ -42,10 +42,10 @@ fun Route.miscRoutes() {
         val title = call.request.queryParameters["title"]
 
         call.respondHtml {
-            if (title.isNullOrBlank()) HtmlTemplate("Search") {
-                EmptySearchPage()
-            } else HtmlTemplate("$title Search") {
-                SearchPage(title)
+            val empty = title.isNullOrBlank()
+            HtmlTemplate(if (empty) "Search" else "$title Search") {
+                if (empty) EmptySearchPage()
+                else SearchPage(title)
             }
         }
     }
