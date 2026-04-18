@@ -235,11 +235,13 @@ fun main() {
                 LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
-//             TODO: remove, for debugging
-//            status(HttpStatusCode.NotFound) {
-//                LOG.warn("404 Not Found: ${call.request.uri}")
-//                call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
-//            }
+
+            if (this@embeddedServer.developmentMode) {
+                status(HttpStatusCode.NotFound) {
+                    LOG.warn { "404 Not Found: ${call.request.uri}" }
+                    call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
+                }
+            }
         }
     }.start(wait = true)
 }
