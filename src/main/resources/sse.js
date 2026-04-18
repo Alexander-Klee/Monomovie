@@ -10,11 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = JSON.parse(event.data);
         console.log('Received SSE:', data);
         const elements = document.querySelectorAll(`#${data.kind.toLowerCase()}-${data.id}`);
-        const className = data.kind.toLowerCase() === 'bookmark' ? 'bookmarked' : 'watched';
         switch (data.type) {
             case 'de.amklee.monomovie.components.SseEvent.Add':
                 if (elements.length > 0) {
-                    elements.forEach(element => element.classList.add(className));
+                    elements.forEach(element => element.dataset.checked = true);
                 } else if (bookmarkList && data.insert) {
                     const listItem = document.createElement('li');
                     bookmarkList.prepend(listItem);
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 break;
             case 'de.amklee.monomovie.components.SseEvent.Remove':
-                elements.forEach((element) => element.classList.remove(className));
+                elements.forEach((element) => element.dataset.checked = false);
                 break;
             default:
                 console.warn('Unknown event type:', data.type);

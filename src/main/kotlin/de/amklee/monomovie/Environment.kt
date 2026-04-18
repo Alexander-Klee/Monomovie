@@ -22,7 +22,7 @@ object Environment {
 
     init {
         if (jellyfinHost.isNullOrBlank() || jellyfinToken.isNullOrBlank()) {
-            log.warn { "Warning: Jellyfin credentials not set, Jellyfin integration will be disabled" }
+            log.warn { "Jellyfin credentials not set, Jellyfin integration will be disabled" }
         }
     }
 }
