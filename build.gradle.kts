@@ -51,7 +51,7 @@ dependencies {
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-sse")
-    implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.3")
 }
 
 tasks.test {
@@ -78,5 +78,6 @@ tasks {
         dependsOn(runtime)
         group = "application"
         executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
+        environment("MMV_ENV" to "prod", "MMV_HOSTNAME" to "http://localhost:8080")
     }
 }
