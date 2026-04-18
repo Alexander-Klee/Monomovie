@@ -4,9 +4,7 @@ import de.amklee.monomovie.components.*
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.*
-import de.amklee.monomovie.util.error
-import de.amklee.monomovie.util.respondHtml
-import de.amklee.monomovie.util.setupLogging
+import de.amklee.monomovie.util.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -21,7 +19,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.*
-import io.ktor.util.cio.ChannelWriteException
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -31,8 +29,6 @@ import kotlinx.html.p
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
-
-val hostname = System.getenv("MMV_HOSTNAME") ?: "http://localhost:8080"
 
 fun Route.miscRoutes() {
     get("/") {
@@ -220,6 +216,7 @@ fun main() {
             port = 8080
         }
     }) {
+        LOG.info { "Starting server in ${if (developmentMode) "development" else "production"} mode" }
         install(ContentNegotiation) {
             json()
         }

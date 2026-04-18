@@ -26,8 +26,8 @@ object JellyfinClient {
 
     private val api by lazy {
         jellyfin.createApi(
-            baseUrl = System.getenv("MMV_JELLYFIN_HOST") ?: return@lazy null,
-            accessToken = System.getenv("MMV_JELLYFIN_TOKEN") ?: return@lazy null,
+            baseUrl = Environment.jellyfinHost ?: return@lazy null,
+            accessToken = Environment.jellyfinToken ?: return@lazy null,
         )
     }
 

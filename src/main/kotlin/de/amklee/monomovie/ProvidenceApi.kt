@@ -48,7 +48,7 @@ object ProvidenceApi {
                 }
             }.awaitAll(),
             actions = listOf(
-                WheelAction("View Offers", "$hostname/offers/{id}")
+                WheelAction("View Offers", "${Environment.hostname}/offers/{id}")
             ),
         )
         return@coroutineScope URLBuilder(endpoint).apply {
