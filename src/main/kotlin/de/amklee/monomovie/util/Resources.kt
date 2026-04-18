@@ -12,6 +12,7 @@ object Resources {
     val style by Resource("style.css")
 
     // scripts
+    val libJs by Resource("lib.js")
     val topbuttonJs by Resource("topbutton.js")
     val bookmarkJs by Resource("bookmark.js")
     val watchedJs by Resource("watched.js")

@@ -26,6 +26,10 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         style {
             unsafe { +Resources.style }
         }
+
+        script {
+            unsafe { +Resources.libJs }
+        }
     }
     body {
         MenuButton()

@@ -15,9 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (elements.length > 0) {
                     elements.forEach(element => element.dataset.checked = true);
                 } else if (bookmarkList && data.insert) {
-                    const listItem = document.createElement('li');
-                    bookmarkList.prepend(listItem);
-                    listItem.outerHTML = data.body;
+                    bookmarkList.prepend(document.parseHtmlElement(data.body));
                 }
                 break;
             case 'de.amklee.monomovie.components.SseEvent.Remove':
@@ -33,4 +31,4 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error('EventSource failed:', err);
         eventSource.close();
     };
-})
+});
