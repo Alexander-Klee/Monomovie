@@ -212,11 +212,11 @@ h1 {
     overflow: hidden;
 }
 
-.movie-poster.error .movie-poster-placeholder {
+.movie-poster[data-error="true"] .movie-poster-placeholder {
     display: flex;
 }
 
-.movie-poster.error .movie-poster-img {
+.movie-poster[data-error="true"] .movie-poster-img {
     display: none;
 }
 
@@ -231,11 +231,11 @@ h1 {
     color: yellow;
 }
 
-.bookmark-icon .bookmarked{
+.bookmark-icon[data-checked="true"] {
     color: yellow;
 }
 
-.bookmark-icon:not(.bookmarked){
+.bookmark-icon[data-checked="false"] {
     visibility: hidden;
 }
 
@@ -309,7 +309,7 @@ h1 {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.movie-short-description.expanded {
+.movie-short-description[data-expanded="true"] {
     -webkit-line-clamp: unset;
     display: block;
     overflow: visible;
@@ -596,7 +596,7 @@ td, th {
     display: none;
 }
 
-.show-top-button {
+.top-button[data-shown="true"] {
     display: block;
 }
 
@@ -605,7 +605,7 @@ td, th {
     display: none;
 }
 
-.bookmarked {
+.bookmark-scope[data-checked="true"] {
     .in-bookmarked {
         display: inline-block;
     }
@@ -616,7 +616,7 @@ td, th {
     vertical-align: middle;
 }
 
-.watched {
+.watched-scope[data-checked="true"] {
     .in-watched {
         display: inline-block;
     }

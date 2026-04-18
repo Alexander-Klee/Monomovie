@@ -6,11 +6,7 @@ function gotoTop() {
 }
 
 function scrollTopButton() {
-    if (main.scrollTop > 1000) {
-        top_button.classList.add('show-top-button');
-    } else {
-        top_button.classList.remove('show-top-button');
-    }
+    top_button.dataset.shown = main.scrollTop > 1000;
 }
 
 main.addEventListener('scroll', scrollTopButton);

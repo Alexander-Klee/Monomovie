@@ -20,7 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sse.*
 import io.ktor.sse.*
-import io.ktor.util.cio.ChannelWriteException
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -31,8 +31,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
-
-val hostname = System.getenv("MMV_HOSTNAME") ?: "http://localhost:8080"
 
 fun Route.miscRoutes() {
     get("/") {
@@ -46,10 +44,10 @@ fun Route.miscRoutes() {
         val title = call.request.queryParameters["title"]
 
         call.respondHtml {
-            if (title.isNullOrBlank()) HtmlTemplate("Search") {
-                EmptySearchPage()
-            } else HtmlTemplate("$title Search") {
-                SearchPage(title)
+            val empty = title.isNullOrBlank()
+            HtmlTemplate(if (empty) "Search" else "$title Search") {
+                if (empty) EmptySearchPage()
+                else SearchPage(title)
             }
         }
     }
@@ -198,6 +196,9 @@ fun main() {
             port = 8080
         }
     }) {
+        // including the hostname has the side-benefit of ensuring Environment is initialized
+        // and, therefore, that it does not contain errors
+        LOG.info { "Starting server in ${if (developmentMode) "development" else "production"} mode at ${Environment.hostname}" }
         install(ContentNegotiation) {
             json()
         }
@@ -216,11 +217,13 @@ fun main() {
                 LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
             }
-//             TODO: remove, for debugging
-//            status(HttpStatusCode.NotFound) {
-//                LOG.warn("404 Not Found: ${call.request.uri}")
-//                call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
-//            }
+
+            if (this@embeddedServer.developmentMode) {
+                status(HttpStatusCode.NotFound) {
+                    LOG.warn { "404 Not Found: ${call.request.uri}" }
+                    call.respondText(text = "404 Not Found", status = HttpStatusCode.NotFound)
+                }
+            }
         }
     }.start(wait = true)
 }

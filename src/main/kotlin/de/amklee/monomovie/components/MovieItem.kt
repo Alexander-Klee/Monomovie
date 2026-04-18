@@ -17,6 +17,7 @@ import de.amklee.monomovie.tmdbLink
 import de.amklee.monomovie.util.BookmarkSquareIconSvg
 import de.amklee.monomovie.util.ImagePlaceholderSvg
 import kotlinx.html.*
+import kotlinx.html.impl.dataset
 
 
 private fun UL.OfferItem(offer: Offer) = OfferItem(
@@ -137,6 +138,7 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
     }
 }
 
+@OptIn(ExperimentalKotlinxHtmlApi::class)
 suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.title
@@ -144,33 +146,37 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
 
     div(classes = "movie-item bookmark-container") {
         id = "movie-item-$movieId"
-        val bookmarkedClass = if (movie.isBookmarked) "bookmarked" else ""
-        val watchedClass = if (movie.isWatched) "watched" else ""
-        BookmarkSquareIconSvg("bookmark-icon $bookmarkedClass") {
+        BookmarkSquareIconSvg("bookmark-icon") {
             id = "bookmark-$movieId"
+            dataset["checked"] = movie.isBookmarked.toString()
         }
 
-        span(classes = "movie-poster ${if (posterUrl.isNullOrBlank()) "error" else ""}") {
+        span(classes = "movie-poster") {
+            if (posterUrl.isNullOrBlank()) dataset["error"] = true.toString()
             div(classes = "movie-poster-placeholder") {
                 ImagePlaceholderSvg()
             }
             if (posterUrl.isNullOrBlank()) return@span
             img(classes = "movie-poster-img", src = posterUrl, alt = movieTitle) {
-                attributes["onerror"] = "handleImageError(this)"
+                onError = "handleImageError(this)"
             }
         }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
             div(classes = "movie-action-bar hidden-movie-action-bar-element") {
-                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $watchedClass") {
-                    id = "watched-${movie.mediaEntry.id}"
-                    onClick = "watch('${movie.mediaEntry.id}', this)"
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button watched-scope") {
+                    id = "watched-$movieId"
+                    onClick = "dataset.checked == 'true' ? deleteWatch('$movieId') : setWatch('$movieId')"
+
+                    dataset["checked"] = movie.isWatched.toString()
 
                     EyeIconSvg("in-watched")
                     EyePlusIconSvg("in-not-watched")
                 }
-                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button $bookmarkedClass") {
+                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button bookmark-scope") {
                     id = "bookmark-$movieId"
-                    onClick = "bookmark('$movieId', this)"
+                    onClick = "dataset.checked == 'true' ? deleteBookmark('$movieId') : setBookmark('$movieId')"
+
+                    dataset["checked"] = movie.isBookmarked.toString()
 
                     BookmarkIconSvg("in-bookmarked")
                     BookmarkPlusIconSvg("in-not-bookmarked")
@@ -189,7 +195,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
             YearDurationInfo(movie)
 
             p(classes = "movie-short-description") {
-                onClick = "this.classList.add('expanded')"
+                onClick = "dataset.expanded = true"
                 +(movie.mediaEntry.content?.shortDescription ?: "No description available.")
             }
         }
@@ -215,11 +221,13 @@ suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
     }
 }
 
+@OptIn(ExperimentalKotlinxHtmlApi::class)
 suspend fun UL.MovieListSentinel() {
     li(classes = "movie-list-item") {
         id = "infinite-sentinel"
         div(classes = "movie-item bookmark-container") {
-            span(classes = "movie-poster error") {
+            span(classes = "movie-poster") {
+                dataset["error"] = true.toString()
                 div(classes = "movie-poster-placeholder") {
                     ImagePlaceholderSvg()
                 }
@@ -231,7 +239,7 @@ suspend fun UL.MovieListSentinel() {
                 }
 
                 p(classes = "movie-short-description") {
-                    onClick = "this.classList.add('expanded')"
+                    onClick = "dataset.expanded = true"
                     +"Loading..."
                 }
             }
@@ -254,6 +262,7 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     }
 }
 
+@OptIn(ExperimentalKotlinxHtmlApi::class)
 suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) {
     li(classes = "movie-list-item") {
         id = "roulette-${movie.mediaEntry.id}"
@@ -262,8 +271,8 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
             MovieItem(movie) {
                 div("roulette-weight-container") {
                     button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-decrease") {
-                        attributes["mmv_for"] = movie.mediaEntry.id ?: ""
-                        onClick = "const el = document.getElementById(attributes.mmv_for.value); el.stepDown(); el.dispatchEvent(new Event('change'));"
+                        dataset["movie"] = movie.mediaEntry.id ?: ""
+                        onClick = "const el = document.getElementById(dataset.movie); el.stepDown(); el.dispatchEvent(new Event('change'));"
                         +"−"
                     }
                     numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
@@ -272,8 +281,8 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
                         value = count.toString()
                     }
                     button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-increase") {
-                        attributes["mmv_for"] = movie.mediaEntry.id ?: ""
-                        onClick = "const el = document.getElementById(attributes.mmv_for.value); el.stepUp(); el.dispatchEvent(new Event('change'));"
+                        dataset["movie"] = movie.mediaEntry.id ?: ""
+                        onClick = "const el = document.getElementById(dataset.movie); el.stepUp(); el.dispatchEvent(new Event('change'));"
                         +"+"
                     }
                 }
