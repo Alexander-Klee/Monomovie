@@ -90,6 +90,7 @@ fun Route.rouletteRoutes() {
         null
     }
     get("/shared/{shareId}") {
+        // select new movies for vote
         val shareId = call.getShareId() ?: return@get
 
         sharedRouletteSessions.reheat(shareId)
@@ -105,6 +106,7 @@ fun Route.rouletteRoutes() {
         }
     }
     post("/shared/{shareId}/{movieId}") {
+        // update number of votes
         val shareId = call.getShareId() ?: return@post
         val movieId = call.parameters["movieId"] ?: run {
             call.respond(HttpStatusCode.BadRequest, "Missing movieId")
@@ -126,6 +128,7 @@ fun Route.rouletteRoutes() {
         call.respond(HttpStatusCode.OK)
     }
     delete("/shared/{shareId}/{movieId}") {
+        // delete movie from shared voting list
         val shareId = call.getShareId() ?: return@delete
         val movieId = call.parameters["movieId"] ?: run {
             call.respond(HttpStatusCode.BadRequest, "Missing movieId")
@@ -136,7 +139,7 @@ fun Route.rouletteRoutes() {
             return@delete
         }
 
-        sharedRouletteSessions.withValue(shareId) {
+        sharedRouletteSessions.withValueSuspend(shareId) {
             it.remove(movie)
         }
 
@@ -161,6 +164,7 @@ fun Route.rouletteRoutes() {
         }
     }
     post("/share") {
+        // create a new shared vote
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
             CachedMovies.get(id)?.let { it to count.sumOf { it.toIntOrNull() ?: 0 } }
         }
@@ -176,6 +180,7 @@ fun Route.rouletteRoutes() {
         call.respondRedirect("/roulette?shareId=$shareId")
     }
     post("/submit") {
+        // go to roulette
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
             CachedMovies.get(id)?.let { it to count.sumOf { it.toIntOrNull() ?: 0 } }
         }.filter { it.second > 0 }
