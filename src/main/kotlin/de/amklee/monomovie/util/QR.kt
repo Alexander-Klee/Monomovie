@@ -29,23 +29,8 @@ private const val MIN_VERSION = 1
 private const val MAX_VERSION = 40
 
 class BitBuffer {
-    init {
-        1 shl 2
-    }
-
     private var data: BitSet = BitSet()
     private var bitLength: Int = 0
-
-    fun toHexString(): String {
-        val hexChars = "0123456789ABCDEF"
-        val result = StringBuilder(data.length()  / 4)
-        for (byte in data.stream()) {
-            val unsignedByte = byte.toUByte()
-            result.append(hexChars[unsignedByte shr 4])
-            result.append(hexChars[unsignedByte and 0x0Fu])
-        }
-        return result.toString()
-    }
 
     val length get() = bitLength
 
@@ -818,15 +803,16 @@ private inline fun StringBuilder.renderSvgPath(width: Int, height: Int, isDark: 
     }
 }
 
-fun FlowContent.QrCode(qr: QrCode) {
+fun FlowContent.QrCode(qr: QrCode, border: Int = 2) {
+    require(border >= 0) { "Border size cannot be negative" }
     svg {
-        attributes["viewBox"] = "0 0 ${qr.size} ${qr.size}"
+        attributes["viewBox"] = "${-border} ${-border} ${qr.size + border * 2} ${qr.size + border * 2}"
         attributes["stroke"] = "none"
         HTMLTag(
             "path",
             consumer,
             mapOf("class" to "qrCodePath", "d" to buildString { renderSvgPath(qr.size, qr.size) { x, y -> qr.getModule(x, y) } }),
-            "\"http://www.w3.org/2000/svg\"",
+            "http://www.w3.org/2000/svg",
             inlineTag = true,
             emptyTag = true,
         ).apply { visit {} }
