@@ -178,7 +178,7 @@ fun Route.rouletteRoutes() {
     post("/submit") {
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
             CachedMovies.get(id)?.let { it to count.sumOf { it.toIntOrNull() ?: 0 } }
-        }
+        }.filter { it.second > 0 }
 
         if (selectedMovies.isEmpty()) {
             call.respond(HttpStatusCode.BadRequest, "No movies selected for roulette")

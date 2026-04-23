@@ -277,7 +277,7 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
                     }
                     numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
                         id = movie.mediaEntry.id ?: ""
-                        min = "1"
+                        min = "0"
                         value = count.toString()
                     }
                     button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-increase") {
