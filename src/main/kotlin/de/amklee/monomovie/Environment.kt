@@ -20,8 +20,8 @@ object Environment {
         "http://localhost:8080"
     }
 
-    val jellyfinHost = System.getenv("MMV_JELLYFIN_HOST")
-    val jellyfinToken = System.getenv("MMV_JELLYFIN_TOKEN")
+    val jellyfinHost = System.getenv("MMV_JELLYFIN_HOST")?.ifBlank { null }
+    val jellyfinToken = System.getenv("MMV_JELLYFIN_TOKEN")?.ifBlank { null }
 
     init {
         if (jellyfinHost.isNullOrBlank() || jellyfinToken.isNullOrBlank()) {

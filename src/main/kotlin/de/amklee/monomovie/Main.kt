@@ -213,6 +213,13 @@ fun main() {
             exception<ChannelWriteException> { _, _ ->
                 // Client disconnected, no need to log
             }
+            exception<CancellationException> { _, e ->
+                // Client disconnected, no need to log
+                if (e.cause is ClosedWriteChannelException || e.cause is ChannelWriteException) {
+                    return@exception
+                }
+                throw e
+            }
             exception<Throwable> { call, cause ->
                 LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
                 call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
