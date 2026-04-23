@@ -27,8 +27,7 @@ object Resources {
     fun sseJs(mode: Mode) = sseJs.replace($$"$mode$", mode.toString())
     fun selectableJs(minSelection: Int) = selectableJs.replace($$"$minSelection$", minSelection.toString())
     @OptIn(ExperimentalUuidApi::class)
-    fun rouletteSharedJs(isSelection: Boolean, shareId: Uuid) = rouletteSharedJs
-        .replace($$"$isSelection$", isSelection.toString())
+    fun rouletteSharedJs(shareId: Uuid) = rouletteSharedJs
         .replace($$"$shareId$", shareId.toString())
 
     // svgs

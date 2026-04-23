@@ -150,7 +150,6 @@ fun Route.rouletteRoutes() {
         Json.encodeToString(serializer, it)
     }) {
         val shareId = call.getShareId() ?: return@sse
-        val isSelection = call.request.queryParameters["isSelection"]?.toBoolean() ?: false
 
         heartbeat {
             period = 5.seconds
@@ -158,7 +157,7 @@ fun Route.rouletteRoutes() {
         }
 
         sharedRouletteSessions.withValueSuspend(shareId) { session ->
-            session.events(isSelection = isSelection).collect { event ->
+            session.events().collect { event ->
                 send(event)
             }
         }

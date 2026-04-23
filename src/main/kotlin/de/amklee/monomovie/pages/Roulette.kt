@@ -7,13 +7,12 @@ import de.amklee.monomovie.Environment
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
-import de.amklee.monomovie.components.SelectableMovieListItem
 import de.amklee.monomovie.util.QrCode
 import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.html.*
@@ -28,8 +27,6 @@ sealed interface RouletteSseEvent {
     @Serializable data class Add(override val id: String, val body: String) : RouletteSseEvent
     @Serializable data class Remove(override val id: String) : RouletteSseEvent
     @Serializable data class Update(override val id: String, val count: Int) : RouletteSseEvent
-
-    data class AddEventWithModes(override val id: String, val selectionBody: String, val votingBody: String) : RouletteSseEvent
 }
 
 class SharedRouletteSession {
@@ -38,13 +35,7 @@ class SharedRouletteSession {
 
     private val _events = MutableSharedFlow<RouletteSseEvent>()
 
-    suspend fun events(isSelection: Boolean): Flow<RouletteSseEvent> = _events.map {
-        when (it) {
-            is RouletteSseEvent.AddEventWithModes -> if (isSelection) RouletteSseEvent.Add(it.id, it.selectionBody)
-                                                     else             RouletteSseEvent.Add(it.id, it.votingBody)
-            else -> it
-        }
-    }
+    fun events(): SharedFlow<RouletteSseEvent> = _events.asSharedFlow()
 
     constructor()
 
@@ -80,11 +71,10 @@ class SharedRouletteSession {
         if (event != null) _events.emit(event)
     }
 
-    private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.AddEventWithModes {
-        return RouletteSseEvent.AddEventWithModes(
+    private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.Add {
+        return RouletteSseEvent.Add(
             id = movie.mediaEntry.id!!,
-            selectionBody = buildULHtml { SelectableMovieListItem(movie) },
-            votingBody = buildULHtml { RouletteMovieListItem(movie, count) }
+            body = buildULHtml { RouletteMovieListItem(movie, count) }
         )
     }
 
@@ -101,7 +91,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
     if (shareId != null) {
         script {
             unsafe {
-                +Resources.rouletteSharedJs(false, shareId)
+                +Resources.rouletteSharedJs(shareId)
             }
         }
         div(classes = "qr-code") {
@@ -132,15 +122,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
 }
 
 suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Movie>, shareId: Uuid) {
-    script {
-        unsafe {
-            +Resources.rouletteSharedJs(true, shareId)
-        }
-    }
     h1 { +"Shared Roulette:" }
-    div(classes = "qr-code") {
-        QrCode(QrCode.encodeText("${Environment.hostname}/roulette/shared/$shareId", QrCode.Ecc.QUARTILE))
-    }
     if (movies.isEmpty()) {
         p { +"No bookmarked movies found" }
         return

@@ -1,8 +1,6 @@
-const isSelection = $isSelection$;
 const shareId = "$shareId$";
 
 function injectUpdateCount(parent) {
-    if (isSelection) return; // No need to update counts in selection mode
     parent.querySelectorAll('.roulette-weight-input').forEach(element => {
         element.onchange = () => {
             const count = parseInt(element.value) || 0;
@@ -19,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     injectUpdateCount(document);
 
-    const eventSource = new EventSource('/roulette/shared/' + shareId + '/sse?isSelection=' + isSelection);
+    const eventSource = new EventSource('/roulette/shared/' + shareId + '/sse');
 
     eventSource.onmessage = function(event) {
         if (event.data === "heartbeat") return;
@@ -28,35 +26,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const elements = document.querySelectorAll(`#${data.id}`);
         switch (data.type) {
             case 'de.amklee.monomovie.pages.RouletteSseEvent.Add':
-                if (elements.length > 0) {
-                    if (isSelection) {
-                        elements.forEach(element => {
-                            if (isSelection) {
-                                element.selected = true;
-                            }
-                        });
-                    }
-                } else if (bookmarkList) {
+                if (elements.length <= 0 && bookmarkList) {
                     const element = document.parseHtmlElement(data.body);
                     bookmarkList.append(element);
                     injectUpdateCount(element);
                 }
                 break;
             case 'de.amklee.monomovie.pages.RouletteSseEvent.Update':
-                if (!isSelection) {
-                    elements.forEach(element => {
-                        element.value = data.count;
-                    });
-                }
+                elements.forEach(element => {
+                    element.value = data.count;
+                });
                 break
             case 'de.amklee.monomovie.pages.RouletteSseEvent.Remove':
-                elements.forEach((element) => {
-                    if (isSelection) {
-                        element.selected = false;
-                    } else {
-                        document.querySelectorAll("#roulette-" + data.id).forEach(el => el.remove());
-                    }
-                });
+                document.querySelectorAll("#roulette-" + data.id).forEach(el => el.remove());
                 break;
             default:
                 console.warn('Unknown event type:', data.type);
