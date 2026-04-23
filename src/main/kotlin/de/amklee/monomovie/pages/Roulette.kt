@@ -88,9 +88,9 @@ class SharedRouletteSession {
         )
     }
 
-    fun remove(movie: CachedMovies.Movie) {
-        movies.remove(movie.mediaEntry.id!!)?.let {
-            _events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id))
+    suspend fun remove(movie: CachedMovies.Movie) {
+        mutex.withLock { movies.remove(movie.mediaEntry.id!!) }?.let {
+            _events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id!!))
         }
     }
 }
