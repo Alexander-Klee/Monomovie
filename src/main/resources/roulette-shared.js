@@ -38,12 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 } else if (bookmarkList) {
                     const element = document.parseHtmlElement(data.body);
-                    bookmarkList.prepend(element);
+                    bookmarkList.append(element);
                     injectUpdateCount(element);
                 }
                 break;
             case 'de.amklee.monomovie.pages.RouletteSseEvent.Update':
-                if (!isSelection && elements.length > 0) {
+                if (!isSelection) {
                     elements.forEach(element => {
                         element.value = data.count;
                     });
