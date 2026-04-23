@@ -1,4 +1,5 @@
 package de.amklee.monomovie
+import de.amklee.monomovie.util.NIHCache
 import de.amklee.monomovie.util.error
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.itemsApi
@@ -10,10 +11,8 @@ import org.jellyfin.sdk.model.api.ItemFields
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 object JellyfinClient {
@@ -31,31 +30,24 @@ object JellyfinClient {
         )
     }
 
-    private var cache: CacheEntry? = null
-    private var lastAccessed = Instant.fromEpochSeconds(0)
-    private suspend fun getItems(): CacheEntry {
-        val api = api ?: return CacheEntry()
-        if (cache != null && (Clock.System.now() - lastAccessed) < 3.hours) {
-            return cache!!
-        }
+    private val items = NIHCache<CacheEntry>(3.hours) {
+        if (api == null) return@NIHCache CacheEntry()
         try {
-            val items = api.itemsApi.getItems(recursive = true, fields = setOf(ItemFields.PROVIDER_IDS))
+            val items = api!!.itemsApi.getItems(recursive = true, fields = setOf(ItemFields.PROVIDER_IDS))
             if (items.status != 200) throw IOException("Unexpected return code: ${items.status}")
-            cache = CacheEntry(
+            CacheEntry(
                 tmdb = items.content.items.mapNotNull {
                     val id = it.providerIds?.get("Tmdb") ?: return@mapNotNull null
-                    id to api.actualUrl(it)
+                    id to api!!.actualUrl(it)
                 }.toMap(),
                 imdb = items.content.items.mapNotNull {
                     val id = it.providerIds?.get("Imdb") ?: return@mapNotNull null
-                    id to api.actualUrl(it)
+                    id to api!!.actualUrl(it)
                 }.toMap()
             )
-            lastAccessed = Clock.System.now()
-            return cache!!
         } catch (e: Throwable) {
             log.error(e) { "Could not fetch items" }
-            return cache ?: CacheEntry()
+            CacheEntry()
         }
     }
 
@@ -65,8 +57,8 @@ object JellyfinClient {
 
     private fun String.urlEncode() = URLEncoder.encode(this, StandardCharsets.UTF_8)
 
-    suspend fun findTmdbOnJellyfin(tmdbId: String) = getItems().tmdb[tmdbId]
-    suspend fun findImdbOnJellyfin(imdbId: String) = getItems().imdb[imdbId]
+    suspend fun findTmdbOnJellyfin(tmdbId: String) = items.get().tmdb[tmdbId]
+    suspend fun findImdbOnJellyfin(imdbId: String) = items.get().imdb[imdbId]
 
     private data class CacheEntry(val tmdb: Map<String, String>, val imdb: Map<String, String>) {
         constructor() : this(emptyMap(), emptyMap())
