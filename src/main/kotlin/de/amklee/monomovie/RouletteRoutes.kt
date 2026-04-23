@@ -189,6 +189,17 @@ fun Route.rouletteRoutes() {
             return@post
         }
 
-        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies))
+        // maybe retrieve hash
+        val shareId = call.request.queryParameters["shareId"]?.let {
+            Uuid.parseOrNull(it) ?: run {
+                call.respond(HttpStatusCode.BadRequest, "Invalid shareId parameter")
+                return@post
+            }
+        }
+        val hash = shareId?.let { sharedRouletteSessions.withValue(it) {
+            it.hash
+        } }?.get()
+
+        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies, hash))
     }
 }

@@ -4,9 +4,11 @@ package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Environment
+import de.amklee.monomovie.ProvidenceApi
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.util.LazyValue
 import de.amklee.monomovie.util.QrCode
 import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
@@ -30,14 +32,14 @@ sealed interface RouletteSseEvent {
 }
 
 class SharedRouletteSession {
+    val hash = LazyValue { ProvidenceApi.getLatestHash() }
+
     private val movies = LinkedHashMap<String, RouletteCachedMovie>()
     private val mutex = Mutex()
 
     private val _events = MutableSharedFlow<RouletteSseEvent>()
 
     fun events(): SharedFlow<RouletteSseEvent> = _events.asSharedFlow()
-
-    constructor()
 
     suspend fun addAll(movies: List<CachedMovies.Movie>): Collection<RouletteCachedMovie> {
         for (movie in movies) { add(movie) }
@@ -98,7 +100,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
             QrCode(QrCode.encodeText("${Environment.hostname}/roulette/shared/$shareId", QrCode.Ecc.QUARTILE))
         }
     }
-    postForm("/roulette/submit") {
+    postForm("/roulette/submit?shareId=$shareId") {
         div(classes = "roulette-action-row") {
             submitInput(classes = "roulette-button") {
                 value = "Start Roulette"
