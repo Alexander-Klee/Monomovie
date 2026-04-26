@@ -101,7 +101,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
             QrCode(QrCode.encodeText("${Environment.hostname}/roulette/shared/$shareId", QrCode.Ecc.QUARTILE))
         }
     }
-    postForm("/roulette/submit?shareId=$shareId") {
+    postForm("/roulette/submit" + if (shareId == null) "" else "?shareId=$shareId") {
         div(classes = "roulette-action-row") {
             submitInput(classes = "roulette-button") {
                 value = "Start Roulette"
