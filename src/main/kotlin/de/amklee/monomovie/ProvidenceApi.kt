@@ -1,5 +1,6 @@
 package de.amklee.monomovie
 
+import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.util.NIHCache
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
@@ -53,7 +54,7 @@ object ProvidenceApi {
     }
     suspend fun getLatestHash(): String = latestHash.get()
 
-    suspend fun createWheel(entries: List<Pair<CachedMovies.Movie, Int>>, hash: String?): Url = coroutineScope {
+    suspend fun createWheel(entries: List<RouletteCachedMovie>, hash: String?): Url = coroutineScope {
         val config = WheelConfig(
             hash = hash,
             options = entries.map { (movie, weight) ->

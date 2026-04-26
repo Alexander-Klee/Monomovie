@@ -1,10 +1,10 @@
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.HtmlTemplate
-import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.pages.RoulettePage
 import de.amklee.monomovie.pages.SharedRouletteSelectionPage
 import de.amklee.monomovie.pages.SharedRouletteSession
+import de.amklee.monomovie.pages.withVotes
 import de.amklee.monomovie.util.SharedSessionContainer
 import de.amklee.monomovie.util.respondHtml
 import de.amklee.monomovie.util.warn
@@ -42,10 +42,9 @@ fun Route.rouletteRoutes() {
             .mapNotNull { CachedMovies.get(it) }
 
         val votedMovies = if (shareId != null) {
-            sharedRouletteSessions.preheat(shareId).let {
-                it.addAll(selectedMovies)
-            }
-        } else selectedMovies.map { RouletteCachedMovie(it, 1) }
+            sharedRouletteSessions.preheat(shareId)
+                .addAll(selectedMovies)
+        } else selectedMovies.map { it withVotes 1 }
 
         if (votedMovies.isEmpty() || votedMovies.size < 2) {
             call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")
@@ -165,7 +164,7 @@ fun Route.rouletteRoutes() {
     post("/share") {
         // create a new shared vote
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
-            CachedMovies.get(id)?.let { it to count.sumOf { it.toIntOrNull() ?: 0 } }
+            CachedMovies.get(id)?.let { it withVotes count.sumOf { it.toIntOrNull() ?: 0 } }
         }
 
         val shareId = Uuid.random()
@@ -181,12 +180,7 @@ fun Route.rouletteRoutes() {
     post("/submit") {
         // go to roulette
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
-            CachedMovies.get(id)?.let { it to count.sumOf { it.toIntOrNull() ?: 0 } }
-        }.filter { it.second > 0 }
-
-        if (selectedMovies.isEmpty()) {
-            call.respond(HttpStatusCode.BadRequest, "No movies selected for roulette")
-            return@post
+            CachedMovies.get(id)?.let { it withVotes count.sumOf { it.toIntOrNull() ?: 0 } }
         }
 
         // maybe retrieve hash
@@ -196,10 +190,21 @@ fun Route.rouletteRoutes() {
                 return@post
             }
         }
-        val hash = shareId?.let { sharedRouletteSessions.withValue(it) {
-            it.hash
-        } }?.get()
 
-        call.respondRedirect(ProvidenceApi.createWheel(selectedMovies, hash))
+        val (movies, hash) = shareId?.let { sharedRouletteSessions.withValueSuspend(it) {
+            for ((movie, count) in selectedMovies) {
+                it.updateCount(movie, count)
+            }
+            it.addAll(listOf()) to it.hash.get()
+        } } ?: (selectedMovies to null)
+
+        val filteredMovies = movies.filter { it.votes > 0 }
+
+        if (filteredMovies.isEmpty()) {
+            call.respond(HttpStatusCode.BadRequest, "No movies selected for roulette")
+            return@post
+        }
+
+        call.respondRedirect(ProvidenceApi.createWheel(filteredMovies, hash))
     }
 }

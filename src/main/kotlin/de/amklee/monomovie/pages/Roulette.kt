@@ -49,7 +49,7 @@ class SharedRouletteSession {
     suspend fun add(movie: CachedMovies.Movie) {
         mutex.withLock {
             if (movies.containsKey(movie.mediaEntry.id!!)) return
-            movies[movie.mediaEntry.id] = RouletteCachedMovie(movie, 1)
+            movies[movie.mediaEntry.id] = movie withVotes 1
         }
         // not in the critical section, so technically the movie could have been added in the meantime.
         // however, this avoids locking us up which is probably more important in the case of one slow client.
@@ -59,7 +59,7 @@ class SharedRouletteSession {
         val event = mutex.withLock {
             val old = movies[movie.mediaEntry.id!!]
             if (old == null) {
-                movies[movie.mediaEntry.id] = RouletteCachedMovie(movie, count)
+                movies[movie.mediaEntry.id] = movie withVotes count
                 buildAddEvent(movie, count)
             } else {
                 if (old.votes != count) {
@@ -88,6 +88,7 @@ class SharedRouletteSession {
 }
 
 data class RouletteCachedMovie(val movie: CachedMovies.Movie, var votes: Int)
+infix fun CachedMovies.Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 
 suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
