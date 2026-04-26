@@ -411,21 +411,21 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         get() {
             var result = 0
 
-            fun linePenalty(idx: (Int, Int) -> Pair<Int, Int>) {
+            fun linePenalty(read: (Int, Int) -> Boolean) {
                 for (a in 0..<size) {
                     var runColor = false
                     var run = 0
                     val runHistory = IntArray(7)
                     for (b in 0..<size) {
-                        val (x, y) = idx(a, b)
-                        if (modules[x, y] == runColor) {
+                        val cellColor = read(a, b)
+                        if (cellColor == runColor) {
                             run++
                             if (run == 5) result += PENALTY_N1
                             else if (run > 5) result++
                         } else {
                             finderPenaltyAddHistory(run, runHistory)
                             if (!runColor) result += finderPenaltyCountPatterns(runHistory) * PENALTY_N3
-                            runColor = modules[x, y]
+                            runColor = cellColor
                             run = 1
                         }
                     }
@@ -434,9 +434,9 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             }
 
             // Adjacent modules in row having same color, and finder-like patterns
-            linePenalty { a, b -> b to a }
+            linePenalty { a, b -> modules[b, a] }
             // Adjacent modules in column having same color, and finder-like patterns
-            linePenalty { a, b -> a to b }
+            linePenalty { a, b -> modules[a, b] }
 
             // 2*2 blocks of modules having same color
             for (y in 0..<size - 1) {

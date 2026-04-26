@@ -31,18 +31,18 @@ object JellyfinClient {
     }
 
     private val items = NIHCache<CacheEntry>(3.hours) {
-        if (api == null) return@NIHCache CacheEntry()
+        val api = api ?: return@NIHCache CacheEntry()
         try {
-            val items = api!!.itemsApi.getItems(recursive = true, fields = setOf(ItemFields.PROVIDER_IDS))
+            val items = api.itemsApi.getItems(recursive = true, fields = setOf(ItemFields.PROVIDER_IDS))
             if (items.status != 200) throw IOException("Unexpected return code: ${items.status}")
             CacheEntry(
                 tmdb = items.content.items.mapNotNull {
                     val id = it.providerIds?.get("Tmdb") ?: return@mapNotNull null
-                    id to api!!.actualUrl(it)
+                    id to api.actualUrl(it)
                 }.toMap(),
                 imdb = items.content.items.mapNotNull {
                     val id = it.providerIds?.get("Imdb") ?: return@mapNotNull null
-                    id to api!!.actualUrl(it)
+                    id to api.actualUrl(it)
                 }.toMap()
             )
         } catch (e: Throwable) {
