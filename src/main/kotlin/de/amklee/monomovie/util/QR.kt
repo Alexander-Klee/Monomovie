@@ -780,41 +780,25 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
 object QrCodeRenderer {
     fun renderSVG(qr: QrCode) = renderSVG(qr.size, qr.size) { x, y -> qr.getModule(x, y) }
     fun renderSVG(matrix: BitMatrix) = renderSVG(matrix.width, matrix.height) { x, y -> matrix[x, y] }
-    private inline fun renderSVG(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) = buildString {
+    private inline fun renderSVG(width: Int, height: Int, border: Int = 2, isDark: (x: Int, y: Int) -> Boolean) = buildString {
+        require(border >= 0) { "Border size cannot be negative" }
+
         append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        append("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"0 0 ").append(width).append(" ").append(height).append("\" stroke=\"none\">\n")
-        append("<style type=\"text/css\">\n")
-        append(".black {fill:#000000;}\n")
-        append("</style>\n")
-        append("<path class=\"black\"  d=\"")
+        append("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"${-border} ${-border} ").append(width + border * 2).append(" ").append(height + border * 2).append("\" stroke=\"none\">\n")
+        append("<rect width=\"100%\" height=\"100%\" fill=\"white\"/>")
+        append("<path fill=\"black\" shape-rendering=\"crispEdges\"  d=\"")
 
         renderSvgPath(width, height, isDark)
 
         append("\"/>\n")
         append("</svg>\n")
     }
-}
 
-private inline fun StringBuilder.renderSvgPath(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) {
-    for (y in 0 until height) {
-        for (x in 0 until width) {
-            if (isDark(x, y)) append(" M$x,${y}h1v1h-1z")
+    private inline fun StringBuilder.renderSvgPath(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) {
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                if (isDark(x, y)) append(" M$x,${y}h1v1h-1z")
+            }
         }
-    }
-}
-
-fun FlowContent.QrCode(qr: QrCode, border: Int = 2) {
-    require(border >= 0) { "Border size cannot be negative" }
-    svg {
-        attributes["viewBox"] = "${-border} ${-border} ${qr.size + border * 2} ${qr.size + border * 2}"
-        attributes["stroke"] = "none"
-        HTMLTag(
-            "path",
-            consumer,
-            mapOf("class" to "qrCodePath", "d" to buildString { renderSvgPath(qr.size, qr.size) { x, y -> qr.getModule(x, y) } }),
-            "http://www.w3.org/2000/svg",
-            inlineTag = true,
-            emptyTag = true,
-        ).apply { visit {} }
     }
 }

@@ -9,9 +9,9 @@ import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
 import de.amklee.monomovie.util.LazyValue
-import de.amklee.monomovie.util.QrCode
 import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -97,9 +97,8 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
                 +Resources.rouletteSharedJs(shareId)
             }
         }
-        div(classes = "qr-code") {
-            QrCode(QrCode.encodeText("${Environment.hostname}/roulette/shared/$shareId", QrCode.Ecc.QUARTILE))
-        }
+        val target = "${Environment.hostname}/roulette?shareId=$shareId"
+        img(classes = "qr-code", src = "/qr.svg?data=${target.encodeURLParameter()}", alt = "QR Code")
     }
     postForm("/roulette/submit" + if (shareId == null) "" else "?shareId=$shareId") {
         div(classes = "roulette-action-row") {
@@ -125,6 +124,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
 }
 
 suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Movie>, shareId: Uuid) {
+    SearchBar("")
     h1 { +"Shared Roulette:" }
     if (movies.isEmpty()) {
         p { +"No bookmarked movies found" }
