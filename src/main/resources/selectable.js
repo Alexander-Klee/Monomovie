@@ -3,7 +3,7 @@ const minSelection = $minSelection$;
 function selectedChanged() {
     const disabled = document.querySelectorAll(".movie-checkbox:checked").length < minSelection;
 
-    document.querySelectorAll(".roulette-button").forEach(button => {
+    document.querySelectorAll(".require-min-selection").forEach(button => {
         button.disabled = disabled;
     });
 }

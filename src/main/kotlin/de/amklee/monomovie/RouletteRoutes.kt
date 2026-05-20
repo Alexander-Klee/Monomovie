@@ -163,9 +163,10 @@ fun Route.rouletteRoutes() {
     }
     post("/share") {
         // create a new shared vote
-        val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
+        val parameters = call.receiveParameters().toMap()
+        val selectedMovies = (parameters - "selected[]").mapNotNull { (id, count) ->
             CachedMovies.get(id)?.let { it withVotes count.sumOf { it.toIntOrNull() ?: 0 } }
-        }
+        } + (parameters["selected[]"]?.mapNotNull { CachedMovies.get(it)?.let { it withVotes 1 } } ?: emptyList())
 
         val shareId = Uuid.random()
 

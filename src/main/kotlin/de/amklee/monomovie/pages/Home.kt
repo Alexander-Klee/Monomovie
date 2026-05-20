@@ -18,9 +18,13 @@ suspend fun FlowContent.HomePage(movies: List<CachedMovies.Movie>) {
     }
     postForm(action = "/roulette", classes = "roulette-form") {
         div(classes = "sticky-action-row") {
-            submitInput(classes = "roulette-button") {
+            submitInput(classes = "roulette-button require-min-selection") {
                 disabled = true
                 value = "Roulette"
+            }
+            submitInput(classes = "roulette-button") {
+                value = "Shared Roulette"
+                formAction = "/roulette/share"
             }
         }
         SelectableMovieList(movies)

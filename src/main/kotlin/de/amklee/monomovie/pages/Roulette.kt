@@ -132,7 +132,7 @@ suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Mo
     }
     postForm(action = "/roulette?shareId=$shareId", classes = "roulette-form") {
         div(classes = "sticky-action-row") {
-            submitInput(classes = "roulette-button") {
+            submitInput(classes = "roulette-button require-min-selection") {
                 disabled = true
                 value = "Add to Roulette"
             }
