@@ -3,6 +3,7 @@ package de.amklee.monomovie.pages
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.components.SelectableMovieList
 import kotlinx.html.FlowContent
+import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.html.postForm
@@ -16,9 +17,11 @@ suspend fun FlowContent.HomePage(movies: List<CachedMovies.Movie>) {
         return
     }
     postForm(action = "/roulette", classes = "roulette-form") {
-        submitInput(classes = "roulette-button") {
-            disabled = true
-            value = "Roulette"
+        div(classes = "sticky-action-row") {
+            submitInput(classes = "roulette-button") {
+                disabled = true
+                value = "Roulette"
+            }
         }
         SelectableMovieList(movies)
     }

@@ -50,8 +50,9 @@ body {
 }
 
 main {
+    --main-padding: 1em;
     margin: 0 auto;
-    padding: 1em;
+    padding: var(--main-padding);
     background: var(--primary-color);
     overflow: auto;
     flex: auto;
@@ -75,6 +76,20 @@ h1 {
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
     color: var(--text-color);
+}
+
+.sticky-action-row {
+    flex-direction: row;
+    display: flex;
+    gap: 1em;
+
+    position: sticky;
+    top: 0;
+    padding-top: var(--main-padding, 0px);
+    transform: translateY(calc(-1 * var(--main-padding, 0px)));
+    background: var(--primary-color);
+    z-index: 10;
+    border-bottom: 1px solid var(--border-color);
 }
 
 
@@ -448,12 +463,6 @@ td, th {
     width: 2em;
     text-align: center;
     font-size: 2em;
-}
-
-.roulette-action-row {
-    flex-direction: row;
-    display: flex;
-    gap: 1em;
 }
 
 .qr-code {

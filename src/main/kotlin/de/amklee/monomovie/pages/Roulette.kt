@@ -101,7 +101,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
         img(classes = "qr-code", src = "/qr.svg?data=${target.encodeURLParameter()}", alt = "QR Code")
     }
     postForm("/roulette/submit" + if (shareId == null) "" else "?shareId=$shareId") {
-        div(classes = "roulette-action-row") {
+        div(classes = "sticky-action-row") {
             submitInput(classes = "roulette-button") {
                 value = "Start Roulette"
             }
@@ -131,9 +131,11 @@ suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Mo
         return
     }
     postForm(action = "/roulette?shareId=$shareId", classes = "roulette-form") {
-        submitInput(classes = "roulette-button") {
-            disabled = true
-            value = "Add to Roulette"
+        div(classes = "sticky-action-row") {
+            submitInput(classes = "roulette-button") {
+                disabled = true
+                value = "Add to Roulette"
+            }
         }
         SelectableMovieList(movies, minSelection = 1)
     }
