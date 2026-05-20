@@ -1,6 +1,9 @@
 import com.google.javascript.jscomp.CompilationLevel
 import com.google.javascript.jscomp.CompilerOptions
 import com.google.javascript.jscomp.SourceFile
+import org.apache.tools.ant.filters.BaseParamFilterReader
+import java.io.Reader
+import java.io.StringReader
 import java.util.*
 import kotlin.experimental.xor
 import com.google.javascript.jscomp.Compiler as CljCompiler
@@ -83,59 +86,63 @@ operator fun RelativePath.minus(element: String): RelativePath {
     return RelativePath(/* endsWithFile = */ false, *segments.dropLast(1).toTypedArray())
 }
 
+abstract class CustomFilter(`in`: Reader) : BaseParamFilterReader(`in`) {
+    private val reader by lazy { StringReader(transform(super.readFully())) }
+    override fun read(): Int = this.reader.read()
+    abstract fun transform(input: String): String
+}
+
+
+class JsFilter(`in`: Reader) : CustomFilter(`in`) {
+    var sourceName: String = ""
+
+    val lf = "\r?\n".toRegex()
+    override fun transform(input: String): String {
+        val sourceName = parameters?.first { it.type == "sourceName" }?.value ?: sourceName
+
+        val compiler = CljCompiler(System.err)
+
+        val options = CompilerOptions()
+        CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
+
+        val extern = SourceFile.fromCode("externs.js", "")
+        val input = SourceFile.fromCode(sourceName, input.replace(lf, "\r\n"))
+        val res = compiler.compile(extern, input, options)
+
+        if (!res.success) throw IllegalArgumentException(res.errors.joinToString("\n"))
+
+        return compiler.toSource()
+    }
+}
+
+class CssFilter(`in`: Reader) : CustomFilter(`in`) {
+    val cssWhitespaceRegex = "\\s*\n\\s*".toRegex(RegexOption.MULTILINE)
+    val cssOpenRegex = "\\s*\\{\\s*".toRegex(RegexOption.MULTILINE)
+    val cssColonRegex = "\\s*:\\s*".toRegex(RegexOption.MULTILINE)
+    override fun transform(input: String): String = input
+        .replace(cssWhitespaceRegex, "")
+        .replace(cssOpenRegex, "{")
+        .replace(cssColonRegex, ":")
+}
+
+class SvgFilter(`in`: Reader) : CustomFilter(`in`) {
+    val svgClose = "\\s*>\\s*".toRegex(RegexOption.MULTILINE)
+    val svgMultispace = "\\s{2,}".toRegex(RegexOption.MULTILINE)
+    override fun transform(input: String): String = input
+        .replace(svgClose, ">")
+        .replace(svgMultispace, " ")
+}
+
 tasks {
     processResources {
-        val cssWhitespaceRegex = "\\s*\n\\s*".toRegex(RegexOption.MULTILINE)
-        val cssOpenRegex = "\\s*\\{\\s*".toRegex(RegexOption.MULTILINE)
-        val cssColonRegex = "\\s*:\\s*".toRegex(RegexOption.MULTILINE)
-        val svgClose = "\\s*>\\s*".toRegex(RegexOption.MULTILINE)
-        val svgMultispace = "\\s{2,}".toRegex(RegexOption.MULTILINE)
-        eachFile {
-            (relativePath - sourceName).getFile(destinationDir).mkdirs()
-
-            if (sourceName.endsWith(".js")) {
-                if (sourceName.endsWith(".min.js")) return@eachFile
-                exclude()
-                var source = file.reader().use { reader ->
-                    reader.readLines().joinToString("\r\n")
-                }
-
-                val compiler = CljCompiler(System.err)
-
-                val options = CompilerOptions()
-                CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
-
-                val extern = SourceFile.fromCode("externs.js", "")
-                val input = SourceFile.fromCode(sourceName, source)
-                compiler.compile(extern, input, options)
-
-                val transpiled = compiler.toSource()
-
-                relativeSourcePath.getFile(destinationDir).writer().use {
-                    it.append(transpiled)
-                }
-            } else if (sourceName.endsWith(".css")) {
-                exclude()
-                val source = file.readText()
-
-                relativeSourcePath.getFile(destinationDir).writer().use {
-                    it.append(source
-                        .replace(cssWhitespaceRegex, "")
-                        .replace(cssOpenRegex, "{")
-                        .replace(cssColonRegex, ":")
-                    )
-                }
-            } else if (sourceName.endsWith(".svg")) {
-                exclude()
-                val source = file.readText()
-
-                relativeSourcePath.getFile(destinationDir).writer().use {
-                    it.append(source
-                        .replace(svgClose, ">")
-                        .replace(svgMultispace, " ")
-                    )
-                }
-            }
+        filesMatching("**/*.js") {
+            filter(JsFilter::class, mapOf("sourceName" to sourceName))
+        }
+        filesMatching("**/*.css") {
+            filter(CssFilter::class)
+        }
+        filesMatching("**/*.svg") {
+            filter(SvgFilter::class)
         }
     }
     shadowJar {
