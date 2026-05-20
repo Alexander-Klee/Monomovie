@@ -117,9 +117,6 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
             }
         }
         RouletteMovieList(movies)
-        submitInput(classes = "roulette-button") {
-            value = "Start Roulette"
-        }
     }
 }
 
