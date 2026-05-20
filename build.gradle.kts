@@ -1,5 +1,9 @@
+import com.google.javascript.jscomp.CompilationLevel
+import com.google.javascript.jscomp.CompilerOptions
+import com.google.javascript.jscomp.SourceFile
 import java.util.*
 import kotlin.experimental.xor
+import com.google.javascript.jscomp.Compiler as CljCompiler
 
 plugins {
     kotlin("jvm") version "2.3.20"
@@ -73,7 +77,67 @@ runtime {
     }
 }
 
+operator fun RelativePath.minus(element: String): RelativePath {
+    val segments = segments
+    require(segments.last() == element)
+    return RelativePath(/* endsWithFile = */ false, *segments.dropLast(1).toTypedArray())
+}
+
 tasks {
+    processResources {
+        val cssWhitespaceRegex = "\\s*\n\\s*".toRegex(RegexOption.MULTILINE)
+        val cssOpenRegex = "\\s*\\{\\s*".toRegex(RegexOption.MULTILINE)
+        val cssColonRegex = "\\s*:\\s*".toRegex(RegexOption.MULTILINE)
+        val svgClose = "\\s*>\\s*".toRegex(RegexOption.MULTILINE)
+        val svgMultispace = "\\s{2,}".toRegex(RegexOption.MULTILINE)
+        eachFile {
+            (relativePath - sourceName).getFile(destinationDir).mkdirs()
+
+            if (sourceName.endsWith(".js")) {
+                if (sourceName.endsWith(".min.js")) return@eachFile
+                exclude()
+                var source = file.reader().use { reader ->
+                    reader.readLines().joinToString("\r\n")
+                }
+
+                val compiler = CljCompiler(System.err)
+
+                val options = CompilerOptions()
+                CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
+
+                val extern = SourceFile.fromCode("externs.js", "")
+                val input = SourceFile.fromCode(sourceName, source)
+                compiler.compile(extern, input, options)
+
+                val transpiled = compiler.toSource()
+
+                relativeSourcePath.getFile(destinationDir).writer().use {
+                    it.append(transpiled)
+                }
+            } else if (sourceName.endsWith(".css")) {
+                exclude()
+                val source = file.readText()
+
+                relativeSourcePath.getFile(destinationDir).writer().use {
+                    it.append(source
+                        .replace(cssWhitespaceRegex, "")
+                        .replace(cssOpenRegex, "{")
+                        .replace(cssColonRegex, ":")
+                    )
+                }
+            } else if (sourceName.endsWith(".svg")) {
+                exclude()
+                val source = file.readText()
+
+                relativeSourcePath.getFile(destinationDir).writer().use {
+                    it.append(source
+                        .replace(svgClose, ">")
+                        .replace(svgMultispace, " ")
+                    )
+                }
+            }
+        }
+    }
     shadowJar {
         archiveFileName = "app.jar"
     }
