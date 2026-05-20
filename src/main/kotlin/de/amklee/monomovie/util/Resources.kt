@@ -1,5 +1,6 @@
 package de.amklee.monomovie.util
 
+import de.amklee.monomovie.Environment
 import de.amklee.monomovie.components.Mode
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
@@ -49,7 +50,7 @@ object Resources {
             Resources::class.java.getResource("/$name")?.readText()
                 ?: throw FileNotFoundException("$name not found in resources")
         }
-        private val resourceFile = Path("src/main/resources/$name").takeIf { it.exists() }
+        private val resourceFile = Path("src/main/resources/$name").takeIf { it.exists() && Environment.isDevelopment }
 
         override fun toString(): String = resourceFile?.readText() ?: resource
         operator fun getValue(thisRef: Any?, property: KProperty<*>): String = toString()

@@ -78,6 +78,7 @@ tasks {
         archiveFileName = "app.jar"
     }
     register<Exec>("runImage") {
+        description = "Runs the application from the generated runtime image"
         dependsOn(runtime)
         group = "application"
         executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
