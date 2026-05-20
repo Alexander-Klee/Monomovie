@@ -34,9 +34,12 @@ import kotlin.uuid.ExperimentalUuidApi
 
 fun Route.miscRoutes() {
     get("/") {
+        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
+        val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
+
         call.respondHtml {
             HtmlTemplate("Monomovie") {
-                HomePage(CachedMovies.getBookmarkedMovies(displayHidden = false, displayWatched = false))
+                HomePage(CachedMovies.getBookmarkedMovies(displayHidden = displayHidden, displayWatched = displayWatched))
             }
         }
     }
@@ -91,13 +94,10 @@ fun Route.miscRoutes() {
         call.respond(HttpStatusCode.OK)
     }
     get("/bookmarks") {
-        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
-        val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
-
-        call.respondHtml {
-            HtmlTemplate("Bookmarked Movies") {
-                BookmarkPage(CachedMovies.getBookmarkedMovies(displayHidden, displayWatched))
-            }
+        call.respondRedirect(permanent = true) {
+            // query parameters get included implicitly with this,
+            // but not with respondRedirect("/", true)
+            path("/")
         }
     }
     sse("/sse-stream", serialize = { typeInfo, it ->
