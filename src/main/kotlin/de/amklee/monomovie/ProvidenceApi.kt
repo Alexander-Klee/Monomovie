@@ -10,6 +10,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.minutes
@@ -43,8 +44,21 @@ object ProvidenceApi {
     )
 
     @Serializable
+    enum class HashSource {
+        @SerialName("Bitcoin") Bitcoin,
+        @SerialName("Monero") Monero,
+    }
+
+    @Serializable
+    sealed interface HashRef {
+        @SerialName("historic") @Serializable data class Historic(val hash: String, val source: HashSource?) : HashRef
+        @SerialName("current") @Serializable data class Current(val source: HashSource?) : HashRef
+        @SerialName("next") @Serializable data class Next(val source: HashSource?) : HashRef
+    }
+
+    @Serializable
     data class WheelConfig(
-        val hash: String?,
+        val hash: HashRef,
         val options: List<WheelOption>,
         val actions: List<WheelAction>,
     )
@@ -56,7 +70,7 @@ object ProvidenceApi {
 
     suspend fun createWheel(entries: List<RouletteCachedMovie>, hash: String?): Url = coroutineScope {
         val config = WheelConfig(
-            hash = hash,
+            hash = hash?.let { HashRef.Historic(it, HashSource.Bitcoin) } ?: HashRef.Current(source = null),
             options = entries.map { (movie, weight) ->
                 async {
                     WheelOption(
@@ -72,6 +86,7 @@ object ProvidenceApi {
             ),
         )
         return@coroutineScope URLBuilder(endpoint).apply {
+            appendPathSegments("wheel")
             parameters.append("config", Json.encodeToString(config))
         }.build()
     }
