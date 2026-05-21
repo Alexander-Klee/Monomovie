@@ -60,6 +60,11 @@ object JellyfinClient {
     suspend fun findTmdbOnJellyfin(tmdbId: String) = items.get().tmdb[tmdbId]
     suspend fun findImdbOnJellyfin(imdbId: String) = items.get().imdb[imdbId]
 
+    fun getLogoLink(): String {
+        val api = api ?: return ""
+        return "${api.baseUrl}/web/icon-transparent.baba78f2a106d9baee83.png"
+    }
+
     private data class CacheEntry(val tmdb: Map<String, String>, val imdb: Map<String, String>) {
         constructor() : this(emptyMap(), emptyMap())
     }
