@@ -57,10 +57,9 @@ fun FlowContent.NavBar() {
 
         ul(classes = "nav-list") {
             li { a(href = "/") { +"Home" } }
-            li { a(href = "/search") { +"Search" } }
             li { a(href = "/watched") { +"Watched" } }
-            li { a(href = "https://jellyfin.amklee.de") { +"Jellyfin" } }
-            li { a(href = "https://recipes.amklee.de") { +"Recipes" } }
+            li { a(href = "https://jellyfin.amklee.de", classes = "external") { +"Jellyfin" } }
+            li { a(href = "https://recipes.amklee.de", classes = "external") { +"Recipes" } }
         }
     }
 }
