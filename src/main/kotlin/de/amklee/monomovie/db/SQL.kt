@@ -37,13 +37,32 @@ suspend fun Application.configureDatabases() {
     suspendTransaction(monomovieDb) { SchemaUtils.create(Migrations) }
     val index by Resources.Resource("db/migration/index.json")
     val migrations: Map<Long, String> = json.decodeFromString(index)
+
+    run {
+        val id_ = 0L
+        val name_ = "V0__Legacy.sql"
+        val hash_ = ""
+
+        val existing = Migrations[id_]
+        if (existing == null) {
+            suspendTransaction(monomovieDb) {
+                performLegacyMigration()
+                Migrations.insert {
+                    it[id] = id_
+                    it[name] = name_
+                    it[hash] = hash_
+                }
+            }
+        }
+    }
+
     for ((id_, name_) in migrations.entries.sortedBy { it.key }) {
         val content_ = Resources.Resource("db/migration/$name_").toString()
         val hash_ = content_.md5()
 
         val existing = Migrations[id_]
         if (existing == null) {
-            suspendTransaction {
+            suspendTransaction(monomovieDb) {
                 exec(content_)
                 Migrations.insert {
                     it[id] = id_
