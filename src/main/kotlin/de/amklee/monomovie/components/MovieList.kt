@@ -1,11 +1,14 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.CachedMovies
-import de.amklee.monomovie.db.WatchedDB
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.Environment
+import de.amklee.monomovie.db.Watched
 import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.time.toJavaInstant
 
 inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
     script {
@@ -27,11 +30,11 @@ suspend fun FlowContent.SearchMovieList() = MovieList(
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
-suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
+suspend fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
     Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.WATCHED)
 ) {
     for ((date, movies) in movies
-        .groupBy { it.watchedAt.toLocalDate() }
+        .groupBy { LocalDateTime.ofInstant(it.watchedAt.toJavaInstant(), Environment.timezone).toLocalDate() }
         .entries.sortedByDescending { it.key }
     ) {
         li(classes = "watched-date") {

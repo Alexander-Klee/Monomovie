@@ -1,9 +1,9 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.service.remote
 
-import de.amklee.monomovie.db.BookmarksDB
+import de.amklee.monomovie.service.BookmarksService
+import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.warn
-import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -16,7 +16,7 @@ import java.net.http.HttpClient.Version as HttpClientVersion
 object TmColour {
     private val log = System.getLogger("MMV/TmColour")
 
-    private val client = HttpClient(Java) {
+    private val client = io.ktor.client.HttpClient(Java) {
         engine {
             pipelining = true
             protocolVersion = HttpClientVersion.HTTP_2
@@ -30,7 +30,7 @@ object TmColour {
     }
 
     suspend operator fun get(movie: CachedMovies.Movie): String? {
-        val bookmark = BookmarksDB.getBookmarks().firstOrNull { it.id == movie.mediaEntry.id }
+        val bookmark = BookmarksService.getBookmarks().firstOrNull { it.id == movie.mediaEntry.id }
 
         if (bookmark != null && bookmark.colour != null) {
             return bookmark.colour
@@ -73,7 +73,7 @@ object TmColour {
         val colour = "rgb(${rgba.removeSuffix(", 1").trim()})"
 
         if (bookmark != null) {
-            BookmarksDB.setColour(movie.mediaEntry.id!!, colour)
+            BookmarksService.setColour(movie.mediaEntry.id!!, colour)
         } else {
             log.warn { "Unable to set colour, no bookmark found for movie id ${movie.mediaEntry.id}" }
         }

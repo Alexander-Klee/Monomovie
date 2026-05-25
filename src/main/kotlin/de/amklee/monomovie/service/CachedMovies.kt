@@ -1,12 +1,15 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.service
 
-import de.amklee.monomovie.db.BookmarksDB
-import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.MonetizationTypes
+import de.amklee.monomovie.service.remote.JellyfinClient
+import de.amklee.monomovie.service.remote.JustWatch
+import de.amklee.monomovie.service.remote.MediaEntry
+import de.amklee.monomovie.service.remote.Offer
+import de.amklee.monomovie.service.remote.PageInfo
 import de.amklee.monomovie.util.error
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.util.*
+import java.util.Locale
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -63,13 +66,13 @@ object CachedMovies {
 
     private val justWatch = JustWatch(country = "DE", language = "en")
 
-    private fun populateCache(mediaEntry: MediaEntry) {
+    private suspend fun populateCache(mediaEntry: MediaEntry) {
         if (mediaEntry.id == null) return
 
         val movie =  Movie(
             mediaEntry = mediaEntry,
-            isBookmarked = BookmarksDB.isBookmarked(mediaEntry.id),
-            isWatched = mediaEntry.id in WatchedDB,
+            isBookmarked = BookmarksService.isBookmarked(mediaEntry.id),
+            isWatched = mediaEntry.id in WatchedService,
             cacheDate = System.currentTimeMillis()
         )
 
@@ -98,7 +101,7 @@ object CachedMovies {
         val movie = get(id) ?: return null
         if (!movie.isBookmarked) {
             movie.isBookmarked = true
-            BookmarksDB.addBookmark(id)
+            BookmarksService.addBookmark(id)
             saveCache()
         }
         return movie
@@ -108,7 +111,7 @@ object CachedMovies {
         val movie = get(id) ?: return null
         if (movie.isBookmarked) {
             movie.isBookmarked = false
-            BookmarksDB.removeBookmark(id)
+            BookmarksService.removeBookmark(id)
             saveCache()
         }
         return movie
@@ -118,7 +121,7 @@ object CachedMovies {
         val movie = get(id) ?: return
         if (movie.isWatched) return
         movie.isWatched = true
-        WatchedDB.setWatch(id)
+        WatchedService.setWatch(id)
         saveCache()
     }
 
@@ -126,7 +129,7 @@ object CachedMovies {
         val movie = get(id) ?: return
         if (!movie.isWatched) return
         movie.isWatched = false
-        WatchedDB.deleteWatch(id)
+        WatchedService.deleteWatch(id)
         saveCache()
     }
 
@@ -175,11 +178,11 @@ object CachedMovies {
         return tmdb ?: imdb
     }
 
-    suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
+    suspend inline fun getWatchedMovies() = WatchedService.getWatched()
     suspend inline fun getBookmarkedMovies(
         displayHidden: Boolean,
         displayWatched: Boolean
-    ) = BookmarksDB.getBookmarks()
+    ) = BookmarksService.getBookmarks()
             .filter { displayHidden || it.isBookmarked }
             .mapNotNull { get(it.id) }
             .filter { displayWatched || !it.isWatched }

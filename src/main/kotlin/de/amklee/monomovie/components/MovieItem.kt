@@ -1,7 +1,13 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.*
-import de.amklee.monomovie.CachedMovies.getOffers
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.CachedMovies.getOffers
+import de.amklee.monomovie.service.remote.JellyfinClient
+import de.amklee.monomovie.service.remote.Offer
+import de.amklee.monomovie.service.remote.fullPosterUrl
+import de.amklee.monomovie.service.remote.imdbLink
+import de.amklee.monomovie.service.remote.title
+import de.amklee.monomovie.service.remote.tmdbLink
 import de.amklee.monomovie.util.*
 import kotlinx.html.*
 import kotlinx.html.impl.dataset

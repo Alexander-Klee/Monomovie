@@ -3,6 +3,7 @@ package de.amklee.monomovie
 import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.warn
 import io.ktor.util.PlatformUtils
+import java.time.ZoneId
 
 object Environment {
     private val log = System.getLogger("MMV/Environment")
@@ -19,6 +20,8 @@ object Environment {
         }
         "http://localhost:8080"
     }
+
+    val timezone = ZoneId.of(System.getenv("TZ") ?: "Europe/Berlin")
 
     val jellyfinHost = System.getenv("MMV_JELLYFIN_HOST")?.ifBlank { null }
     val jellyfinToken = System.getenv("MMV_JELLYFIN_TOKEN")?.ifBlank { null }

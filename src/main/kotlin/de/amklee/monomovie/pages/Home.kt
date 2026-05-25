@@ -1,6 +1,6 @@
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.CachedMovies
+import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.components.SelectableMovieList
 import kotlinx.html.FlowContent
 import kotlinx.html.div

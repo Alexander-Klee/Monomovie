@@ -3,10 +3,11 @@
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.*
-import de.amklee.monomovie.db.BookmarksDB
-import de.amklee.monomovie.db.WatchedDB
+import de.amklee.monomovie.service.BookmarksService
+import de.amklee.monomovie.service.WatchedService
 import de.amklee.monomovie.db.configureDatabases
 import de.amklee.monomovie.pages.*
+import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.util.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -111,8 +112,8 @@ fun Route.miscRoutes() {
             event = ServerSentEvent("heartbeat")
         }
         val eventFlow = merge(
-            BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
-            WatchedDB.eventFlow.map { Kind.WATCHED to it }
+            BookmarksService.eventFlow.map { Kind.BOOKMARK to it },
+            WatchedService.eventFlow.map { Kind.WATCHED to it }
         ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
         eventFlow.collect { event ->
             send(event)
