@@ -5,6 +5,7 @@ package de.amklee.monomovie
 import de.amklee.monomovie.components.*
 import de.amklee.monomovie.db.BookmarksDB
 import de.amklee.monomovie.db.WatchedDB
+import de.amklee.monomovie.db.configureDatabases
 import de.amklee.monomovie.pages.*
 import de.amklee.monomovie.util.*
 import io.ktor.http.*
@@ -199,6 +200,12 @@ fun main() {
         // including the hostname has the side-benefit of ensuring Environment is initialized
         // and, therefore, that it does not contain errors
         LOG.info { "Starting server in ${if (developmentMode) "development" else "production"} mode at ${Environment.hostname}" }
+        try {
+            configureDatabases()
+        } catch (e: Exception) {
+            LOG.error(e) { "Failed to configure databases" }
+            throw e
+        }
         install(ContentNegotiation) {
             json()
         }

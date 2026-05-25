@@ -36,6 +36,12 @@ repositories {
     }
 }
 
+val migrationTool by configurations.creating
+val migrationsGen by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.main.get().output + migrationTool
+    runtimeClasspath += sourceSets.main.get().runtimeClasspath + sourceSets.main.get().output + migrationTool
+}
+
 dependencies {
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")
@@ -55,6 +61,14 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-sse")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.3")
+
+    // Database
+    implementation("org.jetbrains.exposed:exposed-core:1.3.0")
+    implementation("org.jetbrains.exposed:exposed-r2dbc:1.3.0")
+    migrationTool("org.jetbrains.exposed:exposed-migration-core:1.3.0")
+    migrationTool("org.jetbrains.exposed:exposed-migration-r2dbc:1.3.0")
+    implementation("com.h2database:h2:2.4.240")
+    implementation("io.r2dbc:r2dbc-h2:1.1.0.RELEASE")
 }
 
 tasks.test {

@@ -45,7 +45,7 @@ object Resources {
     val imdbSvg by Resource("graphics/svgTemplates/imdb-template.svg")
     val imagePlaceholderSvg by Resource("graphics/svgTemplates/image-placeholder-template.svg")
 
-    private class Resource(private val name: String) {
+    class Resource(private val name: String) {
         private val resource: String by lazy {
             Resources::class.java.getResource("/$name")?.readText()
                 ?: throw FileNotFoundException("$name not found in resources")
