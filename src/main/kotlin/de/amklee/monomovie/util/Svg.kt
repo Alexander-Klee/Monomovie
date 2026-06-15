@@ -1,20 +1,21 @@
 package de.amklee.monomovie.util
 
+import de.amklee.monomovie.R
 import kotlinx.html.FlowContent
 import kotlinx.html.SVG
 import kotlinx.html.svg
 
 fun FlowContent.IncludeSvgTemplates() {
     consumer.onTagContentUnsafe {
-        +Resources.eyeTemplateSvg
-        +Resources.eyePlusTemplateSvg
-        +Resources.bookmarkTemplateSvg
-        +Resources.bookmarkSquareTemplateSvg
-        +Resources.bookmarkPlusTemplateSvg
-        +Resources.rottenTomatoesSvg
-        +Resources.tmdbSvg
-        +Resources.imdbSvg
-        +Resources.imagePlaceholderSvg
+        +R.graphics.svgTemplates.eyeTemplateSvg
+        +R.graphics.svgTemplates.eyePlusTemplateSvg
+        +R.graphics.svgTemplates.bookmarkTemplateSvg
+        +R.graphics.svgTemplates.bookmarkSquareTemplateSvg
+        +R.graphics.svgTemplates.bookmarkPlusTemplateSvg
+        +R.graphics.svgTemplates.rottenTomatoesTemplateSvg
+        +R.graphics.svgTemplates.tmdbTemplateSvg
+        +R.graphics.svgTemplates.imdbTemplateSvg
+        +R.graphics.svgTemplates.imagePlaceholderTemplateSvg
     }
 }
 
