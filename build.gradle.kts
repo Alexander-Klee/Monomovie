@@ -81,8 +81,6 @@ tasks {
     }
 }
 
-val generateResourceIndex by tasks.registering(GenerateResourceIndexTask::class)
-
 kotlin.sourceSets.main {
-    kotlin.srcDir(generateResourceIndex)
+    kotlin.srcDir(tasks.register("generateResourceIndex", GenerateResourceIndexTask::class))
 }
