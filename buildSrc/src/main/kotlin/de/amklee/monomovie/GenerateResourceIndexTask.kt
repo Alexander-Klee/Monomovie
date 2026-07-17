@@ -1,9 +1,7 @@
 package de.amklee.monomovie
 
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
@@ -55,22 +53,28 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
             .writeTo(generatedKotlinDir.get().asFile)
     }
 
+    private val ResourceClass = ClassName("de.amklee.monomovie.util", "Resource")
     fun handle(builder: TypeSpec.Builder, origin: Path, current: Path) {
+        val index = mutableListOf<String>()
+
         current.useDirectoryEntries {
             it.sortedBy { it.fileName.toString() }
                 .forEach { entry ->
                     when {
                         entry.isRegularFile() -> {
                             if (!stringExtensions.get().contains(entry.extension)) return@forEach
+                            val name = entry.asFilePropName()
                             builder.addProperty(
-                                PropertySpec.builder(entry.asFilePropName(), String::class)
-                                    .delegate(
-                                        "%T(%S)",
-                                        ClassName("de.amklee.monomovie.util", "Resource"),
-                                        origin.relativize(entry).toString()
-                                    )
+                                PropertySpec.builder("_$name", ResourceClass, KModifier.PRIVATE)
+                                    .initializer("%T(%S)", ResourceClass, origin.relativize(entry).toString())
                                     .build()
                             )
+                            builder.addProperty(
+                                PropertySpec.builder(name, String::class)
+                                    .delegate("%L", "_$name")
+                                    .build()
+                            )
+                            index.add(name)
                         }
 
                         entry.isDirectory() -> builder.addType(
@@ -82,6 +86,22 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
                         else -> throw IllegalStateException("Unknown entry type: $entry")
                     }
             }
+        }
+
+        if (index.isNotEmpty()) {
+            builder.addProperty(
+                PropertySpec.builder("index", Map::class.parameterizedBy(String::class).plusParameter(ResourceClass))
+                    .initializer(CodeBlock.builder().apply {
+                        add("mapOf(\n")
+                        indent()
+                        for (string in index) {
+                            add("%S to %L,\n", string, "_$string")
+                        }
+                        unindent()
+                        add(")")
+                    }.build())
+                    .build()
+            )
         }
     }
 

@@ -7,15 +7,10 @@ import kotlinx.html.svg
 
 fun FlowContent.IncludeSvgTemplates() {
     consumer.onTagContentUnsafe {
-        +R.graphics.svgTemplates.eyeTemplateSvg
-        +R.graphics.svgTemplates.eyePlusTemplateSvg
-        +R.graphics.svgTemplates.bookmarkTemplateSvg
-        +R.graphics.svgTemplates.bookmarkSquareTemplateSvg
-        +R.graphics.svgTemplates.bookmarkPlusTemplateSvg
-        +R.graphics.svgTemplates.rottenTomatoesTemplateSvg
-        +R.graphics.svgTemplates.tmdbTemplateSvg
-        +R.graphics.svgTemplates.imdbTemplateSvg
-        +R.graphics.svgTemplates.imagePlaceholderTemplateSvg
+        for (resource in R.graphics.svgTemplates.index.values) {
+            val resource by resource
+            +resource
+        }
     }
 }
 
