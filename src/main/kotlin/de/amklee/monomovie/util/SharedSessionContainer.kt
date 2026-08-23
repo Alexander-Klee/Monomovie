@@ -11,7 +11,13 @@ class SharedSessionContainer<K, V>(private val sessionTimeout: Duration, private
     private val timer = Timer("SessionCleanupTimer", true)
     private val sessions: MutableMap<K, SessionEntry<V>> = ConcurrentHashMap()
 
-    fun preheat(key: K, construct: () -> V = { construct(key) }, update: (V) -> Unit = {}): V = sessions
+    fun preheat(
+        key: K,
+        construct: () -> V = {
+            construct(key)
+        },
+        update: (V) -> Unit = {},
+    ): V = sessions
         .compute(key) { _, oldSession ->
             val value =
                 oldSession?.let {
@@ -34,7 +40,14 @@ class SharedSessionContainer<K, V>(private val sessionTimeout: Duration, private
         }
     }
 
-    fun <R> withValue(key: K, construct: () -> V = { construct(key) }, update: (V) -> Unit = {}, action: (V) -> R): R {
+    fun <R> withValue(
+        key: K,
+        construct: () -> V = {
+            construct(key)
+        },
+        update: (V) -> Unit = {},
+        action: (V) -> R,
+    ): R {
         val value = obtain(key, construct, update)
         try {
             return action(value)

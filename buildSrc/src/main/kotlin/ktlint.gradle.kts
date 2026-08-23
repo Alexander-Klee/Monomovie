@@ -23,7 +23,7 @@ tasks {
         outputs.dir(outputDir)
         mainClass = "com.pinterest.ktlint.Main"
         classpath(ktlint)
-        args = listOf("--editorconfig=$editorconfig", "src/**/*.kt", "--reporter=plain?group_by_file")
+        args = listOf("--editorconfig=$editorconfig", "src/**/*.kt", "buildSrc/src/**/*.kt", "--reporter=plain?group_by_file")
         jvmArgs = listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")
     }
 
@@ -33,7 +33,7 @@ tasks {
         outputs.dir(outputDir)
         mainClass = "com.pinterest.ktlint.Main"
         classpath(ktlint)
-        args = listOf("--editorconfig=$editorconfig", "-F", "src/**/*.kt")
+        args = listOf("--editorconfig=$editorconfig", "-F", "src/**/*.kt", "buildSrc/src/**/*.kt")
         jvmArgs = listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")
     }
 

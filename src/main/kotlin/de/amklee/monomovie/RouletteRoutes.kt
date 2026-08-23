@@ -190,7 +190,12 @@ fun Route.rouletteRoutes() {
                 CachedMovies.get(id)?.let { it withVotes count.sumOf { it.toIntOrNull() ?: 0 } }
             } +
                 (
-                    parameters["selected[]"]?.mapNotNull { CachedMovies.get(it)?.let { it withVotes 1 } }
+                    parameters["selected[]"]?.mapNotNull {
+                        CachedMovies.get(it)?.let {
+                            it withVotes
+                                1
+                        }
+                    }
                         ?: emptyList()
                     )
 

@@ -16,7 +16,12 @@ fun FlowContent.IncludeSvgTemplates() {
     }
 }
 
-inline fun FlowContent.templatedSvg(href: String, classes: String = "", block: SVG.() -> Unit = {}) {
+inline fun FlowContent.templatedSvg(
+    href: String,
+    classes: String = "",
+    block: SVG.() -> Unit = {
+    },
+) {
     svg(classes = classes) {
         block()
         custom("use") {

@@ -102,7 +102,9 @@ class BitMatrix(val width: Int, val height: Int) {
         if (x !in 0..<width ||
             y !in 0..<height
         ) {
-            throw IndexOutOfBoundsException("Index ($x, $y) out of bounds for size ($width, $height)")
+            throw IndexOutOfBoundsException(
+                "Index ($x, $y) out of bounds for size ($width, $height)",
+            )
         }
         return data[y * width + x]
     }
@@ -111,7 +113,9 @@ class BitMatrix(val width: Int, val height: Int) {
         if (x !in 0..<width ||
             y !in 0..<height
         ) {
-            throw IndexOutOfBoundsException("Index ($x, $y) out of bounds for size ($width, $height)")
+            throw IndexOutOfBoundsException(
+                "Index ($x, $y) out of bounds for size ($width, $height)",
+            )
         }
         data[y * width + x] = value
     }
@@ -194,7 +198,9 @@ class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
                     text,
                 )
             ) {
-                throw IllegalArgumentException("String contains unencodable characters in alphanumeric mode")
+                throw IllegalArgumentException(
+                    "String contains unencodable characters in alphanumeric mode",
+                )
             }
             return QrSegment(
                 Mode.ALPHANUMERIC,
@@ -326,7 +332,11 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         val numAlign = alignPatPos.size
         for (i in 0..<numAlign) {
             for (j in 0..<numAlign) {
-                if (!((i == 0 && j == 0) || (i == 0 && j == numAlign - 1) || (i == numAlign - 1 && j == 0))) {
+                if (!(
+                        (i == 0 && j == 0) || (i == 0 && j == numAlign - 1) ||
+                            (i == numAlign - 1 && j == 0)
+                        )
+                ) {
                     drawAlignmentPattern(
                         alignPatPos[i],
                         alignPatPos[j],

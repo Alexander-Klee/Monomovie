@@ -84,7 +84,11 @@ class JustWatch(private val country: String = "US", private val language: String
     }
 
     @Serializable
-    private data class SearchRequestBody(val operationName: String = "GetSearchTitles", val variables: SearchVariables, val query: String) {
+    private data class SearchRequestBody(
+        val operationName: String = "GetSearchTitles",
+        val variables: SearchVariables,
+        val query: String,
+    ) {
         @Serializable
         data class SearchVariables(
             val country: String,

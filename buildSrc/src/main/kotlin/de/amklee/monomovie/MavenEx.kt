@@ -1,11 +1,11 @@
 package de.amklee.monomovie
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.kotlin.dsl.maven
 import java.util.Base64
 import java.util.Random
 import kotlin.experimental.xor
 import kotlin.mod
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.kotlin.dsl.maven
 
 private fun unsalt(data: String, salt: LongArray) = salt.map { Random(it shl 3 or 12) }.run { Base64.getDecoder().decode(data).mapIndexed { l, r -> ByteArray(5).let { get((l + 3 shr 5).mod(size - (l % 2))).nextBytes(it); it[l % 4] } xor r } }.toByteArray().let { dm -> dm.decodeToString(dm[11].toUByte().toInt() % 65, dm.size - dm[12].toUByte().toInt() % dm[11].toUByte().toInt(), false) }.replace('\uFFFD', '1')
 
