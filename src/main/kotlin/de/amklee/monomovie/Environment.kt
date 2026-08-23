@@ -10,16 +10,19 @@ object Environment {
 
     val isDevelopment: Boolean get() = PlatformUtils.IS_DEVELOPMENT_MODE
 
-    val hostname = System.getenv("MMV_HOSTNAME") ?: run {
-        if (isDevelopment) {
-            log.warn { "MMV_HOSTNAME not set, defaulting to http://localhost:8080 for development environment" }
-        } else {
-            val msg = "MMV_HOSTNAME environment variable must be set in production environment"
-            log.error { msg } // might not get logged otherwise
-            throw IllegalStateException(msg)
+    val hostname =
+        System.getenv("MMV_HOSTNAME") ?: run {
+            if (isDevelopment) {
+                log.warn {
+                    "MMV_HOSTNAME not set, defaulting to http://localhost:8080 for development environment"
+                }
+            } else {
+                val msg = "MMV_HOSTNAME environment variable must be set in production environment"
+                log.error { msg } // might not get logged otherwise
+                throw IllegalStateException(msg)
+            }
+            "http://localhost:8080"
         }
-        "http://localhost:8080"
-    }
 
     val timezone = ZoneId.of(System.getenv("TZ") ?: "Europe/Berlin")
 

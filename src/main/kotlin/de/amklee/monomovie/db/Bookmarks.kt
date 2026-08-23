@@ -10,18 +10,13 @@ object Bookmarks : IdTable<String>("bookmarks") {
     val isBookmarked = bool("is_bookmarked").default(true)
     val colour = varchar("colour", 63).nullable().default(null)
 
-    data class Item(
-        val id: String,
-        val bookmarkedAt: Long,
-        val isBookmarked: Boolean = true,
-        val colour: String? = null
-    ) {
+    data class Item(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true, val colour: String? = null) {
         companion object {
             suspend operator fun invoke(row: ResultRow) = Item(
                 id = row[id].value,
                 bookmarkedAt = row[bookmarkedAt],
                 isBookmarked = row[isBookmarked],
-                colour = row[colour]
+                colour = row[colour],
             )
         }
     }

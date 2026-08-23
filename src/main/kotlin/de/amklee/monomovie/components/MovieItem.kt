@@ -12,13 +12,14 @@ import de.amklee.monomovie.util.*
 import kotlinx.html.*
 import kotlinx.html.impl.dataset
 
-
+@HtmlTagMarker
 private fun UL.OfferItem(offer: Offer) = OfferItem(
     offer.standardWebURL ?: "",
     "https://images.justwatch.com${offer.`package`?.icon}",
-    offer.`package`?.clearName ?: "Unknown Title"
+    offer.`package`?.clearName ?: "Unknown Title",
 )
 
+@HtmlTagMarker
 private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
     li(classes = "offer-item") {
         a(href = offerUrl, classes = "offer-link") {
@@ -27,19 +28,20 @@ private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
             img(
                 src = iconUrl,
                 alt = offerName,
-                classes = "offer-icon"
+                classes = "offer-icon",
             )
         }
     }
 }
 
-fun UL.JellyfinOfferItem(jellyfinLink: String) =
-    OfferItem(
-        jellyfinLink,
-        JellyfinClient.getLogoLink(),
-        "Jellyfin"
-    )
+@HtmlTagMarker
+fun UL.JellyfinOfferItem(jellyfinLink: String) = OfferItem(
+    jellyfinLink,
+    JellyfinClient.getLogoLink(),
+    "Jellyfin",
+)
 
+@HtmlTagMarker
 fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, extraElements: FlowContent.() -> Unit = {}) {
     ul(classes = "offer-list") {
         // Offers
@@ -50,6 +52,7 @@ fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, ext
     }
 }
 
+@HtmlTagMarker
 private fun FlowContent.MoreOffersButton(movie: CachedMovies.Movie) {
     val movieId = movie.mediaEntry.id ?: return
     val offersLink = "/offers/$movieId"
@@ -59,11 +62,13 @@ private fun FlowContent.MoreOffersButton(movie: CachedMovies.Movie) {
     }
 }
 
+@HtmlTagMarker
 private fun FlowContent.SimpleLink(target: String?, classes: String = "no-link-style", content: FlowContent.() -> Unit) {
     if (target.isNullOrBlank()) return
     a(href = target, classes = classes) { content() }
 }
 
+@HtmlTagMarker
 private fun FlowContent.SimpleLinkNewTab(target: String?, classes: String = "no-link-style", content: FlowContent.() -> Unit) {
     if (target.isNullOrBlank()) return
     a(href = target, target = "_blank", classes = classes) {
@@ -72,6 +77,7 @@ private fun FlowContent.SimpleLinkNewTab(target: String?, classes: String = "no-
     }
 }
 
+@HtmlTagMarker
 private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
     fun formatScore(score: Float): String = String.format("%.1f", score)
 
@@ -107,12 +113,20 @@ fun formatTime(minutes: Int): String {
     val m = minutes % 60
     val h = minutes / 60
 
-    return if (h > 0) {String.format("%dh %dm", h, m)} else String.format("%dm", m)
+    return if (h > 0) {
+        String.format("%dh %dm", h, m)
+    } else {
+        String.format("%dm", m)
+    }
 }
 
+@HtmlTagMarker
 fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
     val releaseYear = movie.mediaEntry.content?.originalReleaseYear
-    val runtime = movie.mediaEntry.content?.runtime?.takeIf { it != 0 }
+    val runtime =
+        movie.mediaEntry.content
+            ?.runtime
+            ?.takeIf { it != 0 }
 
     if (releaseYear != null && runtime != null) {
         p(classes = "movie-info-line") {
@@ -132,6 +146,7 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
 }
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
+@HtmlTagMarker
 suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.title
@@ -156,7 +171,10 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
         }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
             div(classes = "movie-action-bar hidden-movie-action-bar-element") {
-                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button watched-scope") {
+                button(
+                    type = ButtonType.button,
+                    classes = "hidden-movie-action-bar-element eye-button watched-scope",
+                ) {
                     id = "watched-$movieId"
                     onClick = "dataset.checked == 'true' ? deleteWatch('$movieId') : setWatch('$movieId')"
 
@@ -165,7 +183,10 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
                     EyeIconSvg("in-watched")
                     EyePlusIconSvg("in-not-watched")
                 }
-                button(type = ButtonType.button, classes = "hidden-movie-action-bar-element eye-button bookmark-scope") {
+                button(
+                    type = ButtonType.button,
+                    classes = "hidden-movie-action-bar-element eye-button bookmark-scope",
+                ) {
                     id = "bookmark-$movieId"
                     onClick = "dataset.checked == 'true' ? deleteBookmark('$movieId') : setBookmark('$movieId')"
 
@@ -208,6 +229,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
     }
 }
 
+@HtmlTagMarker
 suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         MovieItem(movie)
@@ -215,6 +237,7 @@ suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
 }
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
+@HtmlTagMarker
 suspend fun UL.MovieListSentinel() {
     li(classes = "movie-list-item") {
         id = "infinite-sentinel"
@@ -240,6 +263,7 @@ suspend fun UL.MovieListSentinel() {
     }
 }
 
+@HtmlTagMarker
 suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
     li(classes = "movie-list-item") {
         val name = movie.mediaEntry.id ?: ""
@@ -256,6 +280,7 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
 }
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
+@HtmlTagMarker
 suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) {
     li(classes = "movie-list-item") {
         id = "roulette-${movie.mediaEntry.id}"
@@ -263,7 +288,10 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
             htmlFor = movie.mediaEntry.id ?: ""
             MovieItem(movie) {
                 div("roulette-weight-container") {
-                    button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-decrease") {
+                    button(
+                        type = ButtonType.button,
+                        classes = "roulette-weight-button roulette-weight-decrease",
+                    ) {
                         dataset["movie"] = movie.mediaEntry.id ?: ""
                         onClick = "const el = document.getElementById(dataset.movie); el.stepDown(); el.dispatchEvent(new Event('change'));"
                         +"−"
@@ -273,7 +301,10 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
                         min = "0"
                         value = count.toString()
                     }
-                    button(type = ButtonType.button, classes = "roulette-weight-button roulette-weight-increase") {
+                    button(
+                        type = ButtonType.button,
+                        classes = "roulette-weight-button roulette-weight-increase",
+                    ) {
                         dataset["movie"] = movie.mediaEntry.id ?: ""
                         onClick = "const el = document.getElementById(dataset.movie); el.stepUp(); el.dispatchEvent(new Event('change'));"
                         +"+"

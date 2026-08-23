@@ -3,6 +3,7 @@ package de.amklee.monomovie.service
 import de.amklee.monomovie.db.Watched
 import de.amklee.monomovie.db.get
 import de.amklee.monomovie.db.monomovieDb
+import java.time.Instant
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
@@ -12,7 +13,6 @@ import org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
-import java.time.Instant
 
 object WatchedService {
     val eventFlow = MutableSharedFlow<Event>()

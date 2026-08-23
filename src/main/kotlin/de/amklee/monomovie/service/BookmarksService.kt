@@ -3,6 +3,7 @@ package de.amklee.monomovie.service
 import de.amklee.monomovie.db.Bookmarks
 import de.amklee.monomovie.db.get
 import de.amklee.monomovie.db.monomovieDb
+import java.time.Instant
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -13,7 +14,6 @@ import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.r2dbc.update
 import org.jetbrains.exposed.v1.r2dbc.upsert
-import java.time.Instant
 
 object BookmarksService {
     val eventFlow = MutableSharedFlow<Event>()

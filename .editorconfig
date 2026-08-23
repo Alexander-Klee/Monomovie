@@ -1,0 +1,26 @@
+root = true
+
+[*]
+charset = utf-8
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+
+[*.yml]
+indent_size = 2
+indent_style = space
+
+[**/{MavenEx.kt,QR.kt}]
+ktlint = disabled
+
+# noinspection EditorConfigKeyCorrectness
+[*.{kt,kts}]
+ktlint_code_style = android_studio
+# https://pinterest.github.io/ktlint/latest/rules/standard/#function-naming
+ktlint_function_naming_ignore_when_annotated_with = HtmlTagMarker
+
+ktlint_standard_no-wildcard-imports = disabled
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+max_line_length = 140

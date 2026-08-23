@@ -10,15 +10,16 @@ import kotlinx.html.stream.createHTML
 
 // kotlinx.html does not come with helpers for easily building an HTML string, so we have to create our own.
 // These are needed for the infinite scroll feature in the search page.
-inline fun buildHtml(build: FlowContent.() -> Unit) = createHTML().apply {
-    DIV(mapOf(), this).build()
-}.finalize()
+inline fun buildHtml(build: FlowContent.() -> Unit) = createHTML()
+    .apply {
+        DIV(mapOf(), this).build()
+    }.finalize()
+
 inline fun FlowContent.ful(content: UL.() -> Unit) = UL(mapOf(), consumer).content()
-inline fun buildULHtml(build: UL.() -> Unit): String {
-    return buildHtml {
-        ful {
-            build()
-        }
+
+inline fun buildULHtml(build: UL.() -> Unit): String = buildHtml {
+    ful {
+        build()
     }
 }
 
@@ -34,9 +35,13 @@ suspend inline fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStat
 }
 
 class CustomDomElement(tagName: String, consumer: TagConsumer<*>) :
-    HTMLTag(tagName, consumer, emptyMap(),
+    HTMLTag(
+        tagName,
+        consumer,
+        emptyMap(),
         inlineTag = true,
-        emptyTag = false),
+        emptyTag = false,
+    ),
     HtmlInlineTag
 
 fun FlowContent.custom(tagName: String, block: CustomDomElement.() -> Unit = {}) {

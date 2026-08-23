@@ -1,14 +1,16 @@
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.service.CachedMovies
 import kotlinx.html.FlowContent
+import kotlinx.html.HtmlTagMarker
 import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.html.postForm
 import kotlinx.html.submitInput
 
+@HtmlTagMarker
 suspend fun FlowContent.HomePage(movies: List<CachedMovies.Movie>) {
     SearchBar("")
     h1 { +"Bookmarked Movies:" }

@@ -2,16 +2,19 @@
 
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.Environment
-import de.amklee.monomovie.service.remote.ProvidenceApi
+import de.amklee.monomovie.R
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.LazyValue
-import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
+import de.amklee.monomovie.util.rouletteSharedJs
 import io.ktor.http.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -19,15 +22,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.html.*
 import kotlinx.serialization.Serializable
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Serializable
 sealed interface RouletteSseEvent {
     val id: String
 
     @Serializable data class Add(override val id: String, val body: String) : RouletteSseEvent
+
     @Serializable data class Remove(override val id: String) : RouletteSseEvent
+
     @Serializable data class Update(override val id: String, val count: Int) : RouletteSseEvent
 }
 
@@ -37,12 +40,14 @@ class SharedRouletteSession {
     private val movies = LinkedHashMap<String, RouletteCachedMovie>()
     private val mutex = Mutex()
 
-    private val _events = MutableSharedFlow<RouletteSseEvent>()
+    private val events = MutableSharedFlow<RouletteSseEvent>()
 
-    fun events(): SharedFlow<RouletteSseEvent> = _events.asSharedFlow()
+    fun events(): SharedFlow<RouletteSseEvent> = events.asSharedFlow()
 
     suspend fun addAll(movies: List<CachedMovies.Movie>): Collection<RouletteCachedMovie> {
-        for (movie in movies) { add(movie) }
+        for (movie in movies) {
+            add(movie)
+        }
         return this.movies.values
     }
 
@@ -53,52 +58,60 @@ class SharedRouletteSession {
         }
         // not in the critical section, so technically the movie could have been added in the meantime.
         // however, this avoids locking us up which is probably more important in the case of one slow client.
-        _events.emit(buildAddEvent(movie, 1))
-    }
-    suspend fun updateCount(movie: CachedMovies.Movie, count: Int) {
-        val event = mutex.withLock {
-            val old = movies[movie.mediaEntry.id!!]
-            if (old == null) {
-                movies[movie.mediaEntry.id] = movie withVotes count
-                buildAddEvent(movie, count)
-            } else {
-                if (old.votes != count) {
-                    old.votes = count
-                    RouletteSseEvent.Update(movie.mediaEntry.id, count)
-                } else null
-            }
-        }
-        // not in the critical section, so technically the movie could have been added in the meantime.
-        // however, this avoids locking us up which is probably more important in the case of one slow client.
-        if (event != null) _events.emit(event)
+        events.emit(buildAddEvent(movie, 1))
     }
 
-    private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.Add {
-        return RouletteSseEvent.Add(
-            id = movie.mediaEntry.id!!,
-            body = buildULHtml { RouletteMovieListItem(movie, count) }
-        )
+    suspend fun updateCount(movie: CachedMovies.Movie, count: Int) {
+        val event =
+            mutex.withLock {
+                val old = movies[movie.mediaEntry.id!!]
+                if (old == null) {
+                    movies[movie.mediaEntry.id] = movie withVotes count
+                    buildAddEvent(movie, count)
+                } else {
+                    if (old.votes != count) {
+                        old.votes = count
+                        RouletteSseEvent.Update(movie.mediaEntry.id, count)
+                    } else {
+                        null
+                    }
+                }
+            }
+        // not in the critical section, so technically the movie could have been added in the meantime.
+        // however, this avoids locking us up which is probably more important in the case of one slow client.
+        if (event != null) events.emit(event)
     }
+
+    private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.Add = RouletteSseEvent.Add(
+        id = movie.mediaEntry.id!!,
+        body = buildULHtml { RouletteMovieListItem(movie, count) },
+    )
 
     suspend fun remove(movie: CachedMovies.Movie) {
         mutex.withLock { movies.remove(movie.mediaEntry.id!!) }?.let {
-            _events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id!!))
+            events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id!!))
         }
     }
 }
 
 data class RouletteCachedMovie(val movie: CachedMovies.Movie, var votes: Int)
+
 infix fun CachedMovies.Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 
+@HtmlTagMarker
 suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
         script {
             unsafe {
-                +Resources.rouletteSharedJs(shareId)
+                +R.rouletteSharedJs(shareId)
             }
         }
         val target = "${Environment.hostname}/roulette?shareId=$shareId"
-        img(classes = "qr-code", src = "/qr.svg?data=${target.encodeURLParameter()}", alt = "QR Code")
+        img(
+            classes = "qr-code",
+            src = "/qr.svg?data=${target.encodeURLParameter()}",
+            alt = "QR Code",
+        )
     }
     postForm("/roulette/submit" + if (shareId == null) "" else "?shareId=$shareId") {
         div(classes = "sticky-action-row") {
@@ -111,7 +124,11 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
                     formAction = "/roulette/share"
                 }
             } else {
-                a(href = "/roulette/shared/$shareId", target = "_blank", classes = "roulette-button") {
+                a(
+                    href = "/roulette/shared/$shareId",
+                    target = "_blank",
+                    classes = "roulette-button",
+                ) {
                     +"Add More Movies"
                 }
             }
@@ -120,6 +137,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
     }
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Movie>, shareId: Uuid) {
     SearchBar("")
     h1 { +"Shared Roulette:" }

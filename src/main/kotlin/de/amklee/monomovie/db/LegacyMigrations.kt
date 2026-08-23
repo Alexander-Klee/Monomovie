@@ -1,13 +1,13 @@
 package de.amklee.monomovie.db
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.v1.r2dbc.insert
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.r2dbc.insert
 
 suspend fun performLegacyMigration() {
     for ((id_, bookmarkedAt_, isBookmarked_, colour_) in openBookmarksDb().bookmarks) {
@@ -60,12 +60,16 @@ private fun openWatchedDb(path: Path = Path("watched.json")): WatchedDB1 {
     }
 }
 
-private fun BookmarksDB1.migrate(): BookmarksDB3 {
-    return BookmarksDB2(bookmarks = bookmarks.map { BookmarkItem2(it, Instant.now().epochSecond) }).migrate()
-}
-private fun BookmarksDB2.migrate(): BookmarksDB3 {
-    return BookmarksDB3(bookmarks = bookmarks.map { BookmarkItem3(it.id, it.bookmarkedAt, true) }).migrate()
-}
+private fun BookmarksDB1.migrate(): BookmarksDB3 = BookmarksDB2(
+    bookmarks = bookmarks.map {
+        BookmarkItem2(it, Instant.now().epochSecond)
+    },
+).migrate()
+private fun BookmarksDB2.migrate(): BookmarksDB3 = BookmarksDB3(
+    bookmarks = bookmarks.map {
+        BookmarkItem3(it.id, it.bookmarkedAt, true)
+    },
+).migrate()
 private fun BookmarksDB3.migrate(): BookmarksDB3 = this
 
 private fun WatchedDB1.migrate(): WatchedDB1 = this
@@ -74,40 +78,22 @@ private fun WatchedDB1.migrate(): WatchedDB1 = this
 private open class Versioned(val version: Int)
 
 @Serializable
-private data class BookmarksDB1(
-    val bookmarks: List<String>
-) : Versioned(1)
+private data class BookmarksDB1(val bookmarks: List<String>) : Versioned(1)
 
 @Serializable
-private data class BookmarksDB2(
-    val bookmarks: List<BookmarkItem2>
-) : Versioned(2)
+private data class BookmarksDB2(val bookmarks: List<BookmarkItem2>) : Versioned(2)
 
 @Serializable
-private data class BookmarksDB3(
-    val bookmarks: List<BookmarkItem3>
-) : Versioned(3)
-@Serializable
-private data class BookmarkItem2(
-    val id: String,
-    val bookmarkedAt: Long
-)
+private data class BookmarksDB3(val bookmarks: List<BookmarkItem3>) : Versioned(3)
 
 @Serializable
-private data class BookmarkItem3(
-    val id: String,
-    val bookmarkedAt: Long,
-    val isBookmarked: Boolean,
-    val colour: String? = null
-)
+private data class BookmarkItem2(val id: String, val bookmarkedAt: Long)
 
 @Serializable
-private data class WatchedDB1(
-    val watched: List<WatchedItem1>
-) : Versioned(1)
+private data class BookmarkItem3(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean, val colour: String? = null)
 
 @Serializable
-private data class WatchedItem1(
-    val id: String,
-    val watchedAt: Long
-)
+private data class WatchedDB1(val watched: List<WatchedItem1>) : Versioned(1)
+
+@Serializable
+private data class WatchedItem1(val id: String, val watchedAt: Long)

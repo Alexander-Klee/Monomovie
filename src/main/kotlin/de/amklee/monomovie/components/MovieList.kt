@@ -1,15 +1,18 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.Environment
+import de.amklee.monomovie.R
 import de.amklee.monomovie.db.Watched
 import de.amklee.monomovie.pages.RouletteCachedMovie
-import de.amklee.monomovie.util.Resources
-import kotlinx.html.*
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.util.selectableJs
+import de.amklee.monomovie.util.sseJs
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.time.toJavaInstant
+import kotlinx.html.*
 
+@HtmlTagMarker
 inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
     script {
         unsafe {
@@ -22,21 +25,25 @@ inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
     }
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.SearchMovieList() = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH) + Resources.infiniteScrollJs
+    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.SEARCH) + R.infiniteScrollJs,
 ) {
     id = "infinite-list"
     MovieListSentinel()
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
+
+@HtmlTagMarker
 suspend fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.WATCHED)
+    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.WATCHED),
 ) {
-    for ((date, movies) in movies
+    val items = movies
         .groupBy { LocalDateTime.ofInstant(it.watchedAt.toJavaInstant(), Environment.timezone).toLocalDate() }
-        .entries.sortedByDescending { it.key }
-    ) {
+        .entries
+        .sortedByDescending { it.key }
+    for ((date, movies) in items) {
         li(classes = "watched-date") {
             +date.format(dateFormatter)
         }
@@ -46,16 +53,19 @@ suspend fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList
     }
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, minSelection: Int = 2) = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs(minSelection) + Resources.sseJs(Mode.OVERVIEW)
+    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.selectableJs(minSelection) +
+        R.sseJs(Mode.OVERVIEW),
 ) {
     for (movie in movies) {
         SelectableMovieListItem(movie)
     }
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
-    Resources.imageErrorJs + Resources.watchedJs + Resources.sseJs(Mode.ROULETTE)
+    R.imageErrorJs + R.watchedJs + R.sseJs(Mode.ROULETTE),
 ) {
     for (movie in movies) {
         RouletteMovieListItem(movie.movie, movie.votes)

@@ -2,16 +2,11 @@
 
 package de.amklee.monomovie.util
 
-import kotlinx.html.FlowContent
-import kotlinx.html.HTMLTag
-import kotlinx.html.svg
-import kotlinx.html.visit
 import java.util.*
 import kotlin.experimental.or
 import kotlin.experimental.xor
 import kotlin.math.abs
 import kotlin.math.max
-
 
 // based in part on https://github.com/nayuki/QR-Code-generator (MIT License)
 
