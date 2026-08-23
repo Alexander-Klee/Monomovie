@@ -1,7 +1,7 @@
 package de.amklee.monomovie.components
 
+import de.amklee.monomovie.R
 import de.amklee.monomovie.util.IncludeSvgTemplates
-import de.amklee.monomovie.util.Resources
 import kotlinx.html.*
 
 inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
@@ -24,11 +24,11 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         link(rel = "icon", type = "image/png", href = "/static/favicon-96x96.png") { sizes = "96x96"}
 
         style {
-            unsafe { +Resources.style }
+            unsafe { +R.styleCss }
         }
 
         script {
-            unsafe { +Resources.libJs }
+            unsafe { +R.libJs }
         }
     }
     body {
@@ -40,7 +40,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
             id = "main"
             script {
                 unsafe {
-                    +Resources.topbuttonJs
+                    +R.topbuttonJs
                 }
             }
             IncludeSvgTemplates()
@@ -72,7 +72,7 @@ fun FlowContent.MenuButton() {
     }
     label(classes = "menu-button floating-action-button") {
         htmlFor = "menu-toggle"
-        unsafe { +Resources.menuSvg }
+        unsafe { +R.graphics.svg.menuSvg }
     }
     label(classes = "menu-overlay") {
         htmlFor = "menu-toggle"
@@ -83,6 +83,6 @@ fun FlowContent.TopButton() {
     button(classes = "floating-action-button top-button") {
         id = "top_button"
         onClick = "gotoTop()"
-        unsafe { +Resources.arrowUpSvg }
+        unsafe { +R.graphics.svg.arrowupSvg }
     }
 }

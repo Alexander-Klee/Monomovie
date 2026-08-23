@@ -5,12 +5,13 @@ package de.amklee.monomovie.pages
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Environment
 import de.amklee.monomovie.ProvidenceApi
+import de.amklee.monomovie.R
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
 import de.amklee.monomovie.util.LazyValue
-import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
+import de.amklee.monomovie.util.rouletteSharedJs
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -94,7 +95,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
     if (shareId != null) {
         script {
             unsafe {
-                +Resources.rouletteSharedJs(shareId)
+                +R.rouletteSharedJs(shareId)
             }
         }
         val target = "${Environment.hostname}/roulette?shareId=$shareId"
