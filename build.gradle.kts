@@ -112,6 +112,7 @@ tasks {
         group = "application"
         mainClass = "de.amklee.monomovie.GenerateMigrationsKt"
         classpath(migrationsGen.runtimeClasspath)
+        systemProperty("io.ktor.development", "true")
         args(migrationsTmpDir.get().asFile.resolve("db").absolutePath)
         doFirst {
             migrationsTmpDir.get().asFile.deleteRecursively()

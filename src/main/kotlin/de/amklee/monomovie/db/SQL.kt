@@ -3,10 +3,10 @@
 package de.amklee.monomovie.db
 
 import de.amklee.monomovie.R
+import de.amklee.monomovie.util.Resource
 import io.ktor.server.application.*
 import java.security.MessageDigest
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
@@ -31,47 +31,26 @@ object Migrations : LongIdTable("migrations") {
     val hash = varchar("hash", 255)
 }
 
-private val json = Json { prettyPrint = true }
-
-@Suppress("UnusedReceiverParameter")
-suspend fun Application.configureDatabases() {
-    R2dbcDatabase.mmvConnect()
-
-    suspendTransaction(monomovieDb) { SchemaUtils.create(Migrations) }
-
-    run {
-        val id_ = 0L
-        val name_ = "V0__Legacy.sql"
-        val hash_ = ""
-
-        val existing = Migrations[id_]
-        if (existing == null) {
-            suspendTransaction(monomovieDb) {
-                performLegacyMigration()
-                Migrations.insert {
-                    it[id] = id_
-                    it[name] = name_
-                    it[hash] = hash_
-                }
-            }
-        }
-    }
-
+private fun getSortedMigrations(): List<Pair<Long, Resource>> {
     val pattern = Regex("db/migration/V(\\d+)__[a-zA-Z_]+\\.sql")
-    val sortedMigrations = R.db.migration.index.values
+    return R.db.migration.index.values
         .map {
             val id = pattern.matchEntire(it.path)!!.groups[1]!!.value.toLong()
             id to it
         }.sortedBy { it.first }
+}
 
-    for ((id_, resource_) in sortedMigrations) {
+suspend fun R2dbcDatabase.runMigrations() {
+    suspendTransaction(this) { SchemaUtils.create(Migrations) }
+
+    for ((id_, resource_) in getSortedMigrations()) {
         val name_ = resource_.path.requireAndTrimStart("db/migration/")
         val content_ = resource_.toString()
         val hash_ = content_.md5()
 
         val existing = Migrations[id_]
         if (existing == null) {
-            suspendTransaction(monomovieDb) {
+            suspendTransaction(this) {
                 exec(content_)
                 Migrations.insert {
                     it[id] = id_
@@ -84,9 +63,33 @@ suspend fun Application.configureDatabases() {
             require(existing[Migrations.hash] == hash_) { "Applied transaction for name $name_ does not correspond to hash $hash_" }
         }
     }
+
+    run {
+        val id_ = 0L
+        val name_ = "V0__Legacy.sql"
+        val hash_ = ""
+
+        val existing = Migrations[id_]
+        if (existing == null) {
+            suspendTransaction(this) {
+                performLegacyMigration()
+                Migrations.insert {
+                    it[id] = id_
+                    it[name] = name_
+                    it[hash] = hash_
+                }
+            }
+        }
+    }
 }
 
-private fun String.requireAndTrimStart(start: String): String {
+@Suppress("UnusedReceiverParameter")
+suspend fun Application.configureDatabases() {
+    R2dbcDatabase.mmvConnect()
+    monomovieDb.runMigrations()
+}
+
+fun String.requireAndTrimStart(start: String): String {
     require(startsWith(start))
     return substring(start.length)
 }
