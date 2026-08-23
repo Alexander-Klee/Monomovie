@@ -33,7 +33,7 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
         resourcesDir.convention(project.layout.projectDirectory.dir("src/main/resources"))
         generatedKotlinDir.convention(project.layout.buildDirectory.dir("generated/resourceIndex"))
         packageName.convention("de.amklee.monomovie")
-        stringExtensions.convention(listOf("js", "svg", "css"))
+        stringExtensions.convention(listOf("js", "svg", "css", "sql"))
 
         description = "Generates a Kotlin file containing all resources in the resources directory"
         group = "build"

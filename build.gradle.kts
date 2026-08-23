@@ -8,7 +8,7 @@ plugins {
     kotlin("jvm")
     ktlint
     application
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
     id("io.ktor.plugin") version "3.4.2"
     id("com.gradleup.shadow") version "9.4.1"
     id("org.beryx.runtime") version "2.0.1"
@@ -34,6 +34,12 @@ repositories {
     }
 }
 
+val migrationTool by configurations.creating
+val migrationsGen by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.main.get().output + migrationTool
+    runtimeClasspath += sourceSets.main.get().runtimeClasspath + sourceSets.main.get().output + migrationTool
+}
+
 dependencies {
     // client for JustWatch API
     implementation("io.ktor:ktor-client-core")
@@ -53,6 +59,14 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-sse")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.3")
+
+    // Database
+    implementation("org.jetbrains.exposed:exposed-core:1.4.0")
+    implementation("org.jetbrains.exposed:exposed-r2dbc:1.4.0")
+    migrationTool("org.jetbrains.exposed:exposed-migration-core:1.4.0")
+    migrationTool("org.jetbrains.exposed:exposed-migration-r2dbc:1.4.0")
+    implementation("com.h2database:h2:2.4.240")
+    implementation("io.r2dbc:r2dbc-h2:1.1.0.RELEASE")
 }
 
 tasks.test {
@@ -92,6 +106,18 @@ tasks {
         group = "application"
         executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
         environment("MMV_HOSTNAME" to "http://localhost:8080")
+    }
+    val migrationsTmpDir = layout.buildDirectory.file("migrationsgen")
+    register<JavaExec>("generateMigrations") {
+        group = "application"
+        mainClass = "de.amklee.monomovie.GenerateMigrationsKt"
+        classpath(migrationsGen.runtimeClasspath)
+        systemProperty("io.ktor.development", "true")
+        args(migrationsTmpDir.get().asFile.resolve("db").absolutePath)
+        doFirst {
+            migrationsTmpDir.get().asFile.deleteRecursively()
+            migrationsTmpDir.get().asFile.mkdirs()
+        }
     }
 }
 

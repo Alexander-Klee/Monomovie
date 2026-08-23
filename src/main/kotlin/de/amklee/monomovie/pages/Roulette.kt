@@ -2,13 +2,13 @@
 
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Environment
-import de.amklee.monomovie.ProvidenceApi
 import de.amklee.monomovie.R
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.LazyValue
 import de.amklee.monomovie.util.buildULHtml
 import de.amklee.monomovie.util.rouletteSharedJs

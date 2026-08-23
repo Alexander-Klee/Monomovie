@@ -1,5 +1,6 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.service.remote
 
+import de.amklee.monomovie.Environment
 import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.util.NIHCache
 import io.ktor.client.*

@@ -1,4 +1,5 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.service.remote
+import de.amklee.monomovie.Environment
 import de.amklee.monomovie.util.NIHCache
 import de.amklee.monomovie.util.error
 import java.io.IOException
