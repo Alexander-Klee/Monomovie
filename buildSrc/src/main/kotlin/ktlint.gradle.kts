@@ -23,7 +23,7 @@ tasks {
         outputs.dir(outputDir)
         mainClass = "com.pinterest.ktlint.Main"
         classpath(ktlint)
-        args = listOf("--editorconfig=$editorconfig", "src/**/*.kt", "--reporter=plain?group_by_file", "--reporter=gitlab,output=${outputDir.get().asFile.absolutePath}/ktlint.json")
+        args = listOf("--editorconfig=$editorconfig", "src/**/*.kt", "--reporter=plain?group_by_file")
         jvmArgs = listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")
     }
 

@@ -12,99 +12,99 @@ import java.util.Locale
 import kotlinx.html.*
 
 enum class MonetizationTypes(val type: String) {
-	FLATRATE("Flatrate"),
-	RENT("Rent"),
-	BUY("Buy"),
-	FREE("Free"),
+    FLATRATE("Flatrate"),
+    RENT("Rent"),
+    BUY("Buy"),
+    FREE("Free"),
 }
 
 private fun FlowContent.offerTable(offers: List<Offer>) {
-	table {
-		for (type in MonetizationTypes.entries) {
-			tr {
-				val typeOffers = offers.filter {
-					it.monetizationType.equals(type.name, ignoreCase = true)
-				}
-				if (typeOffers.isNotEmpty()) {
-					td(classes = "offerType-td") { +type.type }
-					td(classes = "offer-td") {
-						OfferList(typeOffers.sortedBy { it.`package`?.clearName })
-					}
-				}
-			}
-		}
-	}
+    table {
+        for (type in MonetizationTypes.entries) {
+            tr {
+                val typeOffers = offers.filter {
+                    it.monetizationType.equals(type.name, ignoreCase = true)
+                }
+                if (typeOffers.isNotEmpty()) {
+                    td(classes = "offerType-td") { +type.type }
+                    td(classes = "offer-td") {
+                        OfferList(typeOffers.sortedBy { it.`package`?.clearName })
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun getCountryName(countryCode: String): String = try {
-	val locale =
-		Locale
-			.Builder()
-			.setRegion(countryCode)
-			.build()
-	locale.getDisplayCountry(Locale.ENGLISH)
+    val locale =
+        Locale
+            .Builder()
+            .setRegion(countryCode)
+            .build()
+    locale.getDisplayCountry(Locale.ENGLISH)
 } catch (e: Exception) {
-	countryCode
+    countryCode
 }
 
 @HtmlTagMarker
 private fun FlowContent.JellyfinTable(jellyfinLink: String) {
-	h1 { +"Jellyfin" }
-	table {
-		tr {
-			td(classes = "offerType-td") { +"Jellyfin" }
-			td(classes = "offer-td") {
-				ul(classes = "offer-list") {
-					JellyfinOfferItem(jellyfinLink)
-				}
-			}
-		}
-	}
+    h1 { +"Jellyfin" }
+    table {
+        tr {
+            td(classes = "offerType-td") { +"Jellyfin" }
+            td(classes = "offer-td") {
+                ul(classes = "offer-list") {
+                    JellyfinOfferItem(jellyfinLink)
+                }
+            }
+        }
+    }
 }
 
 @HtmlTagMarker
 suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
-	div {
-		script {
-			unsafe {
-				+R.imageErrorJs
-				+R.bookmarkJs
-				+R.watchedJs
-				+R.sseJs(Mode.OFFERS)
-			}
-		}
-		MovieItem(movie, showOffers = false)
+    div {
+        script {
+            unsafe {
+                +R.imageErrorJs
+                +R.bookmarkJs
+                +R.watchedJs
+                +R.sseJs(Mode.OFFERS)
+            }
+        }
+        MovieItem(movie, showOffers = false)
 
-		val jellyfinLink = CachedMovies.getJellyfinLink(movie)
-		jellyfinLink?.let { JellyfinTable(it) }
+        val jellyfinLink = CachedMovies.getJellyfinLink(movie)
+        jellyfinLink?.let { JellyfinTable(it) }
 
-		// sort countries by number of flatrate offers descending, prioritize main country
-		val sortedOffers =
-			offers
-				.toList()
-				.sortedByDescending { (_, offers) ->
-					offers
-						.filter {
-							it.monetizationType.equals("Flatrate", ignoreCase = true)
-						}.size
-				}.sortedBy { (country, _) ->
-					if (country == mainCountry) 0 else 1
-				}
+        // sort countries by number of flatrate offers descending, prioritize main country
+        val sortedOffers =
+            offers
+                .toList()
+                .sortedByDescending { (_, offers) ->
+                    offers
+                        .filter {
+                            it.monetizationType.equals("Flatrate", ignoreCase = true)
+                        }.size
+                }.sortedBy { (country, _) ->
+                    if (country == mainCountry) 0 else 1
+                }
 
-		// countries with offers
-		for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
-			h1 {
-				+country
-				+" - "
-				+getCountryName(country)
-			}
-			offerTable(offers)
-		}
+        // countries with offers
+        for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
+            h1 {
+                +country
+                +" - "
+                +getCountryName(country)
+            }
+            offerTable(offers)
+        }
 
-		val countriesWithoutOffers = offers.filter { it.value.isEmpty() }.keys.sorted()
-		if (countriesWithoutOffers.isNotEmpty()) {
-			h1 { +"No offers for:" }
-			p { +countriesWithoutOffers.joinToString(", ") }
-		}
-	}
+        val countriesWithoutOffers = offers.filter { it.value.isEmpty() }.keys.sorted()
+        if (countriesWithoutOffers.isNotEmpty()) {
+            h1 { +"No offers for:" }
+            p { +countriesWithoutOffers.joinToString(", ") }
+        }
+    }
 }

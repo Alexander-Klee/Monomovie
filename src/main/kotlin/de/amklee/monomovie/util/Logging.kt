@@ -14,60 +14,60 @@ import kotlin.time.toJavaInstant
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun setupLogging() {
-	object {}.javaClass.getResourceAsStream("/logging.properties").use {
-		LogManager.getLogManager().readConfiguration(it)
-	}
+    object {}.javaClass.getResourceAsStream("/logging.properties").use {
+        LogManager.getLogManager().readConfiguration(it)
+    }
 }
 
 class StdoutConsoleHandler : ConsoleHandler() {
-	init {
-		setOutputStream(System.out)
-	}
+    init {
+        setOutputStream(System.out)
+    }
 }
 
 class ColorConsoleFormatter : Formatter() {
-	override fun format(record: LogRecord): String = buildString {
-		append(TS.format(Instant.fromEpochMilliseconds(record.millis).toJavaInstant()))
-		append(" ")
-		val lvl = record.level.intValue()
-		append(
-			when {
-				lvl >= Level.SEVERE.intValue() -> RED_BOLD
-				lvl >= Level.WARNING.intValue() -> YELLOW
-				lvl > Level.INFO.intValue() -> GREEN
-				else -> BLUE
-			},
-		)
-		append(record.level.name)
-		append(RESET)
-		append(" ")
-		append(GREEN_BOLD)
-		append(record.loggerName ?: "")
-		append(RESET)
-		append(" ")
-		append(formatMessage(record))
-		append(System.lineSeparator())
+    override fun format(record: LogRecord): String = buildString {
+        append(TS.format(Instant.fromEpochMilliseconds(record.millis).toJavaInstant()))
+        append(" ")
+        val lvl = record.level.intValue()
+        append(
+            when {
+                lvl >= Level.SEVERE.intValue() -> RED_BOLD
+                lvl >= Level.WARNING.intValue() -> YELLOW
+                lvl > Level.INFO.intValue() -> GREEN
+                else -> BLUE
+            },
+        )
+        append(record.level.name)
+        append(RESET)
+        append(" ")
+        append(GREEN_BOLD)
+        append(record.loggerName ?: "")
+        append(RESET)
+        append(" ")
+        append(formatMessage(record))
+        append(System.lineSeparator())
 
-		if (record.thrown != null) {
-			val sw = StringWriter()
-			PrintWriter(sw).use { pw ->
-				record.thrown.printStackTrace(pw)
-			}
-			append(sw.toString())
-		}
-	}
+        if (record.thrown != null) {
+            val sw = StringWriter()
+            PrintWriter(sw).use { pw ->
+                record.thrown.printStackTrace(pw)
+            }
+            append(sw.toString())
+        }
+    }
 
-	companion object {
-		private const val RESET = "\u001b[0m"
-		private const val RED_BOLD = "\u001b[1;31m"
-		private const val YELLOW = "\u001b[33m"
-		private const val GREEN = "\u001b[32m"
-		private const val BLUE = "\u001b[34m"
-		private const val GREEN_BOLD = "\u001b[1;32m"
+    companion object {
+        private const val RESET = "\u001b[0m"
+        private const val RED_BOLD = "\u001b[1;31m"
+        private const val YELLOW = "\u001b[33m"
+        private const val GREEN = "\u001b[32m"
+        private const val BLUE = "\u001b[34m"
+        private const val GREEN_BOLD = "\u001b[1;32m"
 
-		private val TS: DateTimeFormatter =
-			DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
-	}
+        private val TS: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
+    }
 }
 
 fun System.Logger.debug(message: () -> String) = this.log(System.Logger.Level.DEBUG, message)

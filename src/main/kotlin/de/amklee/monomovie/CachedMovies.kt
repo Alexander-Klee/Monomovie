@@ -14,241 +14,241 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 object CachedMovies {
-	private val log = System.getLogger("MMV/CachedMovies")
+    private val log = System.getLogger("MMV/CachedMovies")
 
-	@Serializable
-	data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Long)
+    @Serializable
+    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Long)
 
-	fun Movie.getOffers() = mediaEntry.offers?.filter {
-		it.monetizationType.equals(MonetizationTypes.FREE.name, ignoreCase = true) ||
-			it.monetizationType.equals(MonetizationTypes.FLATRATE.name, ignoreCase = true)
-	} ?: emptyList()
+    fun Movie.getOffers() = mediaEntry.offers?.filter {
+        it.monetizationType.equals(MonetizationTypes.FREE.name, ignoreCase = true) ||
+            it.monetizationType.equals(MonetizationTypes.FLATRATE.name, ignoreCase = true)
+    } ?: emptyList()
 
-	private var _cache: MutableMap<String, Movie>? = null
-	private val cacheFile = Path("cached_movies.json")
+    private var _cache: MutableMap<String, Movie>? = null
+    private val cacheFile = Path("cached_movies.json")
 
-	val cache: MutableMap<String, Movie>
-		get() {
-			if (_cache == null) {
-				_cache = loadCache()
-			}
-			return _cache!!
-		}
+    val cache: MutableMap<String, Movie>
+        get() {
+            if (_cache == null) {
+                _cache = loadCache()
+            }
+            return _cache!!
+        }
 
-	private fun loadCache(): MutableMap<String, Movie> = if (cacheFile.exists()) {
-		try {
-			val jsonString = cacheFile.readText()
-			Json.decodeFromString<Map<String, Movie>>(jsonString).toMutableMap()
-		} catch (e: Exception) {
-			log.error(e) { "Unable to parse json for the cached movies." }
-			mutableMapOf()
-		}
-	} else {
-		mutableMapOf()
-	}
+    private fun loadCache(): MutableMap<String, Movie> = if (cacheFile.exists()) {
+        try {
+            val jsonString = cacheFile.readText()
+            Json.decodeFromString<Map<String, Movie>>(jsonString).toMutableMap()
+        } catch (e: Exception) {
+            log.error(e) { "Unable to parse json for the cached movies." }
+            mutableMapOf()
+        }
+    } else {
+        mutableMapOf()
+    }
 
-	private fun saveCache() {
-		if (_cache != null) {
-			val jsonString = Json.encodeToString(_cache!!)
-			cacheFile.writeText(jsonString)
-		}
-	}
+    private fun saveCache() {
+        if (_cache != null) {
+            val jsonString = Json.encodeToString(_cache!!)
+            cacheFile.writeText(jsonString)
+        }
+    }
 
-	private val justWatch = JustWatch(country = "DE", language = "en")
+    private val justWatch = JustWatch(country = "DE", language = "en")
 
-	private fun populateCache(mediaEntry: MediaEntry) {
-		if (mediaEntry.id == null) return
+    private fun populateCache(mediaEntry: MediaEntry) {
+        if (mediaEntry.id == null) return
 
-		val movie =
-			Movie(
-				mediaEntry = mediaEntry,
-				isBookmarked = BookmarksDB.isBookmarked(mediaEntry.id),
-				isWatched = mediaEntry.id in WatchedDB,
-				cacheDate = System.currentTimeMillis(),
-			)
+        val movie =
+            Movie(
+                mediaEntry = mediaEntry,
+                isBookmarked = BookmarksDB.isBookmarked(mediaEntry.id),
+                isWatched = mediaEntry.id in WatchedDB,
+                cacheDate = System.currentTimeMillis(),
+            )
 
-		cache[mediaEntry.id] = movie
-	}
+        cache[mediaEntry.id] = movie
+    }
 
-	const val STALE_MS = 15L * 24 * 60 * 60 * 1000 // 30 days in ms
-	suspend fun get(id: String): Movie? {
-		val cached = cache[id]
+    const val STALE_MS = 15L * 24 * 60 * 60 * 1000 // 30 days in ms
+    suspend fun get(id: String): Movie? {
+        val cached = cache[id]
 
-		// try to update cache if missing or older than 30 days
-		if (cached == null || cached.cacheDate < System.currentTimeMillis() - STALE_MS) {
-			try {
-				val details = justWatch.details(id) ?: return cached
-				populateCache(details)
-				saveCache()
-			} catch (e: Exception) {
-				log.error(e) { "Unable to update cache for $id." }
-			}
-		}
-		return cache[id]
-	}
+        // try to update cache if missing or older than 30 days
+        if (cached == null || cached.cacheDate < System.currentTimeMillis() - STALE_MS) {
+            try {
+                val details = justWatch.details(id) ?: return cached
+                populateCache(details)
+                saveCache()
+            } catch (e: Exception) {
+                log.error(e) { "Unable to update cache for $id." }
+            }
+        }
+        return cache[id]
+    }
 
-	suspend fun setBookmark(id: String): Movie? {
-		val movie = get(id) ?: return null
-		if (!movie.isBookmarked) {
-			movie.isBookmarked = true
-			BookmarksDB.addBookmark(id)
-			saveCache()
-		}
-		return movie
-	}
+    suspend fun setBookmark(id: String): Movie? {
+        val movie = get(id) ?: return null
+        if (!movie.isBookmarked) {
+            movie.isBookmarked = true
+            BookmarksDB.addBookmark(id)
+            saveCache()
+        }
+        return movie
+    }
 
-	suspend fun deleteBookmark(id: String): Movie? {
-		val movie = get(id) ?: return null
-		if (movie.isBookmarked) {
-			movie.isBookmarked = false
-			BookmarksDB.removeBookmark(id)
-			saveCache()
-		}
-		return movie
-	}
+    suspend fun deleteBookmark(id: String): Movie? {
+        val movie = get(id) ?: return null
+        if (movie.isBookmarked) {
+            movie.isBookmarked = false
+            BookmarksDB.removeBookmark(id)
+            saveCache()
+        }
+        return movie
+    }
 
-	suspend fun setWatch(id: String) {
-		val movie = get(id) ?: return
-		if (movie.isWatched) return
-		movie.isWatched = true
-		WatchedDB.setWatch(id)
-		saveCache()
-	}
+    suspend fun setWatch(id: String) {
+        val movie = get(id) ?: return
+        if (movie.isWatched) return
+        movie.isWatched = true
+        WatchedDB.setWatch(id)
+        saveCache()
+    }
 
-	suspend fun deleteWatch(id: String) {
-		val movie = get(id) ?: return
-		if (!movie.isWatched) return
-		movie.isWatched = false
-		WatchedDB.deleteWatch(id)
-		saveCache()
-	}
+    suspend fun deleteWatch(id: String) {
+        val movie = get(id) ?: return
+        if (!movie.isWatched) return
+        movie.isWatched = false
+        WatchedDB.deleteWatch(id)
+        saveCache()
+    }
 
-	data class SearchResults(val movies: List<Movie>, val pageInfo: PageInfo)
+    data class SearchResults(val movies: List<Movie>, val pageInfo: PageInfo)
 
-	suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
-		val response =
-			try {
-				justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
-			} catch (e: Exception) {
-				log.error(e) { "Unable to search for $title" }
-				return null
-			}
+    suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
+        val response =
+            try {
+                justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
+            } catch (e: Exception) {
+                log.error(e) { "Unable to search for $title" }
+                return null
+            }
 
-		val searchResult =
-			SearchResults(
-				response.edges.mapNotNull {
-					if (it.node.id == null) return null
-					populateCache(it.node)
-					cache[it.node.id]
-				},
-				response.pageInfo,
-			)
-		saveCache()
-		return searchResult
-	}
+        val searchResult =
+            SearchResults(
+                response.edges.mapNotNull {
+                    if (it.node.id == null) return null
+                    populateCache(it.node)
+                    cache[it.node.id]
+                },
+                response.pageInfo,
+            )
+        saveCache()
+        return searchResult
+    }
 
-	suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
-		if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
-		try {
-			return justWatch.offersForCountries(movie.mediaEntry.id, countries)
-		} catch (e: Exception) {
-			log.error(e) { "Unable to get offers for $movie." }
-			return countries.associateWith { emptyList() }
-		}
-	}
+    suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
+        if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
+        try {
+            return justWatch.offersForCountries(movie.mediaEntry.id, countries)
+        } catch (e: Exception) {
+            log.error(e) { "Unable to get offers for $movie." }
+            return countries.associateWith { emptyList() }
+        }
+    }
 
-	suspend fun getJellyfinLink(movie: Movie): String? {
-		val tmdbId =
-			movie.mediaEntry.content
-				?.externalIds
-				?.tmdbId
-		val imdbId =
-			movie.mediaEntry.content
-				?.externalIds
-				?.imdbId
+    suspend fun getJellyfinLink(movie: Movie): String? {
+        val tmdbId =
+            movie.mediaEntry.content
+                ?.externalIds
+                ?.tmdbId
+        val imdbId =
+            movie.mediaEntry.content
+                ?.externalIds
+                ?.imdbId
 
-		val tmdb = tmdbId?.let { JellyfinClient.findTmdbOnJellyfin(it) }
-		val imdb = imdbId?.let { JellyfinClient.findImdbOnJellyfin(it) }
+        val tmdb = tmdbId?.let { JellyfinClient.findTmdbOnJellyfin(it) }
+        val imdb = imdbId?.let { JellyfinClient.findImdbOnJellyfin(it) }
 
-		return tmdb ?: imdb
-	}
+        return tmdb ?: imdb
+    }
 
-	suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
+    suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
 
-	suspend inline fun getBookmarkedMovies(displayHidden: Boolean, displayWatched: Boolean) = BookmarksDB
-		.getBookmarks()
-		.filter { displayHidden || it.isBookmarked }
-		.mapNotNull { get(it.id) }
-		.filter { displayWatched || !it.isWatched }
+    suspend inline fun getBookmarkedMovies(displayHidden: Boolean, displayWatched: Boolean) = BookmarksDB
+        .getBookmarks()
+        .filter { displayHidden || it.isBookmarked }
+        .mapNotNull { get(it.id) }
+        .filter { displayWatched || !it.isWatched }
 
-	@Serializable
-	data class Status(
-		val cachedMoviesSize: Int,
-		val bookmarkedMoviesSize: Int,
-		val watchedMoviesSize: Int,
-		val averageCacheAgeDays: Double,
-		val standardDeviationCacheAgeDays: Double,
-		val medianCacheAgeDays: Double,
-		val oldestCacheAgeDays: Double,
-	)
+    @Serializable
+    data class Status(
+        val cachedMoviesSize: Int,
+        val bookmarkedMoviesSize: Int,
+        val watchedMoviesSize: Int,
+        val averageCacheAgeDays: Double,
+        val standardDeviationCacheAgeDays: Double,
+        val medianCacheAgeDays: Double,
+        val oldestCacheAgeDays: Double,
+    )
 
-	private val json = Json { prettyPrint = true }
+    private val json = Json { prettyPrint = true }
 
-	fun statusJson(): String {
-		val status =
-			Status(
-				cachedMoviesSize = cache.size,
-				bookmarkedMoviesSize = cache.values.count { it.isBookmarked },
-				watchedMoviesSize = cache.values.count { it.isWatched },
-				averageCacheAgeDays =
-					if (cache.isEmpty()) {
-						0.0
-					} else {
-						cache.values.map { System.currentTimeMillis() - it.cacheDate }.average() /
-							(1000 * 60 * 60 * 24)
-					},
-				standardDeviationCacheAgeDays =
-					if (cache.isEmpty()) {
-						0.0
-					} else {
-						val mean = cache.values.map {
-							System.currentTimeMillis() - it.cacheDate
-						}.average()
-						val variance = cache.values.map {
-							(
-								System.currentTimeMillis() - it.cacheDate -
-									mean
-								).let { it * it }
-						}.average()
-						sqrt(variance) / (1000 * 60 * 60 * 24)
-					},
-				medianCacheAgeDays =
-					if (cache.isEmpty()) {
-						0.0
-					} else {
-						val sortedAges = cache.values.map {
-							System.currentTimeMillis() -
-								it.cacheDate
-						}.sorted()
-						val middle = sortedAges.size / 2
-						val median =
-							if (sortedAges.size % 2 == 0) {
-								(sortedAges[middle - 1] + sortedAges[middle]) / 2.0
-							} else {
-								sortedAges[middle].toDouble()
-							}
-						median / (1000 * 60 * 60 * 24)
-					},
-				oldestCacheAgeDays =
-					(
-						if (cache.isEmpty()) {
-							0.0
-						} else {
-							cache.values.maxOf { System.currentTimeMillis() - it.cacheDate } /
-								(1000 * 60 * 60 * 24)
-						}
-						).toDouble(),
-			)
-		return json.encodeToString(status)
-	}
+    fun statusJson(): String {
+        val status =
+            Status(
+                cachedMoviesSize = cache.size,
+                bookmarkedMoviesSize = cache.values.count { it.isBookmarked },
+                watchedMoviesSize = cache.values.count { it.isWatched },
+                averageCacheAgeDays =
+                    if (cache.isEmpty()) {
+                        0.0
+                    } else {
+                        cache.values.map { System.currentTimeMillis() - it.cacheDate }.average() /
+                            (1000 * 60 * 60 * 24)
+                    },
+                standardDeviationCacheAgeDays =
+                    if (cache.isEmpty()) {
+                        0.0
+                    } else {
+                        val mean = cache.values.map {
+                            System.currentTimeMillis() - it.cacheDate
+                        }.average()
+                        val variance = cache.values.map {
+                            (
+                                System.currentTimeMillis() - it.cacheDate -
+                                    mean
+                                ).let { it * it }
+                        }.average()
+                        sqrt(variance) / (1000 * 60 * 60 * 24)
+                    },
+                medianCacheAgeDays =
+                    if (cache.isEmpty()) {
+                        0.0
+                    } else {
+                        val sortedAges = cache.values.map {
+                            System.currentTimeMillis() -
+                                it.cacheDate
+                        }.sorted()
+                        val middle = sortedAges.size / 2
+                        val median =
+                            if (sortedAges.size % 2 == 0) {
+                                (sortedAges[middle - 1] + sortedAges[middle]) / 2.0
+                            } else {
+                                sortedAges[middle].toDouble()
+                            }
+                        median / (1000 * 60 * 60 * 24)
+                    },
+                oldestCacheAgeDays =
+                    (
+                        if (cache.isEmpty()) {
+                            0.0
+                        } else {
+                            cache.values.maxOf { System.currentTimeMillis() - it.cacheDate } /
+                                (1000 * 60 * 60 * 24)
+                        }
+                        ).toDouble(),
+            )
+        return json.encodeToString(status)
+    }
 }
