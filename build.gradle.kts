@@ -1,5 +1,8 @@
 import de.amklee.monomovie.GenerateResourceIndexTask
 import de.amklee.monomovie.githubMaven
+import de.amklee.monomovie.shrunkel.CssFilter
+import de.amklee.monomovie.shrunkel.JsFilter
+import de.amklee.monomovie.shrunkel.SvgFilter
 
 plugins {
     kotlin("jvm") version "2.3.20"
@@ -69,6 +72,17 @@ runtime {
 }
 
 tasks {
+    processResources {
+        filesMatching("**/*.js") {
+            filter(JsFilter::class, mapOf("sourceName" to sourceName))
+        }
+        filesMatching("**/*.css") {
+            filter(CssFilter::class)
+        }
+        filesMatching("**/*.svg") {
+            filter(SvgFilter::class)
+        }
+    }
     shadowJar {
         archiveFileName = "app.jar"
     }
