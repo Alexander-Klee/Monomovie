@@ -19,12 +19,7 @@ object BookmarksDB {
 			ignoreUnknownKeys = true
 		}
 
-	data class BookmarkItem(
-		val id: String,
-		val bookmarkedAt: Long,
-		val isBookmarked: Boolean = true,
-		val colour: String? = null,
-	)
+	data class BookmarkItem(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true, val colour: String? = null)
 
 	private var bookmarksDB: BookmarksDB3 = openBookmarksDb()
 
@@ -157,12 +152,7 @@ object BookmarksDB {
 	private data class BookmarkItem2(val id: String, val bookmarkedAt: Long)
 
 	@Serializable
-	private data class BookmarkItem3(
-		val id: String,
-		val bookmarkedAt: Long,
-		val isBookmarked: Boolean,
-		val colour: String? = null,
-	)
+	private data class BookmarkItem3(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean, val colour: String? = null)
 
 	private fun BookmarksDB1.migrate(): BookmarksDB3 = BookmarksDB2(
 		bookmarks =

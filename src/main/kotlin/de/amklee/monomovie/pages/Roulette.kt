@@ -40,9 +40,9 @@ class SharedRouletteSession {
 	private val movies = LinkedHashMap<String, RouletteCachedMovie>()
 	private val mutex = Mutex()
 
-	private val _events = MutableSharedFlow<RouletteSseEvent>()
+	private val events = MutableSharedFlow<RouletteSseEvent>()
 
-	fun events(): SharedFlow<RouletteSseEvent> = _events.asSharedFlow()
+	fun events(): SharedFlow<RouletteSseEvent> = events.asSharedFlow()
 
 	suspend fun addAll(movies: List<CachedMovies.Movie>): Collection<RouletteCachedMovie> {
 		for (movie in movies) {
@@ -58,7 +58,7 @@ class SharedRouletteSession {
 		}
 		// not in the critical section, so technically the movie could have been added in the meantime.
 		// however, this avoids locking us up which is probably more important in the case of one slow client.
-		_events.emit(buildAddEvent(movie, 1))
+		events.emit(buildAddEvent(movie, 1))
 	}
 
 	suspend fun updateCount(movie: CachedMovies.Movie, count: Int) {
@@ -79,18 +79,17 @@ class SharedRouletteSession {
 			}
 		// not in the critical section, so technically the movie could have been added in the meantime.
 		// however, this avoids locking us up which is probably more important in the case of one slow client.
-		if (event != null) _events.emit(event)
+		if (event != null) events.emit(event)
 	}
 
-	private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.Add =
-		RouletteSseEvent.Add(
-			id = movie.mediaEntry.id!!,
-			body = buildULHtml { RouletteMovieListItem(movie, count) },
-		)
+	private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.Add = RouletteSseEvent.Add(
+		id = movie.mediaEntry.id!!,
+		body = buildULHtml { RouletteMovieListItem(movie, count) },
+	)
 
 	suspend fun remove(movie: CachedMovies.Movie) {
 		mutex.withLock { movies.remove(movie.mediaEntry.id!!) }?.let {
-			_events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id!!))
+			events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id!!))
 		}
 	}
 }
@@ -99,6 +98,7 @@ data class RouletteCachedMovie(val movie: CachedMovies.Movie, var votes: Int)
 
 infix fun CachedMovies.Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 
+@HtmlTagMarker
 suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
 	if (shareId != null) {
 		script {
@@ -137,10 +137,8 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
 	}
 }
 
-suspend fun FlowContent.SharedRouletteSelectionPage(
-	movies: List<CachedMovies.Movie>,
-	shareId: Uuid,
-) {
+@HtmlTagMarker
+suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Movie>, shareId: Uuid) {
 	SearchBar("")
 	h1 { +"Shared Roulette:" }
 	if (movies.isEmpty()) {

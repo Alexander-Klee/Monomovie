@@ -6,12 +6,14 @@ import de.amklee.monomovie.util.*
 import kotlinx.html.*
 import kotlinx.html.impl.dataset
 
+@HtmlTagMarker
 private fun UL.OfferItem(offer: Offer) = OfferItem(
 	offer.standardWebURL ?: "",
 	"https://images.justwatch.com${offer.`package`?.icon}",
 	offer.`package`?.clearName ?: "Unknown Title",
 )
 
+@HtmlTagMarker
 private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
 	li(classes = "offer-item") {
 		a(href = offerUrl, classes = "offer-link") {
@@ -26,17 +28,15 @@ private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
 	}
 }
 
+@HtmlTagMarker
 fun UL.JellyfinOfferItem(jellyfinLink: String) = OfferItem(
 	jellyfinLink,
 	JellyfinClient.getLogoLink(),
 	"Jellyfin",
 )
 
-fun FlowContent.OfferList(
-	offers: List<Offer>,
-	jellyfinLink: String? = null,
-	extraElements: FlowContent.() -> Unit = {},
-) {
+@HtmlTagMarker
+fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, extraElements: FlowContent.() -> Unit = {}) {
 	ul(classes = "offer-list") {
 		// Offers
 		jellyfinLink?.let { JellyfinOfferItem(it) }
@@ -46,6 +46,7 @@ fun FlowContent.OfferList(
 	}
 }
 
+@HtmlTagMarker
 private fun FlowContent.MoreOffersButton(movie: CachedMovies.Movie) {
 	val movieId = movie.mediaEntry.id ?: return
 	val offersLink = "/offers/$movieId"
@@ -55,20 +56,14 @@ private fun FlowContent.MoreOffersButton(movie: CachedMovies.Movie) {
 	}
 }
 
-private fun FlowContent.SimpleLink(
-	target: String?,
-	classes: String = "no-link-style",
-	content: FlowContent.() -> Unit,
-) {
+@HtmlTagMarker
+private fun FlowContent.SimpleLink(target: String?, classes: String = "no-link-style", content: FlowContent.() -> Unit) {
 	if (target.isNullOrBlank()) return
 	a(href = target, classes = classes) { content() }
 }
 
-private fun FlowContent.SimpleLinkNewTab(
-	target: String?,
-	classes: String = "no-link-style",
-	content: FlowContent.() -> Unit,
-) {
+@HtmlTagMarker
+private fun FlowContent.SimpleLinkNewTab(target: String?, classes: String = "no-link-style", content: FlowContent.() -> Unit) {
 	if (target.isNullOrBlank()) return
 	a(href = target, target = "_blank", classes = classes) {
 		rel = "noopener noreferrer"
@@ -76,6 +71,7 @@ private fun FlowContent.SimpleLinkNewTab(
 	}
 }
 
+@HtmlTagMarker
 private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
 	fun formatScore(score: Float): String = String.format("%.1f", score)
 
@@ -118,6 +114,7 @@ fun formatTime(minutes: Int): String {
 	}
 }
 
+@HtmlTagMarker
 fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
 	val releaseYear = movie.mediaEntry.content?.originalReleaseYear
 	val runtime =
@@ -143,11 +140,8 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
 }
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
-suspend fun FlowContent.MovieItem(
-	movie: CachedMovies.Movie,
-	showOffers: Boolean = true,
-	extraElements: FlowContent.() -> Unit = {},
-) {
+@HtmlTagMarker
+suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
 	val movieId = movie.mediaEntry.id
 	val movieTitle = movie.mediaEntry.title
 	val posterUrl = movie.mediaEntry.fullPosterUrl
@@ -231,6 +225,7 @@ suspend fun FlowContent.MovieItem(
 	}
 }
 
+@HtmlTagMarker
 suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
 	li(classes = "movie-list-item") {
 		MovieItem(movie)
@@ -238,6 +233,7 @@ suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
 }
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
+@HtmlTagMarker
 suspend fun UL.MovieListSentinel() {
 	li(classes = "movie-list-item") {
 		id = "infinite-sentinel"
@@ -263,6 +259,7 @@ suspend fun UL.MovieListSentinel() {
 	}
 }
 
+@HtmlTagMarker
 suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
 	li(classes = "movie-list-item") {
 		val name = movie.mediaEntry.id ?: ""
@@ -279,6 +276,7 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
 }
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
+@HtmlTagMarker
 suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) {
 	li(classes = "movie-list-item") {
 		id = "roulette-${movie.mediaEntry.id}"

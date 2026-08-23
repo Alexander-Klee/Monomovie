@@ -52,12 +52,7 @@ class JustWatch(private val country: String = "US", private val language: String
 			}
 		}
 
-	suspend fun search(
-		title: String,
-		count: Int = 4,
-		bestOnly: Boolean = true,
-		cursor: String? = null,
-	): SearchTitles? {
+	suspend fun search(title: String, count: Int = 4, bestOnly: Boolean = true, cursor: String? = null): SearchTitles? {
 		// Be aware that the JustWatch API returns duplicate titles when searching.
 		val response =
 			client.post {
@@ -89,11 +84,7 @@ class JustWatch(private val country: String = "US", private val language: String
 	}
 
 	@Serializable
-	private data class SearchRequestBody(
-		val operationName: String = "GetSearchTitles",
-		val variables: SearchVariables,
-		val query: String,
-	) {
+	private data class SearchRequestBody(val operationName: String = "GetSearchTitles", val variables: SearchVariables, val query: String) {
 		@Serializable
 		data class SearchVariables(
 			val country: String,
@@ -142,11 +133,7 @@ class JustWatch(private val country: String = "US", private val language: String
 	}
 
 	@Serializable
-	private data class DetailsRequestBody(
-		val operationName: String,
-		val variables: DetailsVariables,
-		val query: String,
-	) {
+	private data class DetailsRequestBody(val operationName: String, val variables: DetailsVariables, val query: String) {
 		@Serializable
 		data class DetailsVariables(
 			val nodeId: String,
@@ -187,11 +174,7 @@ class JustWatch(private val country: String = "US", private val language: String
 		""".trimIndent() + OFFER_FRAGMENT
 	}
 
-	suspend fun offersForCountries(
-		nodeId: String,
-		countries: Set<String>,
-		bestOnly: Boolean = true,
-	): Map<String, List<Offer>> {
+	suspend fun offersForCountries(nodeId: String, countries: Set<String>, bestOnly: Boolean = true): Map<String, List<Offer>> {
 		if (countries.isEmpty()) return emptyMap()
 		val query = prepareOffersByCountryQuery(countries)
 

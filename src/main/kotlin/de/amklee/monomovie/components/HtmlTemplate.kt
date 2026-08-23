@@ -4,6 +4,7 @@ import de.amklee.monomovie.R
 import de.amklee.monomovie.util.IncludeSvgTemplates
 import kotlinx.html.*
 
+@HtmlTagMarker
 inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
 	val title: String = if (title.endsWith("Monomovie")) title else "$title - Monomovie"
 	head {
@@ -56,6 +57,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
 	}
 }
 
+@HtmlTagMarker
 fun FlowContent.NavBar() {
 	nav(classes = "navbar") {
 		h1 { +"Movies" }
@@ -69,6 +71,7 @@ fun FlowContent.NavBar() {
 	}
 }
 
+@HtmlTagMarker
 fun FlowContent.MenuButton() {
 	checkBoxInput(name = "menu-toggle", classes = "menu-toggle") {
 		id = "menu-toggle"
@@ -84,6 +87,7 @@ fun FlowContent.MenuButton() {
 	}
 }
 
+@HtmlTagMarker
 fun FlowContent.TopButton() {
 	button(classes = "floating-action-button top-button") {
 		id = "top_button"

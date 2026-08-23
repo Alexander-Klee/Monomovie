@@ -7,29 +7,25 @@ import kotlin.time.Duration
 
 private val LOG = System.getLogger("SharedSessionContainer")
 
-class SharedSessionContainer<K, V>(
-	private val sessionTimeout: Duration,
-	private val construct: (K) -> V,
-) {
+class SharedSessionContainer<K, V>(private val sessionTimeout: Duration, private val construct: (K) -> V) {
 	private val timer = Timer("SessionCleanupTimer", true)
 	private val sessions: MutableMap<K, SessionEntry<V>> = ConcurrentHashMap()
 
-	fun preheat(key: K, construct: () -> V = { construct(key) }, update: (V) -> Unit = {}): V =
-		sessions
-			.compute(key) { _, oldSession ->
-				val value =
-					oldSession?.let {
-						it.timerTask.cancel()
-						update(it.value)
-						it.value
-					} ?: construct()
-				SessionEntry(
-					value = value,
-					references = oldSession?.references ?: 0,
-					timerTask = cleanupTask(key),
-				)
-			}!!
-			.value
+	fun preheat(key: K, construct: () -> V = { construct(key) }, update: (V) -> Unit = {}): V = sessions
+		.compute(key) { _, oldSession ->
+			val value =
+				oldSession?.let {
+					it.timerTask.cancel()
+					update(it.value)
+					it.value
+				} ?: construct()
+			SessionEntry(
+				value = value,
+				references = oldSession?.references ?: 0,
+				timerTask = cleanupTask(key),
+			)
+		}!!
+		.value
 
 	fun reheat(key: K) {
 		sessions.computeIfPresent(key) { _, session ->
@@ -38,12 +34,7 @@ class SharedSessionContainer<K, V>(
 		}
 	}
 
-	fun <R> withValue(
-		key: K,
-		construct: () -> V = { construct(key) },
-		update: (V) -> Unit = {},
-		action: (V) -> R,
-	): R {
+	fun <R> withValue(key: K, construct: () -> V = { construct(key) }, update: (V) -> Unit = {}, action: (V) -> R): R {
 		val value = obtain(key, construct, update)
 		try {
 			return action(value)
@@ -52,12 +43,7 @@ class SharedSessionContainer<K, V>(
 		}
 	}
 
-	suspend fun <R> withValueSuspend(
-		key: K,
-		construct: () -> V = { construct(key) },
-		update: (V) -> Unit = {},
-		action: suspend (V) -> R,
-	): R {
+	suspend fun <R> withValueSuspend(key: K, construct: () -> V = { construct(key) }, update: (V) -> Unit = {}, action: suspend (V) -> R): R {
 		val value = obtain(key, construct, update)
 		try {
 			return action(value)

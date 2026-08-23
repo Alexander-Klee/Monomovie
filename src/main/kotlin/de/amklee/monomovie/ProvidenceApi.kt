@@ -61,11 +61,7 @@ object ProvidenceApi {
 	}
 
 	@Serializable
-	data class WheelConfig(
-		val hash: HashRef,
-		val options: List<WheelOption>,
-		val actions: List<WheelAction>,
-	)
+	data class WheelConfig(val hash: HashRef, val options: List<WheelOption>, val actions: List<WheelAction>)
 
 	private val latestHash =
 		NIHCache(5.minutes) {

@@ -47,6 +47,7 @@ private fun getCountryName(countryCode: String): String = try {
 	countryCode
 }
 
+@HtmlTagMarker
 private fun FlowContent.JellyfinTable(jellyfinLink: String) {
 	h1 { +"Jellyfin" }
 	table {
@@ -61,11 +62,8 @@ private fun FlowContent.JellyfinTable(jellyfinLink: String) {
 	}
 }
 
-suspend fun FlowContent.OfferPage(
-	movie: CachedMovies.Movie,
-	offers: Map<String, List<Offer>>,
-	mainCountry: String = "DE",
-) {
+@HtmlTagMarker
+suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
 	div {
 		script {
 			unsafe {

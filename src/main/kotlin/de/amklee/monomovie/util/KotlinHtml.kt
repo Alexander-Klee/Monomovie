@@ -23,10 +23,7 @@ inline fun buildULHtml(build: UL.() -> Unit): String = buildHtml {
 	}
 }
 
-suspend inline fun ApplicationCall.respondHtml(
-	status: HttpStatusCode = HttpStatusCode.OK,
-	crossinline block: suspend HTML.() -> Unit,
-) {
+suspend inline fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, crossinline block: suspend HTML.() -> Unit) {
 	respondTextWriter(ContentType.Text.Html.withCharset(Charsets.UTF_8), status) {
 		append("<!DOCTYPE html>\n")
 		// delayed() delays the current tag head end until we have all attributes

@@ -17,12 +17,7 @@ object CachedMovies {
 	private val log = System.getLogger("MMV/CachedMovies")
 
 	@Serializable
-	data class Movie(
-		val mediaEntry: MediaEntry,
-		var isBookmarked: Boolean,
-		var isWatched: Boolean,
-		val cacheDate: Long,
-	)
+	data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Long)
 
 	fun Movie.getOffers() = mediaEntry.offers?.filter {
 		it.monetizationType.equals(MonetizationTypes.FREE.name, ignoreCase = true) ||
@@ -75,9 +70,8 @@ object CachedMovies {
 		cache[mediaEntry.id] = movie
 	}
 
+	const val STALE_MS = 15L * 24 * 60 * 60 * 1000 // 30 days in ms
 	suspend fun get(id: String): Movie? {
-		val STALE_MS = 15L * 24 * 60 * 60 * 1000 // 30 days in ms
-
 		val cached = cache[id]
 
 		// try to update cache if missing or older than 30 days
@@ -153,10 +147,7 @@ object CachedMovies {
 		return searchResult
 	}
 
-	suspend fun getAllOffers(
-		movie: Movie,
-		countries: Set<String> = Locale.getISOCountries().toSet(),
-	): Map<String, List<Offer>> {
+	suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
 		if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
 		try {
 			return justWatch.offersForCountries(movie.mediaEntry.id, countries)
@@ -184,12 +175,11 @@ object CachedMovies {
 
 	suspend inline fun getWatchedMovies() = WatchedDB.getWatched()
 
-	suspend inline fun getBookmarkedMovies(displayHidden: Boolean, displayWatched: Boolean) =
-		BookmarksDB
-			.getBookmarks()
-			.filter { displayHidden || it.isBookmarked }
-			.mapNotNull { get(it.id) }
-			.filter { displayWatched || !it.isWatched }
+	suspend inline fun getBookmarkedMovies(displayHidden: Boolean, displayWatched: Boolean) = BookmarksDB
+		.getBookmarks()
+		.filter { displayHidden || it.isBookmarked }
+		.mapNotNull { get(it.id) }
+		.filter { displayWatched || !it.isWatched }
 
 	@Serializable
 	data class Status(

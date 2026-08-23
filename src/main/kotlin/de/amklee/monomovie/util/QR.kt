@@ -125,8 +125,7 @@ class BitMatrix(val width: Int, val height: Int) {
 	}
 }
 
-class DataTooLongException(msg: String?) :
-	IllegalArgumentException(msg ?: "The supplied data does not fit any QR Code version")
+class DataTooLongException(msg: String?) : IllegalArgumentException(msg ?: "The supplied data does not fit any QR Code version")
 
 class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
 	private val _data = data.copy() // defensive copy
@@ -255,27 +254,21 @@ class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
 }
 
 /**
+ * Constructs a QR Code with the specified version number,
+ * error correction level, data codeword bytes, and mask number.
+ *
+ * This is a low-level API that most users should not use directly. A mid-level
+ * API is the [.encodeSegments] function.
+ *
  * @param version the version number to use, which must be in the range 1 to 40 (inclusive)
  * @param errorCorrectionLevel the error correction level to use
  * @param dataCodewords the bytes representing segments to encode (without ECC)
  * @param mask the mask pattern to use, which is either &#x2212;1 for automatic choice or from 0 to 7 for fixed choice
+ * @throws NullPointerException if the byte array or error correction level is `null`
+ * @throws IllegalArgumentException if the version or mask value is out of range,
+ * or if the data is the wrong length for the specified version and error correction level
  */
-class QrCode(
-	val version: Int,
-	val errorCorrectionLevel: Ecc,
-	dataCodewords: ByteArray,
-	mask: Int,
-) {
-	/**
-	 * Constructs a QR Code with the specified version number,
-	 * error correction level, data codeword bytes, and mask number.
-	 *
-	 * This is a low-level API that most users should not use directly. A mid-level
-	 * API is the [.encodeSegments] function.
-	 * @throws NullPointerException if the byte array or error correction level is `null`
-	 * @throws IllegalArgumentException if the version or mask value is out of range,
-	 * or if the data is the wrong length for the specified version and error correction level
-	 */
+class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: ByteArray, mask: Int) {
 	init {
 		require(version in MIN_VERSION..MAX_VERSION) { "Version value out of range" }
 		require(!(mask < -1 || mask > 7)) { "Mask value out of range" }
@@ -333,7 +326,7 @@ class QrCode(
 		val numAlign = alignPatPos.size
 		for (i in 0..<numAlign) {
 			for (j in 0..<numAlign) {
-				if (!(i == 0 && j == 0 || i == 0 && j == numAlign - 1 || i == numAlign - 1 && j == 0)) {
+				if (!((i == 0 && j == 0) || (i == 0 && j == numAlign - 1) || (i == numAlign - 1 && j == 0))) {
 					drawAlignmentPattern(
 						alignPatPos[i],
 						alignPatPos[j],
@@ -597,11 +590,7 @@ class QrCode(
 	}
 
 	// Must be called at the end of a line (row or column) of modules. A helper function for getPenaltyScore().
-	private fun finderPenaltyTerminateAndCount(
-		currentRunColor: Boolean,
-		currentRunLength: Int,
-		runHistory: IntArray,
-	): Int {
+	private fun finderPenaltyTerminateAndCount(currentRunColor: Boolean, currentRunLength: Int, runHistory: IntArray): Int {
 		var currentRunLength = currentRunLength
 		if (currentRunColor) { // Terminate dark run
 			finderPenaltyAddHistory(currentRunLength, runHistory)
@@ -655,8 +644,7 @@ class QrCode(
 		 * @throws DataTooLongException if the text fails to fit in the
 		 * largest version QR Code at the ECL, which means it is too long
 		 */
-		fun encodeText(text: CharSequence, ecl: Ecc): QrCode =
-			encodeSegments(QrSegment.makeSegments(text), ecl)
+		fun encodeText(text: CharSequence, ecl: Ecc): QrCode = encodeSegments(QrSegment.makeSegments(text), ecl)
 
 		/**
 		 * Returns a QR Code representing the specified binary data at the specified error correction level.
@@ -670,8 +658,7 @@ class QrCode(
 		 * @throws DataTooLongException if the data fails to fit in the
 		 * largest version QR Code at the ECL, which means it is too long
 		 */
-		fun encodeBinary(data: ByteArray, ecl: Ecc): QrCode =
-			encodeSegments(listOf(QrSegment.makeBytes(data)), ecl)
+		fun encodeBinary(data: ByteArray, ecl: Ecc): QrCode = encodeSegments(listOf(QrSegment.makeBytes(data)), ecl)
 
 		/**
 		 * Returns a QR Code representing the specified segments at the specified error correction
@@ -1230,12 +1217,7 @@ object QrCodeRenderer {
 		matrix[x, y]
 	}
 
-	private inline fun renderSVG(
-		width: Int,
-		height: Int,
-		border: Int = 2,
-		isDark: (x: Int, y: Int) -> Boolean,
-	) = buildString {
+	private inline fun renderSVG(width: Int, height: Int, border: Int = 2, isDark: (x: Int, y: Int) -> Boolean) = buildString {
 		require(border >= 0) { "Border size cannot be negative" }
 
 		append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
@@ -1253,11 +1235,7 @@ object QrCodeRenderer {
 		append("</svg>\n")
 	}
 
-	private inline fun StringBuilder.renderSvgPath(
-		width: Int,
-		height: Int,
-		isDark: (x: Int, y: Int) -> Boolean,
-	) {
+	private inline fun StringBuilder.renderSvgPath(width: Int, height: Int, isDark: (x: Int, y: Int) -> Boolean) {
 		for (y in 0 until height) {
 			for (x in 0 until width) {
 				if (isDark(x, y)) append(" M$x,${y}h1v1h-1z")

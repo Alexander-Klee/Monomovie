@@ -9,6 +9,7 @@ import de.amklee.monomovie.util.sseJs
 import java.time.format.DateTimeFormatter
 import kotlinx.html.*
 
+@HtmlTagMarker
 inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
 	script {
 		unsafe {
@@ -21,6 +22,7 @@ inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
 	}
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.SearchMovieList() = MovieList(
 	R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.SEARCH) + R.infiniteScrollJs,
 ) {
@@ -30,6 +32,7 @@ suspend fun FlowContent.SearchMovieList() = MovieList(
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 
+@HtmlTagMarker
 suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
 	R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.WATCHED),
 ) {
@@ -48,10 +51,8 @@ suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = 
 	}
 }
 
-suspend fun FlowContent.SelectableMovieList(
-	movies: List<CachedMovies.Movie>,
-	minSelection: Int = 2,
-) = MovieList(
+@HtmlTagMarker
+suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, minSelection: Int = 2) = MovieList(
 	R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.selectableJs(minSelection) +
 		R.sseJs(Mode.OVERVIEW),
 ) {
@@ -60,6 +61,7 @@ suspend fun FlowContent.SelectableMovieList(
 	}
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
 	R.imageErrorJs + R.watchedJs + R.sseJs(Mode.ROULETTE),
 ) {

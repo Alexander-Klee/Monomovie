@@ -7,8 +7,7 @@ import kotlin.uuid.Uuid
 
 fun R.sseJs(mode: Mode) = sseJs.replace($$"$mode$", mode.toString())
 
-fun R.selectableJs(minSelection: Int) =
-	selectableJs.replace($$"$minSelection$", minSelection.toString())
+fun R.selectableJs(minSelection: Int) = selectableJs.replace($$"$minSelection$", minSelection.toString())
 
 @OptIn(ExperimentalUuidApi::class)
 fun R.rouletteSharedJs(shareId: Uuid) = rouletteSharedJs.replace($$"$shareId$", shareId.toString())

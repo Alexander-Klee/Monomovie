@@ -4,16 +4,16 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class LazyValue<T>(private val initializer: suspend () -> T) {
-	private var _value: T? = null
+	private var value: T? = null
 	private val mutex = Mutex()
 
 	suspend fun get(): T {
-		_value?.let { return it }
+		value?.let { return it }
 		return mutex.withLock {
-			if (_value == null) {
-				_value = initializer()
+			if (value == null) {
+				value = initializer()
 			}
-			_value!!
+			value!!
 		}
 	}
 }
