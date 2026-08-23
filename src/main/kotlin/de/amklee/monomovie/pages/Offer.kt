@@ -8,21 +8,23 @@ import de.amklee.monomovie.components.Mode
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
 import de.amklee.monomovie.util.sseJs
-import kotlinx.html.*
 import java.util.Locale
+import kotlinx.html.*
 
 enum class MonetizationTypes(val type: String) {
     FLATRATE("Flatrate"),
     RENT("Rent"),
     BUY("Buy"),
-    FREE("Free")
+    FREE("Free"),
 }
 
 private fun FlowContent.offerTable(offers: List<Offer>) {
     table {
         for (type in MonetizationTypes.entries) {
             tr {
-                val typeOffers = offers.filter { it.monetizationType.equals(type.name, ignoreCase = true) }
+                val typeOffers = offers.filter {
+                    it.monetizationType.equals(type.name, ignoreCase = true)
+                }
                 if (typeOffers.isNotEmpty()) {
                     td(classes = "offerType-td") { +type.type }
                     td(classes = "offer-td") {
@@ -34,17 +36,18 @@ private fun FlowContent.offerTable(offers: List<Offer>) {
     }
 }
 
-private fun getCountryName(countryCode: String): String {
-    return try {
-        val locale = Locale.Builder()
+private fun getCountryName(countryCode: String): String = try {
+    val locale =
+        Locale
+            .Builder()
             .setRegion(countryCode)
             .build()
-        locale.getDisplayCountry(Locale.ENGLISH)
-    } catch (e: Exception) {
-        countryCode
-    }
+    locale.getDisplayCountry(Locale.ENGLISH)
+} catch (e: Exception) {
+    countryCode
 }
 
+@HtmlTagMarker
 private fun FlowContent.JellyfinTable(jellyfinLink: String) {
     h1 { +"Jellyfin" }
     table {
@@ -59,6 +62,7 @@ private fun FlowContent.JellyfinTable(jellyfinLink: String) {
     }
 }
 
+@HtmlTagMarker
 suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
         script {
@@ -75,26 +79,31 @@ suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String,
         jellyfinLink?.let { JellyfinTable(it) }
 
         // sort countries by number of flatrate offers descending, prioritize main country
-        val sortedOffers = offers.toList()
-            .sortedByDescending {
-                (_, offers) -> offers.filter {
-                    it.monetizationType.equals("Flatrate", ignoreCase = true)
-                }.size }
-            .sortedBy {
-                (country, _) -> if (country == mainCountry) 0 else 1
-            }
+        val sortedOffers =
+            offers
+                .toList()
+                .sortedByDescending { (_, offers) ->
+                    offers
+                        .filter {
+                            it.monetizationType.equals("Flatrate", ignoreCase = true)
+                        }.size
+                }.sortedBy { (country, _) ->
+                    if (country == mainCountry) 0 else 1
+                }
 
         // countries with offers
         for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
-            h1 { +country
-                 +" - "
-                 +getCountryName(country) }
+            h1 {
+                +country
+                +" - "
+                +getCountryName(country)
+            }
             offerTable(offers)
         }
 
         val countriesWithoutOffers = offers.filter { it.value.isEmpty() }.keys.sorted()
         if (countriesWithoutOffers.isNotEmpty()) {
-            h1 { +"No offers for:"}
+            h1 { +"No offers for:" }
             p { +countriesWithoutOffers.joinToString(", ") }
         }
     }

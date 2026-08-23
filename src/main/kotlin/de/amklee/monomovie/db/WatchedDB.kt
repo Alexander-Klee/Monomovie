@@ -1,9 +1,6 @@
 package de.amklee.monomovie.db
 
 import de.amklee.monomovie.CachedMovies
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.nio.file.Path
 import java.time.Instant
 import java.time.LocalDateTime
@@ -12,6 +9,9 @@ import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 object WatchedDB {
     val eventFlow = MutableSharedFlow<Event>()
@@ -20,6 +20,7 @@ object WatchedDB {
         prettyPrint = true
         ignoreUnknownKeys = true
     }
+
     data class WatchedItem(val item: CachedMovies.Movie, val watchedAt: LocalDateTime)
 
     private var watchedDB: WatchedDB1 = openWatchedDb()
@@ -36,16 +37,15 @@ object WatchedDB {
             return
         }
         watchedDB = watchedDB.copy(
-            watched = watchedDB.watched + listOf(
-            WatchedItem1(id, Instant.now().epochSecond)
-        ))
+            watched = watchedDB.watched + listOf(WatchedItem1(id, Instant.now().epochSecond)),
+        )
         save()
         eventFlow.emit(Event.Added(id))
     }
 
     suspend fun deleteWatch(id: String) {
         watchedDB = watchedDB.copy(
-            watched = watchedDB.watched.filter { it.id != id }
+            watched = watchedDB.watched.filter { it.id != id },
         )
         save()
         eventFlow.emit(Event.Removed(id))
@@ -58,8 +58,8 @@ object WatchedDB {
                 CachedMovies.get(it.id) ?: return@mapNotNull null,
                 LocalDateTime.ofInstant(
                     Instant.ofEpochSecond(it.watchedAt),
-                    ZoneId.of("Europe/Berlin")
-                )
+                    ZoneId.of("Europe/Berlin"),
+                ),
             )
         }
 
@@ -83,15 +83,10 @@ object WatchedDB {
     private open class Versioned(val version: Int)
 
     @Serializable
-    private data class WatchedDB1(
-        val watched: List<WatchedItem1>
-    ) : Versioned(1)
+    private data class WatchedDB1(val watched: List<WatchedItem1>) : Versioned(1)
 
     @Serializable
-    private data class WatchedItem1(
-        val id: String,
-        val watchedAt: Long
-    )
+    private data class WatchedItem1(val id: String, val watchedAt: Long)
 
     private fun WatchedDB1.migrate(): WatchedDB1 = this
 }

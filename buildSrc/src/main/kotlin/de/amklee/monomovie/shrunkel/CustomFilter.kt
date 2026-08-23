@@ -1,8 +1,8 @@
 package de.amklee.monomovie.shrunkel
 
-import org.apache.tools.ant.filters.BaseParamFilterReader
 import java.io.Reader
 import java.io.StringReader
+import org.apache.tools.ant.filters.BaseParamFilterReader
 
 abstract class CustomFilter(`in`: Reader) : BaseParamFilterReader(`in`) {
     private val reader by lazy { StringReader(transform(super.readFully())) }

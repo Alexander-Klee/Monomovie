@@ -4,6 +4,7 @@ import de.amklee.monomovie.R
 import de.amklee.monomovie.util.IncludeSvgTemplates
 import kotlinx.html.*
 
+@HtmlTagMarker
 inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
     val title: String = if (title.endsWith("Monomovie")) title else "$title - Monomovie"
     head {
@@ -16,12 +17,16 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         meta(content = "website") { property = "og:type" }
         meta(content = "https://mmv.amklee.de/") { property = "og:url" }
         meta(content = "Monomovie") { property = "og:site_name" }
-        meta(content = "Discover, bookmark and select movies for playback.") { property = "og:description" }
+        meta(content = "Discover, bookmark and select movies for playback.") {
+            property = "og:description"
+        }
         meta(content = "https://mmv.amklee.de/og-image.png") { property = "og:image" }
 
         link(rel = "manifest", href = "/static/site.webmanifest")
         link(rel = "apple-touch-icon", href = "/static/apple-touch-icon.png")
-        link(rel = "icon", type = "image/png", href = "/static/favicon-96x96.png") { sizes = "96x96"}
+        link(rel = "icon", type = "image/png", href = "/static/favicon-96x96.png") {
+            sizes = "96x96"
+        }
 
         style {
             unsafe { +R.styleCss }
@@ -51,6 +56,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
     }
 }
 
+@HtmlTagMarker
 fun FlowContent.NavBar() {
     nav(classes = "navbar") {
         h1 { +"Movies" }
@@ -64,6 +70,7 @@ fun FlowContent.NavBar() {
     }
 }
 
+@HtmlTagMarker
 fun FlowContent.MenuButton() {
     checkBoxInput(name = "menu-toggle", classes = "menu-toggle") {
         id = "menu-toggle"
@@ -79,6 +86,7 @@ fun FlowContent.MenuButton() {
     }
 }
 
+@HtmlTagMarker
 fun FlowContent.TopButton() {
     button(classes = "floating-action-button top-button") {
         id = "top_button"

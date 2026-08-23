@@ -22,6 +22,8 @@ import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.ExperimentalUuidApi
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
@@ -29,8 +31,6 @@ import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.ExperimentalUuidApi
 
 fun Route.miscRoutes() {
     get("/") {
@@ -39,7 +39,12 @@ fun Route.miscRoutes() {
 
         call.respondHtml {
             HtmlTemplate("Monomovie") {
-                HomePage(CachedMovies.getBookmarkedMovies(displayHidden = displayHidden, displayWatched = displayWatched))
+                HomePage(
+                    CachedMovies.getBookmarkedMovies(
+                        displayHidden = displayHidden,
+                        displayWatched = displayWatched,
+                    ),
+                )
             }
         }
     }
@@ -49,13 +54,16 @@ fun Route.miscRoutes() {
         call.respondHtml {
             val empty = title.isNullOrBlank()
             HtmlTemplate(if (empty) "Search" else "$title Search") {
-                if (empty) EmptySearchPage()
-                else SearchPage(title)
+                if (empty) {
+                    EmptySearchPage()
+                } else {
+                    SearchPage(title)
+                }
             }
         }
     }
     post("/search/results") {
-        //TODO implement circuit breaker in JS to prevent spamming this
+        // TODO implement circuit breaker in JS to prevent spamming this
         val title = call.request.queryParameters["title"]
         val cursor = call.request.queryParameters["cursor"]
 
@@ -64,7 +72,17 @@ fun Route.miscRoutes() {
             return@post
         }
 
-        val searchResults = CachedMovies.search(title, cursor, numResults = if (cursor == null) 8 else 4)
+        val searchResults = CachedMovies.search(
+            title,
+            cursor,
+            numResults = if (cursor ==
+                null
+            ) {
+                8
+            } else {
+                4
+            },
+        )
         searchResults?.let {
             call.respond(MoreSearchResults(it))
             return@post
@@ -109,10 +127,11 @@ fun Route.miscRoutes() {
             period = 5.seconds
             event = ServerSentEvent("heartbeat")
         }
-        val eventFlow = merge(
-            BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
-            WatchedDB.eventFlow.map { Kind.WATCHED to it }
-        ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
+        val eventFlow =
+            merge(
+                BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
+                WatchedDB.eventFlow.map { Kind.WATCHED to it },
+            ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
         eventFlow.collect { event ->
             send(event)
         }
@@ -181,7 +200,10 @@ fun Route.miscRoutes() {
     }
     get("/qr.svg") {
         call.request.queryParameters["data"]?.let { data ->
-            call.respondText(QrCodeRenderer.renderSVG(QrCode.encodeText(data, ecl = QrCode.Ecc.HIGH)), contentType = ContentType.Image.SVG)
+            call.respondText(
+                QrCodeRenderer.renderSVG(QrCode.encodeText(data, ecl = QrCode.Ecc.HIGH)),
+                contentType = ContentType.Image.SVG,
+            )
         } ?: call.respond(HttpStatusCode.BadRequest, "Missing data parameter")
     }
     staticResources("/static", "static")
@@ -198,7 +220,9 @@ fun main() {
     }) {
         // including the hostname has the side-benefit of ensuring Environment is initialized
         // and, therefore, that it does not contain errors
-        LOG.info { "Starting server in ${if (developmentMode) "development" else "production"} mode at ${Environment.hostname}" }
+        LOG.info {
+            "Starting server in ${if (developmentMode) "development" else "production"} mode at ${Environment.hostname}"
+        }
         install(ContentNegotiation) {
             json()
         }
@@ -222,7 +246,7 @@ fun main() {
             }
             exception<Throwable> { call, cause ->
                 LOG.error(cause) { "Uncaught exception for path ${call.request.path()}" }
-                call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
+                call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
             }
 
             if (this@embeddedServer.developmentMode) {

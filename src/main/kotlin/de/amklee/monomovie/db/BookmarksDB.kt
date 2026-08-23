@@ -1,14 +1,14 @@
 package de.amklee.monomovie.db
 
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 object BookmarksDB {
     val eventFlow = MutableSharedFlow<Event>()
@@ -19,6 +19,7 @@ object BookmarksDB {
     }
 
     data class BookmarkItem(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true, val colour: String? = null)
+
     private var bookmarksDB: BookmarksDB3 = openBookmarksDb()
 
     private fun save() = synchronized(this) {
@@ -26,7 +27,10 @@ object BookmarksDB {
     }
 
     operator fun contains(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id }
-    fun isBookmarked(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id && it.isBookmarked }
+
+    fun isBookmarked(id: String): Boolean = bookmarksDB.bookmarks.any {
+        it.id == id && it.isBookmarked
+    }
 
     suspend fun addBookmark(id: String) {
         if (contains(id)) {
@@ -34,9 +38,12 @@ object BookmarksDB {
             return
         }
         bookmarksDB = bookmarksDB
-            .copy(bookmarks = bookmarksDB.bookmarks + listOf(
-                BookmarkItem3(id, Instant.now().epochSecond, true)
-            ))
+            .copy(
+                bookmarks = bookmarksDB.bookmarks +
+                    listOf(
+                        BookmarkItem3(id, Instant.now().epochSecond, true),
+                    ),
+            )
         save()
         eventFlow.emit(Event.Added(id))
     }
@@ -45,9 +52,12 @@ object BookmarksDB {
         bookmarksDB = bookmarksDB.copy(
             bookmarks = bookmarksDB.bookmarks
                 .map {
-                    if (it.id == id) it.copy(isBookmarked = true)
-                    else it
-                }
+                    if (it.id == id) {
+                        it.copy(isBookmarked = true)
+                    } else {
+                        it
+                    }
+                },
         )
         save()
         eventFlow.emit(Event.Added(id))
@@ -57,9 +67,12 @@ object BookmarksDB {
         bookmarksDB = bookmarksDB.copy(
             bookmarks = bookmarksDB.bookmarks
                 .map {
-                    if (it.id == id) it.copy(isBookmarked = false)
-                    else it
-                }
+                    if (it.id == id) {
+                        it.copy(isBookmarked = false)
+                    } else {
+                        it
+                    }
+                },
         )
         save()
         eventFlow.emit(Event.Removed(id))
@@ -80,9 +93,12 @@ object BookmarksDB {
         bookmarksDB = bookmarksDB.copy(
             bookmarks = bookmarksDB.bookmarks
                 .map {
-                    if (it.id == id) it.copy(colour = colour)
-                    else it
-                }
+                    if (it.id == id) {
+                        it.copy(colour = colour)
+                    } else {
+                        it
+                    }
+                },
         )
         save()
     }
@@ -114,38 +130,31 @@ object BookmarksDB {
     private open class Versioned(val version: Int)
 
     @Serializable
-    private data class BookmarksDB1(
-        val bookmarks: List<String>
-    ) : Versioned(1)
+    private data class BookmarksDB1(val bookmarks: List<String>) : Versioned(1)
 
     @Serializable
-    private data class BookmarksDB2(
-        val bookmarks: List<BookmarkItem2>
-    ) : Versioned(2)
+    private data class BookmarksDB2(val bookmarks: List<BookmarkItem2>) : Versioned(2)
 
     @Serializable
-    private data class BookmarksDB3(
-        val bookmarks: List<BookmarkItem3>
-    ) : Versioned(3)
-    @Serializable
-    private data class BookmarkItem2(
-        val id: String,
-        val bookmarkedAt: Long
-    )
+    private data class BookmarksDB3(val bookmarks: List<BookmarkItem3>) : Versioned(3)
 
     @Serializable
-    private data class BookmarkItem3(
-        val id: String,
-        val bookmarkedAt: Long,
-        val isBookmarked: Boolean,
-        val colour: String? = null
-    )
+    private data class BookmarkItem2(val id: String, val bookmarkedAt: Long)
 
-    private fun BookmarksDB1.migrate(): BookmarksDB3 {
-        return BookmarksDB2(bookmarks = bookmarks.map { BookmarkItem2(it, Instant.now().epochSecond) }).migrate()
-    }
-    private fun BookmarksDB2.migrate(): BookmarksDB3 {
-        return BookmarksDB3(bookmarks = bookmarks.map { BookmarkItem3(it.id, it.bookmarkedAt, true) }).migrate()
-    }
+    @Serializable
+    private data class BookmarkItem3(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean, val colour: String? = null)
+
+    private fun BookmarksDB1.migrate(): BookmarksDB3 = BookmarksDB2(
+        bookmarks = bookmarks.map {
+            BookmarkItem2(it, Instant.now().epochSecond)
+        },
+    ).migrate()
+
+    private fun BookmarksDB2.migrate(): BookmarksDB3 = BookmarksDB3(
+        bookmarks = bookmarks.map {
+            BookmarkItem3(it.id, it.bookmarkedAt, true)
+        },
+    ).migrate()
+
     private fun BookmarksDB3.migrate(): BookmarksDB3 = this
 }

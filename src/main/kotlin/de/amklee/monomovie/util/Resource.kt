@@ -12,8 +12,12 @@ class Resource(private val name: String) {
         Resource::class.java.getResource("/$name")?.readText()
             ?: throw FileNotFoundException("$name not found in resources")
     }
-    private val resourceFile = Path("src/main/resources/$name").takeIf { Environment.isDevelopment && it.exists() }
+    private val resourceFile = Path("src/main/resources/$name").takeIf {
+        Environment.isDevelopment &&
+            it.exists()
+    }
 
     override fun toString(): String = resourceFile?.readText() ?: resource
+
     operator fun getValue(thisRef: Any?, property: KProperty<*>): String = toString()
 }

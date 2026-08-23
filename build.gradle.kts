@@ -5,7 +5,8 @@ import de.amklee.monomovie.shrunkel.JsFilter
 import de.amklee.monomovie.shrunkel.SvgFilter
 
 plugins {
-    kotlin("jvm") version "2.3.20"
+    kotlin("jvm")
+    ktlint
     application
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
     id("io.ktor.plugin") version "3.4.2"
@@ -19,7 +20,6 @@ version = "1.0-SNAPSHOT"
 application {
     mainClass = "de.amklee.monomovie.MainKt"
 }
-
 
 repositories {
     mavenCentral()

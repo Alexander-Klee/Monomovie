@@ -2,6 +2,11 @@ package de.amklee.monomovie
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import java.nio.file.Path
+import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.useDirectoryEntries
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
@@ -10,11 +15,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import java.nio.file.Path
-import kotlin.io.path.extension
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.useDirectoryEntries
 
 abstract class GenerateResourceIndexTask : DefaultTask() {
     @get:InputDirectory
@@ -48,12 +48,12 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
                         val origin = resourcesDir.asFile.get().toPath()
                         handle(this, origin, origin)
                     }
-                    .build()
+                    .build(),
             ).build()
             .writeTo(generatedKotlinDir.get().asFile)
     }
 
-    private val ResourceClass = ClassName("de.amklee.monomovie.util", "Resource")
+    private val resourceClassName = ClassName("de.amklee.monomovie.util", "Resource")
     fun handle(builder: TypeSpec.Builder, origin: Path, current: Path) {
         val index = mutableListOf<String>()
 
@@ -65,14 +65,18 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
                             if (!stringExtensions.get().contains(entry.extension)) return@forEach
                             val name = entry.asFilePropName()
                             builder.addProperty(
-                                PropertySpec.builder("_$name", ResourceClass, KModifier.PRIVATE)
-                                    .initializer("%T(%S)", ResourceClass, origin.relativize(entry).toString())
-                                    .build()
+                                PropertySpec.builder("_$name", resourceClassName, KModifier.PRIVATE)
+                                    .initializer(
+                                        "%T(%S)",
+                                        resourceClassName,
+                                        origin.relativize(entry).toString(),
+                                    )
+                                    .build(),
                             )
                             builder.addProperty(
                                 PropertySpec.builder(name, String::class)
                                     .delegate("%L", "_$name")
-                                    .build()
+                                    .build(),
                             )
                             index.add(name)
                         }
@@ -80,27 +84,32 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
                         entry.isDirectory() -> builder.addType(
                             TypeSpec.objectBuilder(entry.fileName.toString())
                                 .apply { handle(this, origin, entry) }
-                                .build()
+                                .build(),
                         )
 
                         else -> throw IllegalStateException("Unknown entry type: $entry")
                     }
-            }
+                }
         }
 
         if (index.isNotEmpty()) {
             builder.addProperty(
-                PropertySpec.builder("index", Map::class.parameterizedBy(String::class).plusParameter(ResourceClass))
-                    .initializer(CodeBlock.builder().apply {
-                        add("mapOf(\n")
-                        indent()
-                        for (string in index) {
-                            add("%S to %L,\n", string, "_$string")
-                        }
-                        unindent()
-                        add(")")
-                    }.build())
-                    .build()
+                PropertySpec.builder(
+                    "index",
+                    Map::class.parameterizedBy(String::class).plusParameter(resourceClassName),
+                )
+                    .initializer(
+                        CodeBlock.builder().apply {
+                            add("mapOf(\n")
+                            indent()
+                            for (string in index) {
+                                add("%S to %L,\n", string, "_$string")
+                            }
+                            unindent()
+                            add(")")
+                        }.build(),
+                    )
+                    .build(),
             )
         }
     }
@@ -111,8 +120,11 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
             .splitToSequence('-', '_', '.')
             .forEach {
                 append(
-                    if (isNotEmpty()) it.uppercaseFirst()
-                    else it
+                    if (isNotEmpty()) {
+                        it.uppercaseFirst()
+                    } else {
+                        it
+                    },
                 )
             }
     }

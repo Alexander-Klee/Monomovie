@@ -12,7 +12,6 @@ import java.util.logging.LogRecord
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
-
 @Suppress("NOTHING_TO_INLINE")
 inline fun setupLogging() {
     object {}.javaClass.getResourceAsStream("/logging.properties").use {
@@ -31,12 +30,14 @@ class ColorConsoleFormatter : Formatter() {
         append(TS.format(Instant.fromEpochMilliseconds(record.millis).toJavaInstant()))
         append(" ")
         val lvl = record.level.intValue()
-        append(when {
-            lvl >= Level.SEVERE.intValue() -> RED_BOLD
-            lvl >= Level.WARNING.intValue() -> YELLOW
-            lvl > Level.INFO.intValue() -> GREEN
-            else -> BLUE
-        })
+        append(
+            when {
+                lvl >= Level.SEVERE.intValue() -> RED_BOLD
+                lvl >= Level.WARNING.intValue() -> YELLOW
+                lvl > Level.INFO.intValue() -> GREEN
+                else -> BLUE
+            },
+        )
         append(record.level.name)
         append(RESET)
         append(" ")
@@ -70,8 +71,11 @@ class ColorConsoleFormatter : Formatter() {
 }
 
 fun System.Logger.debug(message: () -> String) = this.log(System.Logger.Level.DEBUG, message)
+
 fun System.Logger.info(message: () -> String) = this.log(System.Logger.Level.INFO, message)
+
 fun System.Logger.warn(message: () -> String) = this.log(System.Logger.Level.WARNING, message)
+
 fun System.Logger.error(message: () -> String) = this.log(System.Logger.Level.ERROR, message)
 
 fun System.Logger.error(e: Throwable, message: () -> String) = this.log(System.Logger.Level.ERROR, message, e)

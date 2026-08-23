@@ -1,15 +1,12 @@
 package de.amklee.monomovie.util
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-class NIHCache<T : Any>(
-    private val maxAge: Duration,
-    private val fetch: suspend () -> T
-) {
+class NIHCache<T : Any>(private val maxAge: Duration, private val fetch: suspend () -> T) {
     private var cache: T? = null
     private var lastAccessed = Instant.fromEpochSeconds(0)
     private val mutex = Mutex()

@@ -6,7 +6,6 @@ import com.google.javascript.jscomp.CompilerOptions
 import com.google.javascript.jscomp.SourceFile
 import java.io.Reader
 
-
 class JsFilter(`in`: Reader) : CustomFilter(`in`) {
     var sourceName: String = ""
 
