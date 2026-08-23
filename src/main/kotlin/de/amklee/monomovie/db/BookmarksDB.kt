@@ -30,8 +30,7 @@ object BookmarksDB {
     operator fun contains(id: String): Boolean = bookmarksDB.bookmarks.any { it.id == id }
 
     fun isBookmarked(id: String): Boolean = bookmarksDB.bookmarks.any {
-        it.id == id &&
-            it.isBookmarked
+        it.id == id && it.isBookmarked
     }
 
     suspend fun addBookmark(id: String) {
@@ -39,49 +38,43 @@ object BookmarksDB {
             markBookmark(id)
             return
         }
-        bookmarksDB =
-            bookmarksDB
-                .copy(
-                    bookmarks =
-                        bookmarksDB.bookmarks +
-                            listOf(
-                                BookmarkItem3(id, Instant.now().epochSecond, true),
-                            ),
-                )
+        bookmarksDB = bookmarksDB
+            .copy(
+                bookmarks = bookmarksDB.bookmarks +
+                    listOf(
+                        BookmarkItem3(id, Instant.now().epochSecond, true),
+                    ),
+            )
         save()
         eventFlow.emit(Event.Added(id))
     }
 
     private suspend fun markBookmark(id: String) {
-        bookmarksDB =
-            bookmarksDB.copy(
-                bookmarks =
-                    bookmarksDB.bookmarks
-                        .map {
-                            if (it.id == id) {
-                                it.copy(isBookmarked = true)
-                            } else {
-                                it
-                            }
-                        },
-            )
+        bookmarksDB = bookmarksDB.copy(
+            bookmarks = bookmarksDB.bookmarks
+                .map {
+                    if (it.id == id) {
+                        it.copy(isBookmarked = true)
+                    } else {
+                        it
+                    }
+                },
+        )
         save()
         eventFlow.emit(Event.Added(id))
     }
 
     suspend fun removeBookmark(id: String) {
-        bookmarksDB =
-            bookmarksDB.copy(
-                bookmarks =
-                    bookmarksDB.bookmarks
-                        .map {
-                            if (it.id == id) {
-                                it.copy(isBookmarked = false)
-                            } else {
-                                it
-                            }
-                        },
-            )
+        bookmarksDB = bookmarksDB.copy(
+            bookmarks = bookmarksDB.bookmarks
+                .map {
+                    if (it.id == id) {
+                        it.copy(isBookmarked = false)
+                    } else {
+                        it
+                    }
+                },
+        )
         save()
         eventFlow.emit(Event.Removed(id))
     }
@@ -98,18 +91,16 @@ object BookmarksDB {
         .map { BookmarkItem(it.id, it.bookmarkedAt, it.isBookmarked, it.colour) }
 
     suspend fun setColour(id: String, colour: String?) {
-        bookmarksDB =
-            bookmarksDB.copy(
-                bookmarks =
-                    bookmarksDB.bookmarks
-                        .map {
-                            if (it.id == id) {
-                                it.copy(colour = colour)
-                            } else {
-                                it
-                            }
-                        },
-            )
+        bookmarksDB = bookmarksDB.copy(
+            bookmarks = bookmarksDB.bookmarks
+                .map {
+                    if (it.id == id) {
+                        it.copy(colour = colour)
+                    } else {
+                        it
+                    }
+                },
+        )
         save()
     }
 
