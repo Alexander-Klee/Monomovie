@@ -49,8 +49,7 @@ suspend fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSe
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
         searchResults.movies.associate {
-            (it.mediaEntry.id ?: "null") to
-                buildULHtml { MovieListItem(it) }
+            (it.mediaEntry.id ?: "null") to buildULHtml { MovieListItem(it) }
         },
         searchResults.pageInfo.hasNextPage,
     )

@@ -13,11 +13,10 @@ import kotlinx.serialization.json.Json
 object BookmarksDB {
     val eventFlow = MutableSharedFlow<Event>()
 
-    private val json =
-        Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-        }
+    private val json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+    }
 
     data class BookmarkItem(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean = true, val colour: String? = null)
 
@@ -146,17 +145,15 @@ object BookmarksDB {
     private data class BookmarkItem3(val id: String, val bookmarkedAt: Long, val isBookmarked: Boolean, val colour: String? = null)
 
     private fun BookmarksDB1.migrate(): BookmarksDB3 = BookmarksDB2(
-        bookmarks =
-            bookmarks.map {
-                BookmarkItem2(it, Instant.now().epochSecond)
-            },
+        bookmarks = bookmarks.map {
+            BookmarkItem2(it, Instant.now().epochSecond)
+        },
     ).migrate()
 
     private fun BookmarksDB2.migrate(): BookmarksDB3 = BookmarksDB3(
-        bookmarks =
-            bookmarks.map {
-                BookmarkItem3(it.id, it.bookmarkedAt, true)
-            },
+        bookmarks = bookmarks.map {
+            BookmarkItem3(it.id, it.bookmarkedAt, true)
+        },
     ).migrate()
 
     private fun BookmarksDB3.migrate(): BookmarksDB3 = this

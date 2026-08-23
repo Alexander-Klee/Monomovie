@@ -16,11 +16,10 @@ import kotlinx.serialization.json.Json
 object WatchedDB {
     val eventFlow = MutableSharedFlow<Event>()
 
-    private val json =
-        Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-        }
+    private val json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+    }
 
     data class WatchedItem(val item: CachedMovies.Movie, val watchedAt: LocalDateTime)
 
@@ -37,23 +36,17 @@ object WatchedDB {
             // maybe increment watch count or something
             return
         }
-        watchedDB =
-            watchedDB.copy(
-                watched =
-                    watchedDB.watched +
-                        listOf(
-                            WatchedItem1(id, Instant.now().epochSecond),
-                        ),
-            )
+        watchedDB = watchedDB.copy(
+            watched = watchedDB.watched + listOf(WatchedItem1(id, Instant.now().epochSecond)),
+        )
         save()
         eventFlow.emit(Event.Added(id))
     }
 
     suspend fun deleteWatch(id: String) {
-        watchedDB =
-            watchedDB.copy(
-                watched = watchedDB.watched.filter { it.id != id },
-            )
+        watchedDB = watchedDB.copy(
+            watched = watchedDB.watched.filter { it.id != id },
+        )
         save()
         eventFlow.emit(Event.Removed(id))
     }

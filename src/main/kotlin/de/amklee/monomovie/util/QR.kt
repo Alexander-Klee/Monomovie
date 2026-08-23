@@ -7,29 +7,17 @@ import kotlin.experimental.or
 import kotlin.experimental.xor
 import kotlin.math.abs
 import kotlin.math.max
-import kotlinx.html.FlowContent
-import kotlinx.html.HTMLTag
-import kotlinx.html.svg
-import kotlinx.html.visit
 
 // based in part on https://github.com/nayuki/QR-Code-generator (MIT License)
 
 private inline fun Int.getBit(i: Int) = (this ushr i) and 1 != 0
-
 private inline fun UInt.getBit(i: Int) = (this shr i) and 1u != 0u
-
 private inline fun Boolean.toByte(): Byte = if (this) 1 else 0
-
 private inline infix fun Byte.shl(bitCount: Int): Byte = (this.toInt() shl bitCount).toByte()
-
 private inline infix fun UByte.shl(bitCount: Int): UByte = (this.toInt() shl bitCount).toUByte()
-
 private inline infix fun UByte.shr(bitCount: Int): UByte = (this.toInt() ushr bitCount).toUByte()
-
 private inline operator fun String.get(index: UByte) = this[index.toInt()]
-
 private inline fun repeat(times: UByte, action: (Int) -> Unit) = repeat(times.toInt(), action)
-
 private inline operator fun Int.minus(other: UByte) = this - other.toInt()
 
 private const val MIN_VERSION = 1
@@ -42,11 +30,7 @@ class BitBuffer {
     val length get() = bitLength
 
     operator fun get(index: Int): Boolean {
-        if (index !in
-            0..<bitLength
-        ) {
-            throw IndexOutOfBoundsException("Index $index out of bounds for length $bitLength")
-        }
+        if (index !in 0..<bitLength) throw IndexOutOfBoundsException("Index $index out of bounds for length $bitLength")
         return data[index]
     }
 
@@ -55,18 +39,8 @@ class BitBuffer {
      * @param len the number of lower-order bits in the value to take
      */
     fun append(value: Int, len: Int): BitBuffer {
-        if (len !in 0..<32 ||
-            value ushr len != 0
-        ) {
-            throw IllegalArgumentException("Value $value does not fit in $len bits")
-        }
-        if (Int.MAX_VALUE - bitLength <
-            len
-        ) {
-            throw IllegalStateException(
-                "Buffer overflow: cannot append $len bits to buffer of length $bitLength",
-            )
-        }
+        if (len !in 0..<32 || value ushr len != 0) throw IllegalArgumentException("Value $value does not fit in $len bits")
+        if (Int.MAX_VALUE - bitLength < len) throw IllegalStateException("Buffer overflow: cannot append $len bits to buffer of length $bitLength")
         for (i in (len - 1) downTo 0) {
             data[bitLength++] = value.getBit(i)
         }
@@ -74,13 +48,7 @@ class BitBuffer {
     }
 
     fun append(other: BitBuffer): BitBuffer {
-        if (Int.MAX_VALUE - bitLength <
-            other.bitLength
-        ) {
-            throw IllegalStateException(
-                "Buffer overflow: cannot append ${other.bitLength} bits to buffer of length $bitLength",
-            )
-        }
+        if (Int.MAX_VALUE - bitLength < other.bitLength) throw IllegalStateException("Buffer overflow: cannot append ${other.bitLength} bits to buffer of length $bitLength")
         for (i in 0 until other.bitLength) {
             data[bitLength++] = other[i]
         }
@@ -99,24 +67,12 @@ class BitMatrix(val width: Int, val height: Int) {
     private val data: BitSet = BitSet(width * height)
 
     operator fun get(x: Int, y: Int): Boolean {
-        if (x !in 0..<width ||
-            y !in 0..<height
-        ) {
-            throw IndexOutOfBoundsException(
-                "Index ($x, $y) out of bounds for size ($width, $height)",
-            )
-        }
+        if (x !in 0..<width || y !in 0..<height) throw IndexOutOfBoundsException("Index ($x, $y) out of bounds for size ($width, $height)")
         return data[y * width + x]
     }
 
     operator fun set(x: Int, y: Int, value: Boolean) {
-        if (x !in 0..<width ||
-            y !in 0..<height
-        ) {
-            throw IndexOutOfBoundsException(
-                "Index ($x, $y) out of bounds for size ($width, $height)",
-            )
-        }
+        if (x !in 0..<width || y !in 0..<height) throw IndexOutOfBoundsException("Index ($x, $y) out of bounds for size ($width, $height)")
         data[y * width + x] = value
     }
 
@@ -133,7 +89,6 @@ class DataTooLongException(msg: String?) : IllegalArgumentException(msg ?: "The 
 
 class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
     private val _data = data.copy() // defensive copy
-
     init {
         require(numChars >= 0) { "Invalid argument" }
     }
@@ -141,11 +96,10 @@ class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
     val data get() = _data.copy() // defensive copy
 
     enum class Mode(val modeBits: Int, private val numBitsCharCount: IntArray) {
-        NUMERIC(0x1, intArrayOf(10, 12, 14)),
-        ALPHANUMERIC(0x2, intArrayOf(9, 11, 13)),
-        BYTE(0x4, intArrayOf(8, 16, 16)),
-        ECI(0x7, intArrayOf(0, 0, 0)),
-        ;
+        NUMERIC     (0x1, intArrayOf(10, 12, 14)),
+        ALPHANUMERIC(0x2, intArrayOf( 9, 11, 13)),
+        BYTE        (0x4, intArrayOf( 8, 16, 16)),
+        ECI         (0x7, intArrayOf( 0,  0,  0));
 
         fun numCharCountBits(version: Int): Int {
             assert(version in MIN_VERSION..MAX_VERSION)
@@ -159,92 +113,58 @@ class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
         private const val ALPHANUMERIC_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
 
         fun isNumeric(text: CharSequence) = NUMERIC_REGEX.matches(text)
-
         fun isAlphanumeric(text: CharSequence) = ALPHANUMERIC_REGEX.matches(text)
 
-        fun makeBytes(data: ByteArray) = QrSegment(
-            Mode.BYTE,
-            data.size,
-            BitBuffer().apply {
-                for (b in data) {
-                    append(b.toUByte().toInt(), 8)
-                }
-            },
-        )
+        fun makeBytes(data: ByteArray) = QrSegment(Mode.BYTE, data.size, BitBuffer().apply {
+            for (b in data) {
+                append(b.toUByte().toInt(), 8)
+            }
+        })
 
         fun makeNumeric(digits: CharSequence): QrSegment {
-            if (!isNumeric(
-                    digits,
-                )
-            ) {
-                throw IllegalArgumentException("String contains non-numeric characters")
-            }
-            return QrSegment(
-                Mode.NUMERIC,
-                digits.length,
-                BitBuffer().apply {
-                    var i = 0
-                    while (i < digits.length) {
-                        val n = minOf(digits.length - i, 3)
-                        append(digits.subSequence(i, i + n).toString().toInt(), n * 3 + 1)
-                        i += n
-                    }
-                },
-            )
+            if (!isNumeric(digits)) throw IllegalArgumentException("String contains non-numeric characters")
+            return QrSegment(Mode.NUMERIC, digits.length, BitBuffer().apply {
+                var i = 0
+                while (i < digits.length) {
+                    val n = minOf(digits.length - i, 3)
+                    append(digits.subSequence(i, i + n).toString().toInt(), n * 3 + 1)
+                    i += n
+                }
+            })
         }
 
         fun makeAlphanumeric(text: CharSequence): QrSegment {
-            if (!isAlphanumeric(
-                    text,
-                )
-            ) {
-                throw IllegalArgumentException(
-                    "String contains unencodable characters in alphanumeric mode",
-                )
-            }
-            return QrSegment(
-                Mode.ALPHANUMERIC,
-                text.length,
-                BitBuffer().apply {
-                    for (i in 0..(text.length - 2) step 2) {
-                        val temp =
-                            ALPHANUMERIC_CHARSET.indexOf(text[i]) * 45 +
-                                ALPHANUMERIC_CHARSET.indexOf(text[i + 1])
-                        append(temp, 11)
-                    }
-                    if (text.length % 2 != 0) {
-                        append(ALPHANUMERIC_CHARSET.indexOf(text.last()), 6)
-                    }
-                },
-            )
-        }
-
-        fun makeSegments(text: CharSequence): List<QrSegment> = when {
-            text.isEmpty() -> emptyList()
-            isNumeric(text) -> listOf(makeNumeric(text))
-            isAlphanumeric(text) -> listOf(makeAlphanumeric(text))
-            else -> listOf(makeBytes(text.toString().encodeToByteArray()))
-        }
-
-        fun makeEci(assignVal: Int): QrSegment = QrSegment(
-            Mode.ECI,
-            0,
-            BitBuffer().apply {
-                when {
-                    assignVal < 0 -> throw IllegalArgumentException(
-                        "ECI assignment value out of range",
-                    )
-
-                    assignVal < (1 shl 7) -> append(assignVal, 8)
-
-                    assignVal < (1 shl 14) -> append(2, 2).append(assignVal, 14)
-
-                    assignVal < (1 shl 21) -> append(6, 3).append(assignVal, 21)
-
-                    else -> throw IllegalArgumentException("ECI assignment value out of range")
+            if (!isAlphanumeric(text)) throw IllegalArgumentException("String contains unencodable characters in alphanumeric mode")
+            return QrSegment(Mode.ALPHANUMERIC, text.length, BitBuffer().apply {
+                for (i in 0..(text.length - 2) step 2) {
+                    val temp = ALPHANUMERIC_CHARSET.indexOf(text[i]) * 45 +
+                               ALPHANUMERIC_CHARSET.indexOf(text[i + 1])
+                    append(temp, 11)
                 }
-            },
-        )
+                if (text.length % 2 != 0) {
+                    append(ALPHANUMERIC_CHARSET.indexOf(text.last()), 6)
+                }
+            })
+        }
+
+        fun makeSegments(text: CharSequence): List<QrSegment> {
+            return when {
+                text.isEmpty() -> emptyList()
+                isNumeric(text) -> listOf(makeNumeric(text))
+                isAlphanumeric(text) -> listOf(makeAlphanumeric(text))
+                else -> listOf(makeBytes(text.toString().encodeToByteArray()))
+            }
+        }
+
+        fun makeEci(assignVal: Int): QrSegment = QrSegment(Mode.ECI, 0, BitBuffer().apply {
+            when {
+                assignVal < 0 -> throw IllegalArgumentException("ECI assignment value out of range")
+                assignVal < (1 shl 7) -> append(assignVal, 8)
+                assignVal < (1 shl 14) -> append(2, 2).append(assignVal, 14)
+                assignVal < (1 shl 21) -> append(6, 3).append(assignVal, 21)
+                else -> throw IllegalArgumentException("ECI assignment value out of range")
+            }
+        })
 
         fun getTotalBits(segs: List<QrSegment>, version: Int): Int {
             var result: Long = 0
@@ -260,21 +180,22 @@ class QrSegment(val mode: Mode, val numChars: Int, data: BitBuffer) {
 }
 
 /**
- * Constructs a QR Code with the specified version number,
- * error correction level, data codeword bytes, and mask number.
- *
- * This is a low-level API that most users should not use directly. A mid-level
- * API is the [.encodeSegments] function.
- *
  * @param version the version number to use, which must be in the range 1 to 40 (inclusive)
  * @param errorCorrectionLevel the error correction level to use
  * @param dataCodewords the bytes representing segments to encode (without ECC)
  * @param mask the mask pattern to use, which is either &#x2212;1 for automatic choice or from 0 to 7 for fixed choice
- * @throws NullPointerException if the byte array or error correction level is `null`
- * @throws IllegalArgumentException if the version or mask value is out of range,
- * or if the data is the wrong length for the specified version and error correction level
  */
 class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: ByteArray, mask: Int) {
+    /**
+     * Constructs a QR Code with the specified version number,
+     * error correction level, data codeword bytes, and mask number.
+     *
+     * This is a low-level API that most users should not use directly. A mid-level
+     * API is the [.encodeSegments] function.
+     * @throws NullPointerException if the byte array or error correction level is `null`
+     * @throws IllegalArgumentException if the version or mask value is out of range,
+     * or if the data is the wrong length for the specified version and error correction level
+     */
     init {
         require(version in MIN_VERSION..MAX_VERSION) { "Version value out of range" }
         require(!(mask < -1 || mask > 7)) { "Mask value out of range" }
@@ -293,21 +214,14 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         drawCodewords(allCodewords)
 
         // Find best mask if mask == -1
-        this.mask =
-            if (mask != -1) {
-                mask.toUByte()
-            } else {
-                (0..7)
-                    .minByOrNull { i ->
-                        val i = i.toUByte()
-                        applyMask(i)
-                        drawFormatBits(i)
-                        val penalty = this.penaltyScore
-                        applyMask(i) // Undoes the mask due to XOR
-                        penalty
-                    }!!
-                    .toUByte()
-            }
+        this.mask = if (mask != -1) mask.toUByte() else (0..7).minByOrNull { i ->
+            val i = i.toUByte()
+            applyMask(i)
+            drawFormatBits(i)
+            val penalty = this.penaltyScore
+            applyMask(i) // Undoes the mask due to XOR
+            penalty
+        }!!.toUByte()
 
         assert(this.mask.toInt() in 0..7)
 
@@ -316,7 +230,9 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         drawFormatBits(this.mask) // Overwrite old format bits
     }
 
-    fun getModule(x: Int, y: Int): Boolean = x in 0..<size && 0 <= y && y < size && modules[x, y]
+    fun getModule(x: Int, y: Int): Boolean {
+        return x in 0..<size && 0 <= y && y < size && modules[x, y]
+    }
 
     private fun drawFunctionPatterns() {
         for (i in 0..<size) {
@@ -332,16 +248,10 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         val numAlign = alignPatPos.size
         for (i in 0..<numAlign) {
             for (j in 0..<numAlign) {
-                if (!(
-                        (i == 0 && j == 0) || (i == 0 && j == numAlign - 1) ||
-                            (i == numAlign - 1 && j == 0)
-                        )
-                ) {
-                    drawAlignmentPattern(
-                        alignPatPos[i],
-                        alignPatPos[j],
-                    )
-                }
+                if (!(i == 0 && j == 0 || i == 0 && j == numAlign - 1 || i == numAlign - 1 && j == 0)) drawAlignmentPattern(
+                    alignPatPos[i],
+                    alignPatPos[j]
+                )
             }
         }
 
@@ -390,11 +300,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
                 val dist = max(abs(dx), abs(dy)) // Chebyshev/infinity norm
                 val xx = x + dx
                 val yy = y + dy
-                if (xx in 0..<size && 0 <= yy &&
-                    yy < size
-                ) {
-                    setFunctionModule(xx, yy, dist != 2 && dist != 4)
-                }
+                if (xx in 0..<size && 0 <= yy && yy < size) setFunctionModule(xx, yy, dist != 2 && dist != 4)
             }
         }
     }
@@ -426,10 +332,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             var k = 0
             while (i < numBlocks) {
                 val dat =
-                    data.copyOfRange(
-                        k,
-                        k + shortBlockLen - blockEccLen + (if (i < numShortBlocks) 0 else 1),
-                    )
+                    data.copyOfRange(k, k + shortBlockLen - blockEccLen + (if (i < numShortBlocks) 0 else 1))
                 k += dat.size
                 val block = dat.copyOf(shortBlockLen + 1)
                 val ecc = reedSolomonComputeRemainder(dat, rsDiv)
@@ -462,7 +365,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         while (right >= 1) {
             // Index of right column in each column pair
             if (right == 6) right = 5
-            for (vert in 0..<size) { // Vertical counter
+            for (vert in 0..<size) {  // Vertical counter
                 for (j in 0..1) {
                     val x = right - j // Actual x coordinate
                     val upward = ((right + 1) and 2) == 0
@@ -482,22 +385,22 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         require(msk.toInt() in 0..7) { "Mask value out of range" }
         for (y in 0..<size) {
             for (x in 0..<size) {
-                val invert: Boolean =
-                    when (msk.toInt()) {
-                        0 -> (x + y) % 2 == 0
-                        1 -> y % 2 == 0
-                        2 -> x % 3 == 0
-                        3 -> (x + y) % 3 == 0
-                        4 -> (x / 3 + y / 2) % 2 == 0
-                        5 -> x * y % 2 + x * y % 3 == 0
-                        6 -> (x * y % 2 + x * y % 3) % 2 == 0
-                        7 -> ((x + y) % 2 + x * y % 3) % 2 == 0
-                        else -> throw AssertionError()
-                    }
+                val invert: Boolean = when (msk.toInt()) {
+                    0 -> (x + y) % 2 == 0
+                    1 -> y % 2 == 0
+                    2 -> x % 3 == 0
+                    3 -> (x + y) % 3 == 0
+                    4 -> (x / 3 + y / 2) % 2 == 0
+                    5 -> x * y % 2 + x * y % 3 == 0
+                    6 -> (x * y % 2 + x * y % 3) % 2 == 0
+                    7 -> ((x + y) % 2 + x * y % 3) % 2 == 0
+                    else -> throw AssertionError()
+                }
                 modules[x, y] = modules[x, y] xor (invert and !isFunction[x, y])
             }
         }
     }
+
 
     private val penaltyScore: Int
         get() {
@@ -512,17 +415,11 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
                         val cellColor = read(a, b)
                         if (cellColor == runColor) {
                             run++
-                            if (run == 5) {
-                                result += PENALTY_N1
-                            } else if (run > 5) {
-                                result++
-                            }
+                            if (run == 5) result += PENALTY_N1
+                            else if (run > 5) result++
                         } else {
                             finderPenaltyAddHistory(run, runHistory)
-                            if (!runColor) {
-                                result +=
-                                    finderPenaltyCountPatterns(runHistory) * PENALTY_N3
-                            }
+                            if (!runColor) result += finderPenaltyCountPatterns(runHistory) * PENALTY_N3
                             runColor = cellColor
                             run = 1
                         }
@@ -540,18 +437,14 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             for (y in 0..<size - 1) {
                 for (x in 0..<size - 1) {
                     val color = modules[x, y]
-                    if (color == modules[x + 1, y] && color == modules[x, y + 1] &&
-                        color == modules[x + 1, y + 1]
-                    ) {
-                        result += PENALTY_N2
-                    }
+                    if (color == modules[x + 1, y] && color == modules[x, y + 1] && color == modules[x + 1, y + 1]) result += PENALTY_N2
                 }
             }
 
             // Balance of dark and light modules
             var dark = 0
             modules.forEach { x, y ->
-                if (modules[x, y]) dark++
+                 if (modules[x, y]) dark++
             }
             val total = size * size // Note that size is odd, so dark/total != 1/2
             // Compute the smallest integer k >= 0 such that (45-5k)% <= dark/total <= (55+5k)%
@@ -559,17 +452,17 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             assert(k in 0..9)
             result += k * PENALTY_N4
             assert(
-                result in 0..2568888, // Non-tight upper bound based on default values of PENALTY_N1, ..., N4
+                result in 0..2568888 // Non-tight upper bound based on default values of PENALTY_N1, ..., N4
             )
             return result
         }
 
+
     private val alignmentPatternPositions: IntArray
-        // ---- Private helper functions ----
+        /*---- Private helper functions ----*/
         get() {
-            if (version == 1) {
-                return intArrayOf()
-            } else {
+            if (version == 1) return intArrayOf()
+            else {
                 val numAlign = version / 7 + 2
                 val step = (version * 8 + numAlign * 3 + 5) / (numAlign * 4 - 4) * 2
                 val result = IntArray(numAlign)
@@ -585,24 +478,26 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             }
         }
 
+
     // Can only be called immediately after a light run is added, and
     // returns either 0, 1, or 2. A helper function for getPenaltyScore().
     private fun finderPenaltyCountPatterns(runHistory: IntArray): Int {
         val n = runHistory[1]
         assert(n <= size * 3)
-        val core =
-            n > 0 && runHistory[2] == n && runHistory[3] == n * 3 && runHistory[4] == n &&
-                runHistory[5] == n
-        return (
-            (if (core && runHistory[0] >= n * 4 && runHistory[6] >= n) 1 else 0) +
-                (if (core && runHistory[6] >= n * 4 && runHistory[0] >= n) 1 else 0)
-            )
+        val core = n > 0 && runHistory[2] == n && runHistory[3] == n * 3 && runHistory[4] == n && runHistory[5] == n
+        return ((if (core && runHistory[0] >= n * 4 && runHistory[6] >= n) 1 else 0)
+                + (if (core && runHistory[6] >= n * 4 && runHistory[0] >= n) 1 else 0))
     }
 
+
     // Must be called at the end of a line (row or column) of modules. A helper function for getPenaltyScore().
-    private fun finderPenaltyTerminateAndCount(currentRunColor: Boolean, currentRunLength: Int, runHistory: IntArray): Int {
+    private fun finderPenaltyTerminateAndCount(
+        currentRunColor: Boolean,
+        currentRunLength: Int,
+        runHistory: IntArray,
+    ): Int {
         var currentRunLength = currentRunLength
-        if (currentRunColor) { // Terminate dark run
+        if (currentRunColor) {  // Terminate dark run
             finderPenaltyAddHistory(currentRunLength, runHistory)
             currentRunLength = 0
         }
@@ -610,6 +505,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         finderPenaltyAddHistory(currentRunLength, runHistory)
         return finderPenaltyCountPatterns(runHistory)
     }
+
 
     // Pushes the given value to the front and drops the last value. A helper function for getPenaltyScore().
     private fun finderPenaltyAddHistory(currentRunLength: Int, runHistory: IntArray) {
@@ -637,7 +533,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         QUARTILE(3u),
 
         /** The QR Code can tolerate about 30% erroneous codewords.  */
-        HIGH(2u),
+        HIGH(2u)
     }
 
     companion object {
@@ -655,6 +551,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
          * largest version QR Code at the ECL, which means it is too long
          */
         fun encodeText(text: CharSequence, ecl: Ecc): QrCode = encodeSegments(QrSegment.makeSegments(text), ecl)
+
 
         /**
          * Returns a QR Code representing the specified binary data at the specified error correction level.
@@ -696,13 +593,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             boostEcl: Boolean = true,
         ): QrCode {
             var ecl = ecl
-            require(
-                !(
-                    !(minVersion in MIN_VERSION..maxVersion && maxVersion <= MAX_VERSION) ||
-                        mask < -1 ||
-                        mask > 7
-                    ),
-            ) { "Invalid value" }
+            require(!(!(minVersion in MIN_VERSION..maxVersion && maxVersion <= MAX_VERSION) || mask < -1 || mask > 7)) { "Invalid value" }
             var dataUsedBits: Int
 
             // Find the minimal version number to use
@@ -713,30 +604,22 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
                 dataUsedBits = QrSegment.getTotalBits(segs, version)
                 if (dataUsedBits != -1 && dataUsedBits <= dataCapacityBits) break // This version number is found to be suitable
 
-                if (version >= maxVersion) { // All versions in the range could not fit the given data
+                if (version >= maxVersion) {  // All versions in the range could not fit the given data
                     var msg = "Segment too long"
-                    if (dataUsedBits != -1) {
-                        msg =
-                            String.format(
-                                "Data length = %d bits, Max capacity = %d bits",
-                                dataUsedBits,
-                                dataCapacityBits,
-                            )
-                    }
+                    if (dataUsedBits != -1) msg =
+                        String.format("Data length = %d bits, Max capacity = %d bits", dataUsedBits, dataCapacityBits)
                     throw DataTooLongException(msg)
                 }
                 version++
             }
             assert(dataUsedBits != -1)
 
+
             // Increase the error correction level while the data still fits in the current version number
-            for (newEcl in Ecc.entries) { // From low to high
-                if (boostEcl &&
-                    dataUsedBits <= getNumDataCodewords(version, newEcl) * 8
-                ) {
-                    ecl = newEcl
-                }
+            for (newEcl in Ecc.entries) {  // From low to high
+                if (boostEcl && dataUsedBits <= getNumDataCodewords(version, newEcl) * 8) ecl = newEcl
             }
+
 
             // Concatenate all segments to create the data bit string
             val bb = BitBuffer()
@@ -747,12 +630,14 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             }
             assert(bb.length == dataUsedBits)
 
+
             // Add terminator and pad up to a byte if applicable
             val dataCapacityBits = getNumDataCodewords(version, ecl) * 8
             assert(bb.length <= dataCapacityBits)
             bb.append(0, 4.coerceAtMost(dataCapacityBits - bb.length))
             bb.append(0, (8 - bb.length % 8) % 8)
             assert(bb.length % 8 == 0)
+
 
             // Pad with alternating bytes until data capacity is reached
             var padByte = 0xEC
@@ -761,16 +646,17 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
                 padByte = padByte xor (0xEC xor 0x11)
             }
 
+
             // Pack bits into bytes in big endian
             val dataCodewords = ByteArray(bb.length / 8)
-            for (i in 0..<bb.length) {
-                dataCodewords[i ushr 3] =
-                    dataCodewords[i ushr 3] or (bb[i].toByte() shl (7 - (i and 7)))
-            }
+            for (i in 0..<bb.length) dataCodewords[i ushr 3] =
+                dataCodewords[i ushr 3] or (bb[i].toByte() shl (7 - (i and 7)))
+
 
             // Create the QR Code object
             return QrCode(version, ecl, dataCodewords, mask)
         }
+
 
         // Returns the number of data bits that can be stored in a QR Code of the given version number, after
         // all function modules are excluded. This includes remainder bits, so it might not be a multiple of 8.
@@ -795,6 +681,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             return result
         }
 
+
         // Returns a Reed-Solomon ECC generator polynomial for the given degree. This could be
         // implemented as a lookup table over all possible parameter values, instead of as an algorithm.
         private fun reedSolomonComputeDivisor(degree: UByte): ByteArray {
@@ -803,6 +690,7 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             // For example the polynomial x^3 + 255x^2 + 8x + 93 is stored as the uint8 array {255, 8, 93}.
             val result = ByteArray(degree.toInt())
             result[degree.toInt() - 1] = 1 // Start off with the monomial x^0
+
 
             // Compute the product polynomial (x - r^0) * (x - r^1) * (x - r^2) * ... * (x - r^{degree-1}),
             // and drop the highest monomial term which is always 1x^degree.
@@ -819,20 +707,20 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             return result
         }
 
+
         // Returns the Reed-Solomon error correction codeword for the given data and divisor polynomials.
         private fun reedSolomonComputeRemainder(data: ByteArray, divisor: ByteArray): ByteArray {
             val result = UByteArray(divisor.size)
-            for (b in data) { // Polynomial division
+            for (b in data) {  // Polynomial division
                 val factor: UByte = (b.toUByte() xor result[0])
                 System.arraycopy(result.asByteArray(), 1, result.asByteArray(), 0, result.size - 1)
                 result[result.size - 1] = 0u
-                for (i in result.indices) {
-                    result[i] =
-                        result[i] xor reedSolomonMultiply(divisor[i].toUByte(), factor)
-                }
+                for (i in result.indices) result[i] =
+                    result[i] xor reedSolomonMultiply(divisor[i].toUByte(), factor)
             }
             return result.asByteArray()
         }
+
 
         // Returns the product of the two given field elements modulo GF(2^8/0x11D). The arguments and result
         // are unsigned 8-bit integers. This could be implemented as a lookup table of 256*256 entries of uint8.
@@ -847,14 +735,15 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
             return z.toUByte()
         }
 
+
         // Returns the number of 8-bit data (i.e. not error correction) codewords contained in any
         // QR Code of the given version number and error correction level, with remainder bits discarded.
         // This stateless pure function could be implemented as a (40*4)-cell lookup table.
-        fun getNumDataCodewords(ver: Int, ecl: Ecc): Int = (
-            getNumRawDataModules(ver) / 8 -
-                ECC_CODEWORDS_PER_BLOCK[ecl.ordinal][ver] *
-                NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver]
-            )
+        fun getNumDataCodewords(ver: Int, ecl: Ecc): Int {
+            return (getNumRawDataModules(ver) / 8
+                    - ECC_CODEWORDS_PER_BLOCK[ecl.ordinal][ver]
+                    * NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver])
+        }
 
         // For use in getPenaltyScore(), when evaluating which mask is best.
         private const val PENALTY_N1 = 3
@@ -862,380 +751,35 @@ class QrCode(val version: Int, val errorCorrectionLevel: Ecc, dataCodewords: Byt
         private const val PENALTY_N3 = 40
         private const val PENALTY_N4 = 10
 
-        private val ECC_CODEWORDS_PER_BLOCK =
-            arrayOf(
-                // Version: (note that index 0 is for padding, and is set to an illegal value)
-                //           0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40    Error correction level
-                byteArrayOf(
-                    -1,
-                    7,
-                    10,
-                    15,
-                    20,
-                    26,
-                    18,
-                    20,
-                    24,
-                    30,
-                    18,
-                    20,
-                    24,
-                    26,
-                    30,
-                    22,
-                    24,
-                    28,
-                    30,
-                    28,
-                    28,
-                    28,
-                    28,
-                    30,
-                    30,
-                    26,
-                    28,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                ), // Low
-                byteArrayOf(
-                    -1,
-                    10,
-                    16,
-                    26,
-                    18,
-                    24,
-                    16,
-                    18,
-                    22,
-                    22,
-                    26,
-                    30,
-                    22,
-                    22,
-                    24,
-                    24,
-                    28,
-                    28,
-                    26,
-                    26,
-                    26,
-                    26,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                    28,
-                ), // Medium
-                byteArrayOf(
-                    -1,
-                    13,
-                    22,
-                    18,
-                    26,
-                    18,
-                    24,
-                    18,
-                    22,
-                    20,
-                    24,
-                    28,
-                    26,
-                    24,
-                    20,
-                    30,
-                    24,
-                    28,
-                    28,
-                    26,
-                    30,
-                    28,
-                    30,
-                    30,
-                    30,
-                    30,
-                    28,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                ), // Quartile
-                byteArrayOf(
-                    -1,
-                    17,
-                    28,
-                    22,
-                    16,
-                    22,
-                    28,
-                    26,
-                    26,
-                    24,
-                    28,
-                    24,
-                    28,
-                    22,
-                    24,
-                    24,
-                    30,
-                    28,
-                    28,
-                    26,
-                    28,
-                    30,
-                    24,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                    30,
-                ), // High
-            )
 
-        private val NUM_ERROR_CORRECTION_BLOCKS =
-            arrayOf(
-                // Version: (note that index 0 is for padding, and is set to an illegal value)
-                //           0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40    Error correction level
-                byteArrayOf(
-                    -1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    2,
-                    2,
-                    2,
-                    2,
-                    4,
-                    4,
-                    4,
-                    4,
-                    4,
-                    6,
-                    6,
-                    6,
-                    6,
-                    7,
-                    8,
-                    8,
-                    9,
-                    9,
-                    10,
-                    12,
-                    12,
-                    12,
-                    13,
-                    14,
-                    15,
-                    16,
-                    17,
-                    18,
-                    19,
-                    19,
-                    20,
-                    21,
-                    22,
-                    24,
-                    25,
-                ), // Low
-                byteArrayOf(
-                    -1,
-                    1,
-                    1,
-                    1,
-                    2,
-                    2,
-                    4,
-                    4,
-                    4,
-                    5,
-                    5,
-                    5,
-                    8,
-                    9,
-                    9,
-                    10,
-                    10,
-                    11,
-                    13,
-                    14,
-                    16,
-                    17,
-                    17,
-                    18,
-                    20,
-                    21,
-                    23,
-                    25,
-                    26,
-                    28,
-                    29,
-                    31,
-                    33,
-                    35,
-                    37,
-                    38,
-                    40,
-                    43,
-                    45,
-                    47,
-                    49,
-                ), // Medium
-                byteArrayOf(
-                    -1,
-                    1,
-                    1,
-                    2,
-                    2,
-                    4,
-                    4,
-                    6,
-                    6,
-                    8,
-                    8,
-                    8,
-                    10,
-                    12,
-                    16,
-                    12,
-                    17,
-                    16,
-                    18,
-                    21,
-                    20,
-                    23,
-                    23,
-                    25,
-                    27,
-                    29,
-                    34,
-                    34,
-                    35,
-                    38,
-                    40,
-                    43,
-                    45,
-                    48,
-                    51,
-                    53,
-                    56,
-                    59,
-                    62,
-                    65,
-                    68,
-                ), // Quartile
-                byteArrayOf(
-                    -1,
-                    1,
-                    1,
-                    2,
-                    4,
-                    4,
-                    4,
-                    5,
-                    6,
-                    8,
-                    8,
-                    11,
-                    11,
-                    16,
-                    16,
-                    18,
-                    16,
-                    19,
-                    21,
-                    25,
-                    25,
-                    25,
-                    34,
-                    30,
-                    32,
-                    35,
-                    37,
-                    40,
-                    42,
-                    45,
-                    48,
-                    51,
-                    54,
-                    57,
-                    60,
-                    63,
-                    66,
-                    70,
-                    74,
-                    77,
-                    81,
-                ), // High
-            )
+        private val ECC_CODEWORDS_PER_BLOCK = arrayOf(
+            // Version: (note that index 0 is for padding, and is set to an illegal value)
+            //           0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40    Error correction level
+            byteArrayOf(-1,  7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28, 28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30),  // Low
+            byteArrayOf(-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26, 26, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28),  // Medium
+            byteArrayOf(-1, 13, 22, 18, 26, 18, 24, 18, 22, 20, 24, 28, 26, 24, 20, 30, 24, 28, 28, 26, 30, 28, 30, 30, 30, 30, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30),  // Quartile
+            byteArrayOf(-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28, 24, 28, 22, 24, 24, 30, 28, 28, 26, 28, 30, 24, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30),  // High
+        )
+
+        private val NUM_ERROR_CORRECTION_BLOCKS = arrayOf(
+            // Version: (note that index 0 is for padding, and is set to an illegal value)
+            //           0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40    Error correction level
+            byteArrayOf(-1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4,  4,  4,  4,  4,  6,  6,  6,  6,  7,  8,  8,  9,  9, 10, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 19, 20, 21, 22, 24, 25),  // Low
+            byteArrayOf(-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5,  5,  8,  9,  9, 10, 10, 11, 13, 14, 16, 17, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31, 33, 35, 37, 38, 40, 43, 45, 47, 49),  // Medium
+            byteArrayOf(-1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8,  8, 10, 12, 16, 12, 17, 16, 18, 21, 20, 23, 23, 25, 27, 29, 34, 34, 35, 38, 40, 43, 45, 48, 51, 53, 56, 59, 62, 65, 68),  // Quartile
+            byteArrayOf(-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8, 11, 11, 16, 16, 18, 16, 19, 21, 25, 25, 25, 34, 30, 32, 35, 37, 40, 42, 45, 48, 51, 54, 57, 60, 63, 66, 70, 74, 77, 81),  // High
+        )
     }
 }
 
 object QrCodeRenderer {
     fun renderSVG(qr: QrCode) = renderSVG(qr.size, qr.size) { x, y -> qr.getModule(x, y) }
-
-    fun renderSVG(matrix: BitMatrix) = renderSVG(matrix.width, matrix.height) { x, y ->
-        matrix[x, y]
-    }
-
+    fun renderSVG(matrix: BitMatrix) = renderSVG(matrix.width, matrix.height) { x, y -> matrix[x, y] }
     private inline fun renderSVG(width: Int, height: Int, border: Int = 2, isDark: (x: Int, y: Int) -> Boolean) = buildString {
         require(border >= 0) { "Border size cannot be negative" }
 
         append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        append(
-            "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"${-border} ${-border} ",
-        ).append(
-            width + border * 2,
-        ).append(" ").append(height + border * 2).append("\" stroke=\"none\">\n")
+        append("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"${-border} ${-border} ").append(width + border * 2).append(" ").append(height + border * 2).append("\" stroke=\"none\">\n")
         append("<rect width=\"100%\" height=\"100%\" fill=\"white\"/>")
         append("<path fill=\"black\" shape-rendering=\"crispEdges\"  d=\"")
 

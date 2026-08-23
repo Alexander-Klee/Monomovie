@@ -36,12 +36,11 @@ private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
     R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.WATCHED),
 ) {
-    for (
-    (date, movies) in movies
+    val items = movies
         .groupBy { it.watchedAt.toLocalDate() }
         .entries
         .sortedByDescending { it.key }
-    ) {
+    for ((date, movies) in items) {
         li(classes = "watched-date") {
             +date.format(dateFormatter)
         }
