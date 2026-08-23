@@ -18,9 +18,9 @@ import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 
 lateinit var monomovieDb: R2dbcDatabase
 
-fun R2dbcDatabase.Companion.mmvConnect() {
+fun R2dbcDatabase.Companion.mmvConnect(path: String = "./monomovie") {
     monomovieDb = R2dbcDatabase.connect(
-        url = "r2dbc:h2:file:///./monomovie;DB_CLOSE_DELAY=0",
+        url = "r2dbc:h2:file:///$path;DB_CLOSE_DELAY=0",
         user = "monomovie",
         password = "",
     )
