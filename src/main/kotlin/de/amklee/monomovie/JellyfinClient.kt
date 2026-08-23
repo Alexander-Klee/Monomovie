@@ -45,18 +45,16 @@ object JellyfinClient {
                     throw IOException("Unexpected return code: ${items.status}")
                 }
                 CacheEntry(
-                    tmdb =
-                        items.content.items
-                            .mapNotNull {
-                                val id = it.providerIds?.get("Tmdb") ?: return@mapNotNull null
-                                id to api.actualUrl(it)
-                            }.toMap(),
-                    imdb =
-                        items.content.items
-                            .mapNotNull {
-                                val id = it.providerIds?.get("Imdb") ?: return@mapNotNull null
-                                id to api.actualUrl(it)
-                            }.toMap(),
+                    tmdb = items.content.items
+                        .mapNotNull {
+                            val id = it.providerIds?.get("Tmdb") ?: return@mapNotNull null
+                            id to api.actualUrl(it)
+                        }.toMap(),
+                    imdb = items.content.items
+                        .mapNotNull {
+                            val id = it.providerIds?.get("Imdb") ?: return@mapNotNull null
+                            id to api.actualUrl(it)
+                        }.toMap(),
                 )
             } catch (e: Throwable) {
                 log.error(e) { "Could not fetch items" }

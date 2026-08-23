@@ -59,13 +59,12 @@ object CachedMovies {
     private fun populateCache(mediaEntry: MediaEntry) {
         if (mediaEntry.id == null) return
 
-        val movie =
-            Movie(
-                mediaEntry = mediaEntry,
-                isBookmarked = BookmarksDB.isBookmarked(mediaEntry.id),
-                isWatched = mediaEntry.id in WatchedDB,
-                cacheDate = System.currentTimeMillis(),
-            )
+        val movie = Movie(
+            mediaEntry = mediaEntry,
+            isBookmarked = BookmarksDB.isBookmarked(mediaEntry.id),
+            isWatched = mediaEntry.id in WatchedDB,
+            cacheDate = System.currentTimeMillis(),
+        )
 
         cache[mediaEntry.id] = movie
     }
@@ -126,23 +125,21 @@ object CachedMovies {
     data class SearchResults(val movies: List<Movie>, val pageInfo: PageInfo)
 
     suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
-        val response =
-            try {
-                justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
-            } catch (e: Exception) {
-                log.error(e) { "Unable to search for $title" }
-                return null
-            }
+        val response = try {
+            justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
+        } catch (e: Exception) {
+            log.error(e) { "Unable to search for $title" }
+            return null
+        }
 
-        val searchResult =
-            SearchResults(
-                response.edges.mapNotNull {
-                    if (it.node.id == null) return null
-                    populateCache(it.node)
-                    cache[it.node.id]
-                },
-                response.pageInfo,
-            )
+        val searchResult = SearchResults(
+            response.edges.mapNotNull {
+                if (it.node.id == null) return null
+                populateCache(it.node)
+                cache[it.node.id]
+            },
+            response.pageInfo,
+        )
         saveCache()
         return searchResult
     }
@@ -158,14 +155,12 @@ object CachedMovies {
     }
 
     suspend fun getJellyfinLink(movie: Movie): String? {
-        val tmdbId =
-            movie.mediaEntry.content
-                ?.externalIds
-                ?.tmdbId
-        val imdbId =
-            movie.mediaEntry.content
-                ?.externalIds
-                ?.imdbId
+        val tmdbId = movie.mediaEntry.content
+            ?.externalIds
+            ?.tmdbId
+        val imdbId = movie.mediaEntry.content
+            ?.externalIds
+            ?.imdbId
 
         val tmdb = tmdbId?.let { JellyfinClient.findTmdbOnJellyfin(it) }
         val imdb = imdbId?.let { JellyfinClient.findImdbOnJellyfin(it) }
@@ -195,60 +190,43 @@ object CachedMovies {
     private val json = Json { prettyPrint = true }
 
     fun statusJson(): String {
-        val status =
-            Status(
-                cachedMoviesSize = cache.size,
-                bookmarkedMoviesSize = cache.values.count { it.isBookmarked },
-                watchedMoviesSize = cache.values.count { it.isWatched },
-                averageCacheAgeDays =
-                    if (cache.isEmpty()) {
-                        0.0
+        val status = Status(
+            cachedMoviesSize = cache.size,
+            bookmarkedMoviesSize = cache.values.count { it.isBookmarked },
+            watchedMoviesSize = cache.values.count { it.isWatched },
+            averageCacheAgeDays = if (cache.isEmpty()) {
+                0.0
+            } else {
+                cache.values.map { System.currentTimeMillis() - it.cacheDate }.average() / (1000 * 60 * 60 * 24)
+            },
+            standardDeviationCacheAgeDays = if (cache.isEmpty()) {
+                0.0
+            } else {
+                val mean = cache.values.map { System.currentTimeMillis() - it.cacheDate }.average()
+                val variance = cache.values.map { (System.currentTimeMillis() - it.cacheDate - mean).let { it * it } }.average()
+                sqrt(variance) / (1000 * 60 * 60 * 24)
+            },
+            medianCacheAgeDays = if (cache.isEmpty()) {
+                0.0
+            } else {
+                val sortedAges = cache.values.map { System.currentTimeMillis() - it.cacheDate }.sorted()
+                val middle = sortedAges.size / 2
+                val median =
+                    if (sortedAges.size % 2 == 0) {
+                        (sortedAges[middle - 1] + sortedAges[middle]) / 2.0
                     } else {
-                        cache.values.map { System.currentTimeMillis() - it.cacheDate }.average() /
-                            (1000 * 60 * 60 * 24)
-                    },
-                standardDeviationCacheAgeDays =
-                    if (cache.isEmpty()) {
-                        0.0
-                    } else {
-                        val mean = cache.values.map {
-                            System.currentTimeMillis() - it.cacheDate
-                        }.average()
-                        val variance = cache.values.map {
-                            (
-                                System.currentTimeMillis() - it.cacheDate -
-                                    mean
-                                ).let { it * it }
-                        }.average()
-                        sqrt(variance) / (1000 * 60 * 60 * 24)
-                    },
-                medianCacheAgeDays =
-                    if (cache.isEmpty()) {
-                        0.0
-                    } else {
-                        val sortedAges = cache.values.map {
-                            System.currentTimeMillis() -
-                                it.cacheDate
-                        }.sorted()
-                        val middle = sortedAges.size / 2
-                        val median =
-                            if (sortedAges.size % 2 == 0) {
-                                (sortedAges[middle - 1] + sortedAges[middle]) / 2.0
-                            } else {
-                                sortedAges[middle].toDouble()
-                            }
-                        median / (1000 * 60 * 60 * 24)
-                    },
-                oldestCacheAgeDays =
-                    (
-                        if (cache.isEmpty()) {
-                            0.0
-                        } else {
-                            cache.values.maxOf { System.currentTimeMillis() - it.cacheDate } /
-                                (1000 * 60 * 60 * 24)
-                        }
-                        ).toDouble(),
-            )
+                        sortedAges[middle].toDouble()
+                    }
+                median / (1000 * 60 * 60 * 24)
+            },
+            oldestCacheAgeDays = (
+                if (cache.isEmpty()) {
+                    0.0
+                } else {
+                    cache.values.maxOf { System.currentTimeMillis() - it.cacheDate } / (1000 * 60 * 60 * 24)
+                }
+                ).toDouble(),
+        )
         return json.encodeToString(status)
     }
 }
