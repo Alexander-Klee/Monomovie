@@ -1,9 +1,11 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.CachedMovies
+import de.amklee.monomovie.R
 import de.amklee.monomovie.db.WatchedDB
 import de.amklee.monomovie.pages.RouletteCachedMovie
-import de.amklee.monomovie.util.Resources
+import de.amklee.monomovie.util.selectableJs
+import de.amklee.monomovie.util.sseJs
 import kotlinx.html.*
 import java.time.format.DateTimeFormatter
 
@@ -20,7 +22,7 @@ inline fun FlowContent.MovieList(script: String, body: UL.() -> Unit) {
 }
 
 suspend fun FlowContent.SearchMovieList() = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.SEARCH) + Resources.infiniteScrollJs
+    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.SEARCH) + R.infiniteScrollJs
 ) {
     id = "infinite-list"
     MovieListSentinel()
@@ -28,7 +30,7 @@ suspend fun FlowContent.SearchMovieList() = MovieList(
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.sseJs(Mode.WATCHED)
+    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.WATCHED)
 ) {
     for ((date, movies) in movies
         .groupBy { it.watchedAt.toLocalDate() }
@@ -44,7 +46,7 @@ suspend fun FlowContent.WatchedMovieList(movies: List<WatchedDB.WatchedItem>) = 
 }
 
 suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, minSelection: Int = 2) = MovieList(
-    Resources.imageErrorJs + Resources.bookmarkJs + Resources.watchedJs + Resources.selectableJs(minSelection) + Resources.sseJs(Mode.OVERVIEW)
+    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.selectableJs(minSelection) + R.sseJs(Mode.OVERVIEW)
 ) {
     for (movie in movies) {
         SelectableMovieListItem(movie)
@@ -52,7 +54,7 @@ suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, mi
 }
 
 suspend fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
-    Resources.imageErrorJs + Resources.watchedJs + Resources.sseJs(Mode.ROULETTE)
+    R.imageErrorJs + R.watchedJs + R.sseJs(Mode.ROULETTE)
 ) {
     for (movie in movies) {
         RouletteMovieListItem(movie.movie, movie.votes)

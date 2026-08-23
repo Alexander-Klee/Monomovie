@@ -2,11 +2,12 @@ package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
 import de.amklee.monomovie.Offer
+import de.amklee.monomovie.R
 import de.amklee.monomovie.components.JellyfinOfferItem
 import de.amklee.monomovie.components.Mode
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
-import de.amklee.monomovie.util.Resources
+import de.amklee.monomovie.util.sseJs
 import kotlinx.html.*
 import java.util.Locale
 
@@ -62,10 +63,10 @@ suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String,
     div {
         script {
             unsafe {
-                +Resources.imageErrorJs
-                +Resources.bookmarkJs
-                +Resources.watchedJs
-                +Resources.sseJs(Mode.OFFERS)
+                +R.imageErrorJs
+                +R.bookmarkJs
+                +R.watchedJs
+                +R.sseJs(Mode.OFFERS)
             }
         }
         MovieItem(movie, showOffers = false)

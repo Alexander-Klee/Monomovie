@@ -1,21 +1,8 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.CachedMovies
+import de.amklee.monomovie.*
 import de.amklee.monomovie.CachedMovies.getOffers
-import de.amklee.monomovie.Offer
-import de.amklee.monomovie.util.BookmarkIconSvg
-import de.amklee.monomovie.util.BookmarkPlusIconSvg
-import de.amklee.monomovie.util.EyeIconSvg
-import de.amklee.monomovie.util.EyePlusIconSvg
-import de.amklee.monomovie.util.ImdbSvg
-import de.amklee.monomovie.util.RottenTomatoesSvg
-import de.amklee.monomovie.util.TmdbSvg
-import de.amklee.monomovie.fullPosterUrl
-import de.amklee.monomovie.imdbLink
-import de.amklee.monomovie.title
-import de.amklee.monomovie.tmdbLink
-import de.amklee.monomovie.util.BookmarkSquareIconSvg
-import de.amklee.monomovie.util.ImagePlaceholderSvg
+import de.amklee.monomovie.util.*
 import kotlinx.html.*
 import kotlinx.html.impl.dataset
 
@@ -43,7 +30,7 @@ private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
 fun UL.JellyfinOfferItem(jellyfinLink: String) =
     OfferItem(
         jellyfinLink,
-        "https://jellyfin.amklee.de/web/f5bbb798cb2c65908633.png",
+        JellyfinClient.getLogoLink(),
         "Jellyfin"
     )
 

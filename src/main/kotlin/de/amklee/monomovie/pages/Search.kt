@@ -1,9 +1,9 @@
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.CachedMovies
+import de.amklee.monomovie.R
 import de.amklee.monomovie.components.MovieListItem
 import de.amklee.monomovie.components.SearchMovieList
-import de.amklee.monomovie.util.Resources
 import de.amklee.monomovie.util.buildULHtml
 import kotlinx.html.*
 import kotlinx.serialization.Serializable
@@ -12,7 +12,7 @@ fun FlowContent.SearchBar(title: String) {
     div(classes = "search-bar") {
         getForm(action = "/search") {
             button(classes = "search-button", type = ButtonType.submit) {
-                unsafe { +Resources.searchSvg }
+                unsafe { +R.graphics.svg.searchSvg }
             }
             textInput(name = "title", classes = "search-input") {
                 autoFocus = true

@@ -92,6 +92,13 @@ h1 {
     border-bottom: 1px solid var(--border-color);
 }
 
+a.external::after {
+    content: "\2197";
+    font-size: 0.8em;
+    margin-left: 5px;
+    vertical-align: top;
+}
+
 
 /* MOVIE LIST*/
 
