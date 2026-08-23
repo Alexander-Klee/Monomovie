@@ -18,8 +18,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         meta(content = "https://mmv.amklee.de/") { property = "og:url" }
         meta(content = "Monomovie") { property = "og:site_name" }
         meta(content = "Discover, bookmark and select movies for playback.") {
-            property =
-                "og:description"
+            property = "og:description"
         }
         meta(content = "https://mmv.amklee.de/og-image.png") { property = "og:image" }
 

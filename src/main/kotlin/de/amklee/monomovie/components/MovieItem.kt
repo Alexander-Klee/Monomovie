@@ -170,8 +170,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
                     classes = "hidden-movie-action-bar-element eye-button watched-scope",
                 ) {
                     id = "watched-$movieId"
-                    onClick =
-                        "dataset.checked == 'true' ? deleteWatch('$movieId') : setWatch('$movieId')"
+                    onClick = "dataset.checked == 'true' ? deleteWatch('$movieId') : setWatch('$movieId')"
 
                     dataset["checked"] = movie.isWatched.toString()
 
@@ -183,8 +182,7 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
                     classes = "hidden-movie-action-bar-element eye-button bookmark-scope",
                 ) {
                     id = "bookmark-$movieId"
-                    onClick =
-                        "dataset.checked == 'true' ? deleteBookmark('$movieId') : setBookmark('$movieId')"
+                    onClick = "dataset.checked == 'true' ? deleteBookmark('$movieId') : setBookmark('$movieId')"
 
                     dataset["checked"] = movie.isBookmarked.toString()
 
@@ -289,8 +287,7 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
                         classes = "roulette-weight-button roulette-weight-decrease",
                     ) {
                         dataset["movie"] = movie.mediaEntry.id ?: ""
-                        onClick =
-                            "const el = document.getElementById(dataset.movie); el.stepDown(); el.dispatchEvent(new Event('change'));"
+                        onClick = "const el = document.getElementById(dataset.movie); el.stepDown(); el.dispatchEvent(new Event('change'));"
                         +"−"
                     }
                     numberInput(name = movie.mediaEntry.id, classes = "roulette-weight-input") {
@@ -303,8 +300,7 @@ suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) 
                         classes = "roulette-weight-button roulette-weight-increase",
                     ) {
                         dataset["movie"] = movie.mediaEntry.id ?: ""
-                        onClick =
-                            "const el = document.getElementById(dataset.movie); el.stepUp(); el.dispatchEvent(new Event('change'));"
+                        onClick = "const el = document.getElementById(dataset.movie); el.stepUp(); el.dispatchEvent(new Event('change'));"
                         +"+"
                     }
                 }
