@@ -5,7 +5,7 @@ import de.amklee.monomovie.shrunkel.JsFilter
 import de.amklee.monomovie.shrunkel.SvgFilter
 
 plugins {
-    kotlin("jvm")
+    org.jetbrains.kotlin.jvm
     ktlint
     application
     alias(libs.plugins.kotlin.plugin.serialization)

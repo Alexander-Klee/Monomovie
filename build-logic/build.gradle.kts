@@ -37,12 +37,3 @@ kotlin.sourceSets.main { kotlin.srcDir(tasks.register("generateKotlin") {
         """.trimIndent())
     }
 }) }
-
-gradlePlugin {
-    plugins {
-        create("deps") {
-            id = "deps"
-            implementationClass = "de.amklee.monomovie.DepsPlugin"
-        }
-    }
-}
