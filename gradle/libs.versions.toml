@@ -1,27 +1,27 @@
 # also see settings.gradle.kts for root project
 [versions]
-kotlin = "2.4.0"
-kotlinpoet = "2.3.0"
-closure-compiler = "v20260513"
+closure-compiler = "v20260831"
 foojay-resolver-convention = "1.0.0"
 gradle-shadow = "9.6.1"
+jellyfin = "1.8.12"
 jlink-runtime = "2.0.1"
+kotlin = "2.4.10"
+kotlinpoet = "2.3.0"
 kotlinx-html = "0.12.0-jf.3"
-jellyfin = "1.8.8"
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 version-catalog-update = "1.1.1"
 
 [libraries]
-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 closure-compiler = { module = "com.google.javascript:closure-compiler", version.ref = "closure-compiler" }
-kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html" }
 jellyfin-core = { module = "org.jellyfin.sdk:jellyfin-core", version.ref = "jellyfin" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
 
 [plugins]
+foojay-resolver-convention = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver-convention" }
+jlink-runtime = { id = "org.beryx.runtime", version.ref = "jlink-runtime" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-foojay-resolver-convention = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver-convention" }
 shadow = { id = "com.gradleup.shadow", version.ref = "gradle-shadow" }
-jlink-runtime = { id = "org.beryx.runtime", version.ref = "jlink-runtime" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }
