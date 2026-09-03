@@ -9,7 +9,7 @@ repositories {
 val ktlint = configurations.register("ktlint")
 
 dependencies {
-    ktlint("com.pinterest.ktlint:ktlint-cli:1.8.0")
+    ktlint(Spec.ktlintCli)
 }
 
 val outputDir = project.layout.buildDirectory.dir("reports/ktlint/")

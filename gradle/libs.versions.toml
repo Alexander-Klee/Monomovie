@@ -8,6 +8,8 @@ jlink-runtime = "2.0.1"
 kotlin = "2.4.10"
 kotlinpoet = "2.3.0"
 kotlinx-html = "0.12.0-jf.3"
+ktlint = "1.8.0"
+ktor = "3.5.2"
 slf4j = "2.0.18"
 version-catalog-update = "1.1.1"
 
@@ -16,6 +18,8 @@ closure-compiler = { module = "com.google.javascript:closure-compiler", version.
 jellyfin-core = { module = "org.jellyfin.sdk:jellyfin-core", version.ref = "jellyfin" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html" }
+ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint" }
+ktor-version-catalog = { module = "io.ktor:ktor-version-catalog", version.ref = "ktor" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
 
 [plugins]
