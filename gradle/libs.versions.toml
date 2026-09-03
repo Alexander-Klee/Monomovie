@@ -1,4 +1,4 @@
-# also see settings.gradle.kts for root project
+# Use `gradle versionCatalogUpdate` task to update these
 [versions]
 closure-compiler = "v20260831"
 foojay-resolver-convention = "1.0.0"
