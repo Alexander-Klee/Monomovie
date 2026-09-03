@@ -1,3 +1,6 @@
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency
+
 plugins {
     `kotlin-dsl`
 }
@@ -7,8 +10,13 @@ repositories {
     google()
 }
 
+val Provider<PluginDependency>.lib get() = map { DefaultMinimalDependency(
+    newId(it.pluginId, "${it.pluginId}.gradle.plugin"),
+    it.version as MutableVersionConstraint
+) }
+
 dependencies {
-    implementation("com.squareup:kotlinpoet:2.3.0")
-    implementation("com.google.javascript:closure-compiler:v20260513")
-    implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.4.10")
+    implementation(libs.kotlinpoet)
+    implementation(libs.closure.compiler)
+    implementation(libs.plugins.kotlin.jvm.lib)
 }

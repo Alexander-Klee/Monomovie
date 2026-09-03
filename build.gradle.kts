@@ -8,10 +8,11 @@ plugins {
     kotlin("jvm")
     ktlint
     application
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
-    id("io.ktor.plugin") version "3.4.2"
-    id("com.gradleup.shadow") version "9.4.1"
-    id("org.beryx.runtime") version "2.0.1"
+    alias(libs.plugins.kotlin.plugin.serialization)
+    alias(ktorLibs.plugins.ktor)
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.jlink.runtime)
+    alias(libs.plugins.version.catalog.update)
 }
 
 group = "de.amklee"
@@ -36,23 +37,22 @@ repositories {
 
 dependencies {
     // client for JustWatch API
-    implementation("io.ktor:ktor-client-core")
-    implementation("io.ktor:ktor-client-java")
-    implementation("io.ktor:ktor-client-content-negotiation")
-    implementation("org.slf4j:slf4j-jdk14:2.0.17")
+    implementation(ktorLibs.client.core)
+    implementation(ktorLibs.client.java)
+    implementation(ktorLibs.client.contentNegotiation)
+    implementation(libs.slf4j.jdk14)
 
     // Jellyfin SDK
-    implementation("org.jellyfin.sdk:jellyfin-core:1.8.8")
+    implementation(libs.jellyfin.core)
 
     // server for MonoMovie
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-cio")
-    implementation("io.ktor:ktor-server-host-common")
-    implementation("io.ktor:ktor-server-status-pages")
-    implementation("io.ktor:ktor-server-sse")
-    implementation("org.jetbrains.kotlinx:kotlinx-html:0.12.0-jf.3")
+    implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.serialization.kotlinx.json)
+    implementation(ktorLibs.server.core)
+    implementation(ktorLibs.server.cio)
+    implementation(ktorLibs.server.statusPages)
+    implementation(ktorLibs.server.sse)
+    implementation(libs.kotlinx.html)
 }
 
 tasks.test {
