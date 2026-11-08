@@ -43,6 +43,7 @@ suspend fun generateMigrationScript() {
     Path(scriptDirectory).createDirectories()
 
     MigrationUtils.generateMigrationScript(
+        Movies,
         Bookmarks,
         Watched,
         Migrations,

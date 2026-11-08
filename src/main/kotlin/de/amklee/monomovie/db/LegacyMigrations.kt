@@ -1,5 +1,6 @@
 package de.amklee.monomovie.db
 
+import de.amklee.monomovie.service.remote.MediaEntry
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.Path
@@ -8,9 +9,23 @@ import kotlin.io.path.readText
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.r2dbc.insert
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
+@Suppress("LocalVariableName", "ktlint:standard:property-naming")
 suspend fun performLegacyMigration() {
+    // movie rows with their cached media entries
+    val cachedIds = mutableSetOf<String>()
+    for ((_, legacyMovie_) in openCachedMoviesDb()) {
+        val movieId = legacyMovie_.mediaEntry.id ?: continue
+        Movies.upsert {
+            it[Movies.id] = movieId
+            it[Movies.mediaEntry] = legacyMovie_.mediaEntry
+            it[Movies.cacheDate] = legacyMovie_.cacheDate
+        }
+        cachedIds.add(movieId)
+    }
     for ((id_, bookmarkedAt_, isBookmarked_, colour_) in openBookmarksDb().bookmarks) {
+        ensureMovieRow(id_, cachedIds)
         Bookmarks.insert {
             it[id] = id_
             it[bookmarkedAt] = bookmarkedAt_
@@ -19,10 +34,19 @@ suspend fun performLegacyMigration() {
         }
     }
     for ((id_, watchedAt_) in openWatchedDb().watched) {
+        ensureMovieRow(id_, cachedIds)
         Watched.insert {
             it[id] = id_
             it[watchedAt] = watchedAt_
         }
+    }
+}
+
+private suspend fun ensureMovieRow(id_: String, cachedIds: Set<String>) {
+    if (id_ in cachedIds) return
+    Movies.insert {
+        it[Movies.id] = id_
+        it[cacheDate] = 0
     }
 }
 
@@ -58,6 +82,13 @@ private fun openWatchedDb(path: Path = Path("watched.json")): WatchedDB1 {
         1 -> json.decodeFromString<WatchedDB1>(string).migrate()
         else -> throw IllegalStateException("Unsupported WatchedDB version: $version")
     }
+}
+
+private fun openCachedMoviesDb(path: Path = Path("cached_movies.json")): Map<String, LegacyMovieCache> {
+    if (!path.exists()) {
+        return emptyMap()
+    }
+    return json.decodeFromString<Map<String, LegacyMovieCache>>(path.readText())
 }
 
 private fun BookmarksDB1.migrate(): BookmarksDB3 = BookmarksDB2(
@@ -97,3 +128,6 @@ private data class WatchedDB1(val watched: List<WatchedItem1>) : Versioned(1)
 
 @Serializable
 private data class WatchedItem1(val id: String, val watchedAt: Long)
+
+@Serializable
+private data class LegacyMovieCache(val mediaEntry: MediaEntry, val cacheDate: Long)

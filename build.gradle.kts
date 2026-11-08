@@ -63,6 +63,7 @@ dependencies {
     // Database
     implementation(exposedLibs.core)
     implementation(exposedLibs.r2dbc)
+    implementation(exposedLibs.json)
     migrationTool(exposedLibs.migration.core)
     migrationTool(exposedLibs.migration.r2dbc)
     implementation(libs.h2)

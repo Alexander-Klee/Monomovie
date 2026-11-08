@@ -4,7 +4,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 
 object Bookmarks : IdTable<String>("bookmarks") {
-    override val id = varchar("id", 255).entityId()
+    override val id = varchar("id", 255).references(Movies.id).entityId()
     override val primaryKey = PrimaryKey(id)
     val bookmarkedAt = long("bookmarked_at")
     val isBookmarked = bool("is_bookmarked").default(true)
