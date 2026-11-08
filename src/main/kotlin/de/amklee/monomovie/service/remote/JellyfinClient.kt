@@ -6,16 +6,14 @@ import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.ExperimentalTime
 import org.jellyfin.sdk.api.client.ApiClient
-import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.sdk.api.client.extensions.libraryApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ItemFields
 
-@OptIn(ExperimentalTime::class)
 object JellyfinClient {
     private val log = System.getLogger("MMV/Jellyfin")
 
@@ -36,7 +34,7 @@ object JellyfinClient {
         NIHCache<CacheEntry>(3.hours) {
             val api = api ?: return@NIHCache CacheEntry()
             try {
-                val items = api.itemsApi.getItems(
+                val items = api.libraryApi.getItems(
                     recursive = true,
                     fields = setOf(ItemFields.PROVIDER_IDS),
                 )
