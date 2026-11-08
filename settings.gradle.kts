@@ -1,5 +1,11 @@
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+pluginManagement {
+    includeBuild("build-logic")
 }
+
+plugins {
+    id("deps")
+}
+
+includeBuild("build-logic")
 
 rootProject.name = "monomovie"
