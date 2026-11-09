@@ -29,7 +29,7 @@ visible object instead of a disabled grey button.
 | ---------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
 | Home             | "Bookmarked Movies:", tall list rows          | **Shortlist**: poster grid, hover detail, filter chips                 |
 | Decision         | Weights only inside `/roulette`               | **Decision bar** fixed at bottom; picked movies carry wheel colours     |
-| Roulette         | Redirect to external wheel (providence)       | In-app wheel (donut, weights, spin → winner card). Shared room + QR     |
+| Roulette         | Redirect to external wheel (providence)       | **Odds preview**: live donut + per-movie % as you tune weights, then a hand-off card that opens the real spin on Providence. Shared room + QR |
 | Offers page      | All ISO countries tabled at once              | DE-first groups (subscription / free / rent / buy), countries collapsed |
 | Watched          | Date-grouped list                             | Month-grouped ledger with one-line rows and un-watch affordance        |
 | Search           | Separate page + infinite scroll               | Ambient header search (`/` shortcut), live results, type badge         |
@@ -42,7 +42,7 @@ Type: **Bricolage Grotesque** (display) + **IBM Plex Sans** (UI).
 
 ## Feature suggestions included in the mockup
 
-1. In-app wheel (external dependency stays optional), weights shown as odds
+1. Odds preview before the spin — tune weights against the live donut, then continue to Providence (the external wheel stays external: its fairness logic is not something the mockup should duplicate)
 2. Type badges — JustWatch search results leak TV series today
 3. DE-first country groups instead of the full country dump
 4. Filter chips on the shortlist ("Streaming in DE", "Hide watched")

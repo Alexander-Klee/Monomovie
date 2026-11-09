@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { byId, type Movie } from "./data";
+import { type Movie } from "./data";
 import { mockQr } from "./qr";
 import Icons from "./Icons";
 
@@ -23,8 +23,8 @@ function sectorPath(cx: number, cy: number, r0: number, r1: number, a0: number, 
   ].join(" ");
 }
 
-function Wheel({ picks, weights, winner, spinning }: {
-  picks: Movie[]; weights: Record<string, number>; winner: string | null; spinning: boolean;
+function Wheel({ picks, weights }: {
+  picks: Movie[]; weights: Record<string, number>;
 }) {
   const on = picks.filter(m => (weights[m.id] ?? 1) > 0);
   const total = on.reduce((sum, m) => sum + (weights[m.id] ?? 1), 0) || 1;
@@ -42,7 +42,7 @@ function Wheel({ picks, weights, winner, spinning }: {
           <feDropShadow dx="0" dy="3" stdDeviation="6" floodOpacity="0.45" />
         </filter>
       </defs>
-      <g className={spinning ? "spin-g" : undefined}>
+      <g>
         {segments.map(({ m, start, end }) => {
           const pad = segments.length > 1 ? 1.5 : 0;
           return (
@@ -50,18 +50,13 @@ function Wheel({ picks, weights, winner, spinning }: {
               key={m.id}
               d={sectorPath(120, 120, 74, 108, start + pad, end - pad)}
               fill={m.wheel}
-              opacity={winner && winner !== m.id ? 0.28 : 1}
             />
           );
         })}
       </g>
       <circle cx="120" cy="120" r="64" fill="rgba(21,19,27,.92)" filter="url(#wheel-shadow)" />
-      {winner == null && <text className="wheel-center" x="120" y="118">Tonight?</text>}
-      {winner != null && (
-        <text className="wheel-center wheel-center-winner" x="120" y="122">
-          {byId[winner]?.title.split(" ").slice(0, 2).join(" ")}
-        </text>
-      )}
+      <text className="wheel-center" x="120" y="115">Tonight?</text>
+      <text className="wheel-center-sub" x="120" y="133">odds preview</text>
     </svg>
   );
 }
@@ -83,25 +78,17 @@ export default function RouletteView({ pickedMovies, weightOf, setWeight, open }
   open: (id: string) => void;
 }) {
   const weights = useMemo(() => Object.fromEntries(pickedMovies.map(m => [m.id, weightOf(m.id)])), [pickedMovies, weightOf]);
-  const [spinning, setSpinning] = useState(false);
-  const [winner, setWinner] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
 
-  const go = () => {
-    if (pickedMovies.length < 2) return;
-    setWinner(null);
-    setSpinning(true);
-    // weighted draw, revealed after the animation
-    const pool: string[] = [];
-    for (const m of pickedMovies) {
-      const w = weightOf(m.id);
-      for (let i = 0; i < w; i++) pool.push(m.id);
-    }
-    window.setTimeout(() => {
-      setWinner(pool[Math.floor(Math.random() * pool.length)] ?? null);
-      setSpinning(false);
-    }, 2600);
-  };
+  const weighted = pickedMovies.filter(m => weightOf(m.id) > 0);
+  const totalWeight = weighted.reduce((sum, m) => sum + weightOf(m.id), 0);
+  const odds = useMemo(
+    () => Object.fromEntries(pickedMovies.map(m => [
+      m.id,
+      weightOf(m.id) === 0 ? "—" : `${Math.round((weightOf(m.id) / (totalWeight || 1)) * 100)}%`,
+    ])),
+    [pickedMovies, weightOf, totalWeight],
+  );
 
   if (pickedMovies.length === 0) {
     return (
@@ -128,34 +115,27 @@ export default function RouletteView({ pickedMovies, weightOf, setWeight, open }
             <li key={m.id} className="roulette-row">
               <button className="roulette-swatch" style={{ background: m.wheel }} aria-hidden="true" onClick={() => open(m.id)} />
               <button className="roulette-title" onClick={() => open(m.id)}>{m.title}</button>
+              <span className="roulette-odds" title="Share of the wheel">{odds[m.id]}</span>
               <Stepper w={weightOf(m.id)} onChange={w => setWeight(m.id, w)} />
             </li>
           ))}
         </ul>
         <div className="roulette-stage">
-          <Wheel picks={pickedMovies} weights={weights} winner={winner} spinning={spinning} />
-          {winner == null && (
-            <button className="btn btn-primary btn-spin" onClick={go} disabled={spinning || pickedMovies.length < 2}>
-              {spinning ? "Spinning…" : "Spin the wheel"}
-            </button>
-          )}
-          {winner && (() => {
-            const w = byId[winner];
-            const flat = w.offers.filter(o => o.type === "flatrate");
-            return (
-              <div className="winner-card" role="status">
-                <p className="winner-label">The wheel said</p>
-                <h2 className="winner-title">{w.title}</h2>
-                {flat.length > 0 && (
-                  <p className="winner-sub">on {flat.slice(0, 2).map(o => o.provider).join(" & ")} right now</p>
-                )}
-                <div className="winner-actions">
-                  <a className="btn btn-primary" href={`#/movie/${w.id}`}>View options</a>
-                  <button className="btn" onClick={() => { setWinner(null); }}>Spin again</button>
-                </div>
-              </div>
-            );
-          })()}
+          <Wheel picks={pickedMovies} weights={weights} />
+          <div className="handoff-card" role="region" aria-label="Continue to the wheel">
+            <p className="handoff-kicker">Odds are set</p>
+            <p className="handoff-sub">
+              These weights build your wheel config — the spin itself stays on Providence,
+              where the draw is as fair as ever.
+            </p>
+            {totalWeight > 0 ? (
+              <a className="btn btn-primary" href="https://providence.jfronny.dev" target="_blank" rel="noreferrer">
+                Continue to the wheel <span className="ext-mark" aria-hidden="true">↗</span>
+              </a>
+            ) : (
+              <p className="handoff-sub handoff-hint">Give at least one film a weight to build the wheel.</p>
+            )}
+          </div>
           <p className="wheel-note">
             Weights are per-movie votes — weight 3 means three on the wheel.
           </p>

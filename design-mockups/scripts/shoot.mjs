@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 import { mkdirSync } from "fs";
 
 const BASE = "http://localhost:5173";
-const OUT = "/tmp/opencode/monomovie-mockups/shots";
+const OUT = new URL("../shots/", import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
 
 const routes = [
@@ -34,5 +34,21 @@ const tile = hover.locator(".tile").nth(2);
 await tile.hover();
 await hover.waitForTimeout(400);
 await hover.screenshot({ path: `${OUT}/tile-hover.png` });
+
+// open search dropdown (desktop only)
+await hover.keyboard.press("/");
+await hover.waitForTimeout(200);
+await hover.keyboard.type("god");
+await hover.waitForTimeout(800);
+await hover.screenshot({ path: `${OUT}/search-open.png` });
+
+// roulette: open the shared room
+const roulette = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })).newPage();
+await roulette.goto(BASE + "/#/roulette", { waitUntil: "networkidle" });
+await roulette.waitForTimeout(800);
+await roulette.getByRole("button", { name: /shared room/i }).click();
+await roulette.waitForTimeout(700);
+await roulette.screenshot({ path: `${OUT}/roulette-shared.png`, fullPage: true });
+
 await browser.close();
 console.log("shots done");
