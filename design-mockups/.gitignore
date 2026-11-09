@@ -1,0 +1,4 @@
+node_modules/
+dist/
+*.tsbuildinfo
+shots/ # optional: comment out to keep screenshots in the commit
