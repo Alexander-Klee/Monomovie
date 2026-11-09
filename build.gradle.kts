@@ -64,6 +64,7 @@ dependencies {
     implementation(exposedLibs.core)
     implementation(exposedLibs.r2dbc)
     implementation(exposedLibs.json)
+    implementation(exposedLibs.kotlin.datetime)
     migrationTool(exposedLibs.migration.core)
     migrationTool(exposedLibs.migration.r2dbc)
     implementation(libs.h2)

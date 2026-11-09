@@ -14,6 +14,10 @@ import de.amklee.monomovie.service.remote.PageInfo
 import de.amklee.monomovie.util.error
 import java.util.Locale
 import kotlin.math.sqrt
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.DurationUnit
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.Serializable
@@ -27,21 +31,21 @@ import org.jetbrains.exposed.v1.r2dbc.upsert
 object CachedMovies {
     private val log = System.getLogger("MMV/CachedMovies")
 
-    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Long)
+    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Instant)
 
     fun Movie.getOffers() = mediaEntry.offers?.filter {
         it.monetizationType.equals(MonetizationTypes.FREE.name, ignoreCase = true) ||
             it.monetizationType.equals(MonetizationTypes.FLATRATE.name, ignoreCase = true)
     } ?: emptyList()
 
-    const val STALE_MS = 15L * 24 * 60 * 60 * 1000 // 15 days in ms
+    private val STALE = 15.days
 
     private val justWatch = JustWatch(country = "DE", language = "en")
 
     suspend fun get(id: String): Movie? {
         val cached = Movies[id]
         val isStale = cached == null ||
-            cached[Movies.cacheDate] < System.currentTimeMillis() - STALE_MS ||
+            cached[Movies.cacheDate] < Clock.System.now() - STALE ||
             cached[Movies.mediaEntry] == null
 
         // try to update cache if missing or older than 15 days
@@ -79,7 +83,7 @@ object CachedMovies {
             Movies.upsert {
                 it[Movies.id] = id
                 it[Movies.mediaEntry] = mediaEntry
-                it[Movies.cacheDate] = System.currentTimeMillis()
+                it[Movies.cacheDate] = Clock.System.now()
             }
         }
     }
@@ -181,7 +185,7 @@ object CachedMovies {
     private val json = Json { prettyPrint = true }
 
     suspend fun statusJson(): String {
-        val now = System.currentTimeMillis()
+        val now = Clock.System.now()
         val (bookmarkedCount, watchedCount, cacheDates) = suspendTransaction(monomovieDb) {
             Triple(
                 Bookmarks.selectAll().where { Bookmarks.isBookmarked eq true }.toList().size,
@@ -190,7 +194,7 @@ object CachedMovies {
             )
         }
 
-        fun List<Long>.ages() = map { now - it }
+        fun List<Instant>.agesInDays() = map { (now - it).toDouble(DurationUnit.DAYS) }
 
         val status = Status(
             cachedMoviesSize = cacheDates.size,
@@ -199,35 +203,33 @@ object CachedMovies {
             averageCacheAgeDays = if (cacheDates.isEmpty()) {
                 0.0
             } else {
-                cacheDates.ages().average() / (1000 * 60 * 60 * 24)
+                cacheDates.agesInDays().average()
             },
             standardDeviationCacheAgeDays = if (cacheDates.isEmpty()) {
                 0.0
             } else {
-                val ages = cacheDates.ages()
+                val ages = cacheDates.agesInDays()
                 val mean = ages.average()
                 val variance = ages.map { (it - mean).let { it * it } }.average()
-                sqrt(variance) / (1000 * 60 * 60 * 24)
+                sqrt(variance)
             },
             medianCacheAgeDays = if (cacheDates.isEmpty()) {
                 0.0
             } else {
-                val sortedAges = cacheDates.ages().sorted()
+                val sortedAges = cacheDates.agesInDays().sorted()
                 val middle = sortedAges.size / 2
                 val median = if (sortedAges.size % 2 == 0) {
                     (sortedAges[middle - 1] + sortedAges[middle]) / 2.0
                 } else {
-                    sortedAges[middle].toDouble()
+                    sortedAges[middle]
                 }
-                median / (1000 * 60 * 60 * 24)
+                median
             },
-            oldestCacheAgeDays = (
-                if (cacheDates.isEmpty()) {
-                    0.0
-                } else {
-                    cacheDates.ages().max() / (1000 * 60 * 60 * 24)
-                }
-                ).toDouble(),
+            oldestCacheAgeDays = if (cacheDates.isEmpty()) {
+                0.0
+            } else {
+                cacheDates.agesInDays().max()
+            },
         )
         return json.encodeToString(status)
     }

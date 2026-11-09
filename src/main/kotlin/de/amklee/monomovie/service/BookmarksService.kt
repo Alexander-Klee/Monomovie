@@ -3,7 +3,7 @@ package de.amklee.monomovie.service
 import de.amklee.monomovie.db.Bookmarks
 import de.amklee.monomovie.db.get
 import de.amklee.monomovie.db.monomovieDb
-import java.time.Instant
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -26,7 +26,7 @@ object BookmarksService {
             it[Bookmarks.isBookmarked] = true
         }) {
             it[Bookmarks.id] = id
-            it[bookmarkedAt] = Instant.now().epochSecond
+            it[bookmarkedAt] = Clock.System.now()
             it[isBookmarked] = true
         }
         eventFlow.emit(Event.Added(id))

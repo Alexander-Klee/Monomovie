@@ -3,7 +3,7 @@ package de.amklee.monomovie.service
 import de.amklee.monomovie.db.Watched
 import de.amklee.monomovie.db.get
 import de.amklee.monomovie.db.monomovieDb
-import java.time.Instant
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
@@ -26,7 +26,7 @@ object WatchedService {
         }
         Watched.insert {
             it[Watched.id] = id
-            it[watchedAt] = Instant.now().epochSecond
+            it[watchedAt] = Clock.System.now()
         }
         eventFlow.emit(Event.Added(id))
     }

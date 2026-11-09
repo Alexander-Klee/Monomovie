@@ -2,10 +2,11 @@ package de.amklee.monomovie.db
 
 import de.amklee.monomovie.service.remote.MediaEntry
 import java.nio.file.Path
-import java.time.Instant
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.r2dbc.insert
@@ -20,7 +21,7 @@ suspend fun performLegacyMigration() {
         Movies.upsert {
             it[Movies.id] = movieId
             it[Movies.mediaEntry] = legacyMovie_.mediaEntry
-            it[Movies.cacheDate] = legacyMovie_.cacheDate
+            it[Movies.cacheDate] = Instant.fromEpochMilliseconds(legacyMovie_.cacheDate)
         }
         cachedIds.add(movieId)
     }
@@ -28,7 +29,7 @@ suspend fun performLegacyMigration() {
         ensureMovieRow(id_, cachedIds)
         Bookmarks.insert {
             it[id] = id_
-            it[bookmarkedAt] = bookmarkedAt_
+            it[bookmarkedAt] = Instant.fromEpochSeconds(bookmarkedAt_)
             it[isBookmarked] = isBookmarked_
             it[colour] = colour_
         }
@@ -37,7 +38,7 @@ suspend fun performLegacyMigration() {
         ensureMovieRow(id_, cachedIds)
         Watched.insert {
             it[id] = id_
-            it[watchedAt] = watchedAt_
+            it[watchedAt] = Instant.fromEpochSeconds(watchedAt_)
         }
     }
 }
@@ -46,7 +47,7 @@ private suspend fun ensureMovieRow(id_: String, cachedIds: Set<String>) {
     if (id_ in cachedIds) return
     Movies.insert {
         it[Movies.id] = id_
-        it[cacheDate] = 0
+        it[cacheDate] = Instant.fromEpochSeconds(0)
     }
 }
 
@@ -93,7 +94,7 @@ private fun openCachedMoviesDb(path: Path = Path("cached_movies.json")): Map<Str
 
 private fun BookmarksDB1.migrate(): BookmarksDB3 = BookmarksDB2(
     bookmarks = bookmarks.map {
-        BookmarkItem2(it, Instant.now().epochSecond)
+        BookmarkItem2(it, Clock.System.now().epochSeconds)
     },
 ).migrate()
 private fun BookmarksDB2.migrate(): BookmarksDB3 = BookmarksDB3(
