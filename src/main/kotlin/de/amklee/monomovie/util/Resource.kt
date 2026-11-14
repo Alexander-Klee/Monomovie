@@ -7,12 +7,12 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.reflect.KProperty
 
-class Resource(private val name: String) {
+class Resource(val path: String) {
     private val resource: String by lazy {
-        Resource::class.java.getResource("/$name")?.readText()
-            ?: throw FileNotFoundException("$name not found in resources")
+        Resource::class.java.getResource("/$path")?.readText()
+            ?: throw FileNotFoundException("$path not found in resources")
     }
-    private val resourceFile = Path("src/main/resources/$name").takeIf {
+    private val resourceFile = Path("src/main/resources/$path").takeIf {
         Environment.isDevelopment &&
             it.exists()
     }

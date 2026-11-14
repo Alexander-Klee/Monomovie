@@ -3,16 +3,18 @@
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.*
-import de.amklee.monomovie.db.BookmarksDB
-import de.amklee.monomovie.db.WatchedDB
+import de.amklee.monomovie.db.configureDatabases
 import de.amklee.monomovie.pages.*
+import de.amklee.monomovie.service.BookmarksService
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.WatchedService
 import de.amklee.monomovie.util.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
+import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
@@ -22,8 +24,11 @@ import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import java.security.KeyStore
+import kotlin.io.path.inputStream
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
@@ -129,8 +134,8 @@ fun Route.miscRoutes() {
         }
         val eventFlow =
             merge(
-                BookmarksDB.eventFlow.map { Kind.BOOKMARK to it },
-                WatchedDB.eventFlow.map { Kind.WATCHED to it },
+                BookmarksService.eventFlow.map { Kind.BOOKMARK to it },
+                WatchedService.eventFlow.map { Kind.WATCHED to it },
             ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
         eventFlow.collect { event ->
             send(event)
@@ -213,15 +218,45 @@ private val LOG = System.getLogger("MMV/Router")
 
 fun main() {
     setupLogging()
-    embeddedServer(CIO, configure = {
-        connector {
-            port = 8080
-        }
-    }) {
+    embeddedServer(
+        Netty,
+        configure = {
+            connector {
+                port = 8080
+            }
+            if (Environment.ssl != null) {
+                sslConnector(
+                    keyStore = try {
+                        KeyStore.getInstance("JKS").apply {
+                            Environment.ssl.storeFile.inputStream().use {
+                                load(it, Environment.ssl.keyStorePassword.toCharArray())
+                            }
+                        }
+                    } catch (e: Exception) {
+                        LOG.error(e) { "Failed to load SSL key store" }
+                        throw e
+                    },
+                    keyAlias = Environment.ssl.keyAlias,
+                    keyStorePassword = { Environment.ssl.keyStorePassword.toCharArray() },
+                    privateKeyPassword = { Environment.ssl.privateKeyPassword.toCharArray() },
+                ) {
+                    host = "localhost"
+                    port = 8443
+                    keyStorePath = Environment.ssl.storeFile.toFile()
+                }
+            }
+        },
+    ) {
         // including the hostname has the side-benefit of ensuring Environment is initialized
         // and, therefore, that it does not contain errors
         LOG.info {
             "Starting server in ${if (developmentMode) "development" else "production"} mode at ${Environment.hostname}"
+        }
+        try {
+            configureDatabases()
+        } catch (e: Exception) {
+            LOG.error(e) { "Failed to configure databases" }
+            throw e
         }
         install(ContentNegotiation) {
             json()

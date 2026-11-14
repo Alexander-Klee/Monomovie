@@ -27,12 +27,14 @@ kotlin.sourceSets.main { kotlin.srcDir(tasks.register("generateKotlin") {
     val output = layout.buildDirectory.dir("generated/source")
     inputs.property("ktor", libs.ktor.version.catalog)
     inputs.property("ktlint", libs.ktlint.cli)
+    inputs.property("exposed", libs.exposed.version.catalog)
     outputs.dir(output)
     doLast {
         output.get().asFile.resolve("specs.kt").writeText("""
             object Spec {
                 val ktorVersionCatalog = "${libs.ktor.version.catalog.get()}"
                 val ktlintCli = "${libs.ktlint.cli.get()}"
+                val exposedVersionCatalog = "${libs.exposed.version.catalog.get()}"
             }
         """.trimIndent())
     }

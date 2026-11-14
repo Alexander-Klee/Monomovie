@@ -1,7 +1,7 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.CachedMovies
-import de.amklee.monomovie.db.Event
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.Event
 import de.amklee.monomovie.util.buildULHtml
 import kotlinx.serialization.Serializable
 
