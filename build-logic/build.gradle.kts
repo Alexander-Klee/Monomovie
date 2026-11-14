@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.kotlinpoet)
     implementation(libs.closure.compiler)
     implementation(libs.plugins.kotlin.jvm.lib)
+    implementation(libs.plugins.kotlin.multiplatform.lib)
     implementation(libs.plugins.foojay.resolver.convention.lib)
 }
 
