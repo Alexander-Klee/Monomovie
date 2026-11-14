@@ -1,13 +1,6 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.service.CachedMovies
-import de.amklee.monomovie.service.CachedMovies.getOffers
-import de.amklee.monomovie.service.remote.JellyfinClient
-import de.amklee.monomovie.service.remote.Offer
-import de.amklee.monomovie.service.remote.fullPosterUrl
-import de.amklee.monomovie.service.remote.imdbLink
-import de.amklee.monomovie.service.remote.title
-import de.amklee.monomovie.service.remote.tmdbLink
+import de.amklee.monomovie.dto.*
 import de.amklee.monomovie.util.*
 import kotlinx.html.*
 import kotlinx.html.impl.dataset
@@ -35,13 +28,15 @@ private fun UL.OfferItem(offerUrl: String, iconUrl: String, offerName: String) {
 }
 
 @HtmlTagMarker
+context(jellyfinItems: JellyfinItems)
 fun UL.JellyfinOfferItem(jellyfinLink: String) = OfferItem(
     jellyfinLink,
-    JellyfinClient.getLogoLink(),
+    jellyfinItems.logoLink ?: "",
     "Jellyfin",
 )
 
 @HtmlTagMarker
+context(jellyfinItems: JellyfinItems)
 fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, extraElements: FlowContent.() -> Unit = {}) {
     ul(classes = "offer-list") {
         // Offers
@@ -53,7 +48,7 @@ fun FlowContent.OfferList(offers: List<Offer>, jellyfinLink: String? = null, ext
 }
 
 @HtmlTagMarker
-private fun FlowContent.MoreOffersButton(movie: CachedMovies.Movie) {
+private fun FlowContent.MoreOffersButton(movie: Movie) {
     val movieId = movie.mediaEntry.id ?: return
     val offersLink = "/offers/$movieId"
 
@@ -78,8 +73,8 @@ private fun FlowContent.SimpleLinkNewTab(target: String?, classes: String = "no-
 }
 
 @HtmlTagMarker
-private fun FlowContent.Ratings(movie: CachedMovies.Movie) {
-    fun formatScore(score: Float): String = String.format("%.1f", score)
+private fun FlowContent.Ratings(movie: Movie) {
+    fun formatScore(score: Float): String = score.toString(precision = 1)
 
     movie.mediaEntry.content?.scoring?.tomatoMeter?.let { score ->
         div(classes = "movie-rating") {
@@ -114,14 +109,14 @@ fun formatTime(minutes: Int): String {
     val h = minutes / 60
 
     return if (h > 0) {
-        String.format("%dh %dm", h, m)
+        "${h}h ${m}m"
     } else {
-        String.format("%dm", m)
+        "${m}m"
     }
 }
 
 @HtmlTagMarker
-fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
+fun FlowContent.YearDurationInfo(movie: Movie) {
     val releaseYear = movie.mediaEntry.content?.originalReleaseYear
     val runtime =
         movie.mediaEntry.content
@@ -147,7 +142,8 @@ fun FlowContent.YearDurationInfo(movie: CachedMovies.Movie) {
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
 @HtmlTagMarker
-suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
+context(jellyfinItems: JellyfinItems)
+fun FlowContent.MovieItem(movie: Movie, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
     val movieId = movie.mediaEntry.id
     val movieTitle = movie.mediaEntry.title
     val posterUrl = movie.mediaEntry.fullPosterUrl
@@ -214,11 +210,9 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
             }
         }
 
-        val jellyfinLink = CachedMovies.getJellyfinLink(movie)
-
         if (showOffers) {
             div(classes = "movie-offers") {
-                OfferList(movie.getOffers(), jellyfinLink) {
+                OfferList(movie.getOffers(), jellyfinLink = jellyfinItems[movie]) {
                     div(classes = "more-offers-box") {
                         MoreOffersButton(movie)
                     }
@@ -230,7 +224,8 @@ suspend fun FlowContent.MovieItem(movie: CachedMovies.Movie, showOffers: Boolean
 }
 
 @HtmlTagMarker
-suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
+context(jellyfinItems: JellyfinItems)
+fun UL.MovieListItem(movie: Movie) {
     li(classes = "movie-list-item") {
         MovieItem(movie)
     }
@@ -238,7 +233,7 @@ suspend fun UL.MovieListItem(movie: CachedMovies.Movie) {
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
 @HtmlTagMarker
-suspend fun UL.MovieListSentinel() {
+fun UL.MovieListSentinel() {
     li(classes = "movie-list-item") {
         id = "infinite-sentinel"
         div(classes = "movie-item bookmark-container") {
@@ -264,7 +259,8 @@ suspend fun UL.MovieListSentinel() {
 }
 
 @HtmlTagMarker
-suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
+context(jellyfinItems: JellyfinItems)
+fun UL.SelectableMovieListItem(movie: Movie) {
     li(classes = "movie-list-item") {
         val name = movie.mediaEntry.id ?: ""
         label {
@@ -281,7 +277,8 @@ suspend fun UL.SelectableMovieListItem(movie: CachedMovies.Movie) {
 
 @OptIn(ExperimentalKotlinxHtmlApi::class)
 @HtmlTagMarker
-suspend fun UL.RouletteMovieListItem(movie: CachedMovies.Movie, count: Int = 1) {
+context(jellyfinItems: JellyfinItems)
+fun UL.RouletteMovieListItem(movie: Movie, count: Int = 1) {
     li(classes = "movie-list-item") {
         id = "roulette-${movie.mediaEntry.id}"
         label {

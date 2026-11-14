@@ -1,18 +1,13 @@
 package de.amklee.monomovie.service
 
-import de.amklee.monomovie.db.Bookmarks
-import de.amklee.monomovie.db.Movies
-import de.amklee.monomovie.db.Watched
-import de.amklee.monomovie.db.get
-import de.amklee.monomovie.db.monomovieDb
-import de.amklee.monomovie.pages.MonetizationTypes
-import de.amklee.monomovie.service.remote.JellyfinClient
+import de.amklee.monomovie.db.*
+import de.amklee.monomovie.dto.MediaEntry
+import de.amklee.monomovie.dto.Movie
+import de.amklee.monomovie.dto.Offer
+import de.amklee.monomovie.dto.PageInfo
 import de.amklee.monomovie.service.remote.JustWatch
-import de.amklee.monomovie.service.remote.MediaEntry
-import de.amklee.monomovie.service.remote.Offer
-import de.amklee.monomovie.service.remote.PageInfo
 import de.amklee.monomovie.util.error
-import java.util.Locale
+import java.util.*
 import kotlin.math.sqrt
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -30,13 +25,6 @@ import org.jetbrains.exposed.v1.r2dbc.upsert
 
 object CachedMovies {
     private val log = System.getLogger("MMV/CachedMovies")
-
-    data class Movie(val mediaEntry: MediaEntry, var isBookmarked: Boolean, var isWatched: Boolean, val cacheDate: Instant)
-
-    fun Movie.getOffers() = mediaEntry.offers?.filter {
-        it.monetizationType.equals(MonetizationTypes.FREE.name, ignoreCase = true) ||
-            it.monetizationType.equals(MonetizationTypes.FLATRATE.name, ignoreCase = true)
-    } ?: emptyList()
 
     private val STALE = 15.days
 
@@ -142,27 +130,13 @@ object CachedMovies {
     }
 
     suspend fun getAllOffers(movie: Movie, countries: Set<String> = Locale.getISOCountries().toSet()): Map<String, List<Offer>> {
-        if (movie.mediaEntry.id == null) return countries.associateWith { emptyList() }
+        val id = movie.mediaEntry.id ?: return countries.associateWith { emptyList() }
         try {
-            return justWatch.offersForCountries(movie.mediaEntry.id, countries)
+            return justWatch.offersForCountries(id, countries)
         } catch (e: Exception) {
             log.error(e) { "Unable to get offers for $movie." }
             return countries.associateWith { emptyList() }
         }
-    }
-
-    suspend fun getJellyfinLink(movie: Movie): String? {
-        val tmdbId = movie.mediaEntry.content
-            ?.externalIds
-            ?.tmdbId
-        val imdbId = movie.mediaEntry.content
-            ?.externalIds
-            ?.imdbId
-
-        val tmdb = tmdbId?.let { JellyfinClient.findTmdbOnJellyfin(it) }
-        val imdb = imdbId?.let { JellyfinClient.findImdbOnJellyfin(it) }
-
-        return tmdb ?: imdb
     }
 
     suspend inline fun getWatchedMovies() = WatchedService.getWatched()

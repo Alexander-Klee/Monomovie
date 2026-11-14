@@ -1,6 +1,6 @@
 package de.amklee.monomovie.db
 
-import de.amklee.monomovie.service.remote.MediaEntry
+import de.amklee.monomovie.dto.MediaEntry
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.datetime.timestamp

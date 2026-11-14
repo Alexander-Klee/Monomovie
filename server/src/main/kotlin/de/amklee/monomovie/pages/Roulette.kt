@@ -7,7 +7,10 @@ import de.amklee.monomovie.R
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.LazyValue
 import de.amklee.monomovie.util.buildULHtml
@@ -44,34 +47,34 @@ class SharedRouletteSession {
 
     fun events(): SharedFlow<RouletteSseEvent> = events.asSharedFlow()
 
-    suspend fun addAll(movies: List<CachedMovies.Movie>): Collection<RouletteCachedMovie> {
+    suspend fun addAll(movies: List<Movie>): Collection<RouletteCachedMovie> {
         for (movie in movies) {
             add(movie)
         }
         return this.movies.values
     }
 
-    suspend fun add(movie: CachedMovies.Movie) {
+    suspend fun add(movie: Movie) {
         mutex.withLock {
             if (movies.containsKey(movie.mediaEntry.id!!)) return
-            movies[movie.mediaEntry.id] = movie withVotes 1
+            movies[movie.mediaEntry.id!!] = movie withVotes 1
         }
         // not in the critical section, so technically the movie could have been added in the meantime.
         // however, this avoids locking us up which is probably more important in the case of one slow client.
         events.emit(buildAddEvent(movie, 1))
     }
 
-    suspend fun updateCount(movie: CachedMovies.Movie, count: Int) {
+    suspend fun updateCount(movie: Movie, count: Int) {
         val event =
             mutex.withLock {
                 val old = movies[movie.mediaEntry.id!!]
                 if (old == null) {
-                    movies[movie.mediaEntry.id] = movie withVotes count
+                    movies[movie.mediaEntry.id!!] = movie withVotes count
                     buildAddEvent(movie, count)
                 } else {
                     if (old.votes != count) {
                         old.votes = count
-                        RouletteSseEvent.Update(movie.mediaEntry.id, count)
+                        RouletteSseEvent.Update(movie.mediaEntry.id!!, count)
                     } else {
                         null
                     }
@@ -82,23 +85,28 @@ class SharedRouletteSession {
         if (event != null) events.emit(event)
     }
 
-    private suspend fun buildAddEvent(movie: CachedMovies.Movie, count: Int): RouletteSseEvent.Add = RouletteSseEvent.Add(
+    private suspend fun buildAddEvent(movie: Movie, count: Int): RouletteSseEvent.Add = RouletteSseEvent.Add(
         id = movie.mediaEntry.id!!,
-        body = buildULHtml { RouletteMovieListItem(movie, count) },
+        body = buildULHtml {
+            context(JellyfinClient.getItems()) {
+                RouletteMovieListItem(movie, count)
+            }
+        },
     )
 
-    suspend fun remove(movie: CachedMovies.Movie) {
+    suspend fun remove(movie: Movie) {
         mutex.withLock { movies.remove(movie.mediaEntry.id!!) }?.let {
             events.tryEmit(RouletteSseEvent.Remove(movie.mediaEntry.id!!))
         }
     }
 }
 
-data class RouletteCachedMovie(val movie: CachedMovies.Movie, var votes: Int)
+data class RouletteCachedMovie(val movie: Movie, var votes: Int)
 
-infix fun CachedMovies.Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
+infix fun Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 
 @HtmlTagMarker
+context(jellyfinItems: JellyfinItems)
 suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
         script {
@@ -138,7 +146,8 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
 }
 
 @HtmlTagMarker
-suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<CachedMovies.Movie>, shareId: Uuid) {
+context(jellyfinItems: JellyfinItems)
+suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) {
     SearchBar("")
     h1 { +"Shared Roulette:" }
     if (movies.isEmpty()) {

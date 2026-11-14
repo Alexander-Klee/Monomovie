@@ -9,6 +9,7 @@ import de.amklee.monomovie.pages.*
 import de.amklee.monomovie.service.BookmarksService
 import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.service.WatchedService
+import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.util.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -41,13 +42,15 @@ fun Route.miscRoutes() {
         val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
 
         call.respondHtml {
-            HtmlTemplate("Monomovie") {
-                HomePage(
-                    CachedMovies.getBookmarkedMovies(
-                        displayHidden = displayHidden,
-                        displayWatched = displayWatched,
-                    ),
-                )
+            context(JellyfinClient.getItems()) {
+                HtmlTemplate("Monomovie") {
+                    HomePage(
+                        CachedMovies.getBookmarkedMovies(
+                            displayHidden = displayHidden,
+                            displayWatched = displayWatched,
+                        ),
+                    )
+                }
             }
         }
     }
@@ -87,7 +90,11 @@ fun Route.miscRoutes() {
             },
         )
         searchResults?.let {
-            call.respond(MoreSearchResults(it))
+            call.respond(
+                context(JellyfinClient.getItems()) {
+                    MoreSearchResults(it)
+                },
+            )
             return@post
         }
         call.respond(HttpStatusCode.InternalServerError, "Search failed")
@@ -142,12 +149,14 @@ fun Route.miscRoutes() {
     get("/watched") {
         val watchedMovies = CachedMovies.getWatchedMovies()
         call.respondHtml {
-            HtmlTemplate("Watched Movies") {
-                if (watchedMovies.isEmpty()) {
-                    p { +"No watched movies found" }
-                } else {
-                    h1 { +"Watched Movies:" }
-                    WatchedMovieList(watchedMovies)
+            context(JellyfinClient.getItems()) {
+                HtmlTemplate("Watched Movies") {
+                    if (watchedMovies.isEmpty()) {
+                        p { +"No watched movies found" }
+                    } else {
+                        h1 { +"Watched Movies:" }
+                        WatchedMovieList(watchedMovies)
+                    }
                 }
             }
         }
@@ -190,8 +199,10 @@ fun Route.miscRoutes() {
 
         val offers = CachedMovies.getAllOffers(movie)
         call.respondHtml {
-            HtmlTemplate("Countries for ${movie.mediaEntry.content?.title ?: "null"}") {
-                OfferPage(movie, offers, "DE")
+            context(JellyfinClient.getItems()) {
+                HtmlTemplate("Countries for ${movie.mediaEntry.content?.title ?: "null"}") {
+                    OfferPage(movie, offers, "DE")
+                }
             }
         }
     }

@@ -1,7 +1,10 @@
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.remote.JellyfinClient
 import kotlinx.html.FlowContent
 import kotlinx.html.HtmlTagMarker
 import kotlinx.html.div
@@ -11,7 +14,8 @@ import kotlinx.html.postForm
 import kotlinx.html.submitInput
 
 @HtmlTagMarker
-suspend fun FlowContent.HomePage(movies: List<CachedMovies.Movie>) {
+context(jellyfinItems: JellyfinItems)
+suspend fun FlowContent.HomePage(movies: List<Movie>) {
     SearchBar("")
     h1 { +"Bookmarked Movies:" }
     if (movies.isEmpty()) {

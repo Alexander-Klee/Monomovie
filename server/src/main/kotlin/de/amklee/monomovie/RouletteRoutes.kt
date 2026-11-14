@@ -6,6 +6,7 @@ import de.amklee.monomovie.pages.SharedRouletteSelectionPage
 import de.amklee.monomovie.pages.SharedRouletteSession
 import de.amklee.monomovie.pages.withVotes
 import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.SharedSessionContainer
 import de.amklee.monomovie.util.respondHtml
@@ -18,6 +19,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.*
+import kotlin.collections.emptyList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -58,8 +60,10 @@ fun Route.rouletteRoutes() {
         }
 
         call.respondHtml {
-            HtmlTemplate("Roulette") {
-                RoulettePage(votedMovies, shareId = shareId)
+            context(JellyfinClient.getItems()) {
+                HtmlTemplate("Roulette") {
+                    RoulettePage(votedMovies, shareId = shareId)
+                }
             }
         }
     }
@@ -84,8 +88,10 @@ fun Route.rouletteRoutes() {
             .addAll(emptyList())
 
         call.respondHtml {
-            HtmlTemplate("Roulette") {
-                RoulettePage(selectedMovies, shareId = shareId)
+            context(JellyfinClient.getItems()) {
+                HtmlTemplate("Roulette") {
+                    RoulettePage(selectedMovies, shareId = shareId)
+                }
             }
         }
     }
@@ -109,12 +115,14 @@ fun Route.rouletteRoutes() {
         val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
 
         call.respondHtml {
-            HtmlTemplate("Shared Roulette") {
-                // TODO pre-select or hide movies that are already in the session
-                SharedRouletteSelectionPage(
-                    CachedMovies.getBookmarkedMovies(displayHidden, displayWatched),
-                    shareId,
-                )
+            context(JellyfinClient.getItems()) {
+                HtmlTemplate("Shared Roulette") {
+                    // TODO pre-select or hide movies that are already in the session
+                    SharedRouletteSelectionPage(
+                        CachedMovies.getBookmarkedMovies(displayHidden, displayWatched),
+                        shareId,
+                    )
+                }
             }
         }
     }

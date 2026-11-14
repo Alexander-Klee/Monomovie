@@ -3,6 +3,8 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.Environment
 import de.amklee.monomovie.R
 import de.amklee.monomovie.db.Watched
+import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.service.CachedMovies
@@ -38,6 +40,7 @@ suspend fun FlowContent.SearchMovieList() = MovieList(
 private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 
 @HtmlTagMarker
+context(jellyfinItems: JellyfinItems)
 suspend fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
     R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(SseEvent.Mode.WATCHED),
 ) {
@@ -56,7 +59,8 @@ suspend fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList
 }
 
 @HtmlTagMarker
-suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, minSelection: Int = 2) = MovieList(
+context(jellyfinItems: JellyfinItems)
+suspend fun FlowContent.SelectableMovieList(movies: List<Movie>, minSelection: Int = 2) = MovieList(
     R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.selectableJs(minSelection) +
         R.sseJs(SseEvent.Mode.OVERVIEW),
 ) {
@@ -66,6 +70,7 @@ suspend fun FlowContent.SelectableMovieList(movies: List<CachedMovies.Movie>, mi
 }
 
 @HtmlTagMarker
+context(jellyfinItems: JellyfinItems)
 suspend fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
     R.imageErrorJs + R.watchedJs + R.sseJs(SseEvent.Mode.ROULETTE),
 ) {

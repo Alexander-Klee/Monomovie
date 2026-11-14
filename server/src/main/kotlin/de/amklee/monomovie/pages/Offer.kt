@@ -4,20 +4,18 @@ import de.amklee.monomovie.R
 import de.amklee.monomovie.components.JellyfinOfferItem
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
+import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.dto.MonetizationTypes
+import de.amklee.monomovie.dto.Movie
+import de.amklee.monomovie.dto.Offer
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.service.CachedMovies
-import de.amklee.monomovie.service.remote.Offer
+import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.util.sseJs
 import java.util.Locale
 import kotlinx.html.*
 
-enum class MonetizationTypes(val type: String) {
-    FLATRATE("Flatrate"),
-    RENT("Rent"),
-    BUY("Buy"),
-    FREE("Free"),
-}
-
+context(jellyfinItems: JellyfinItems)
 private fun FlowContent.offerTable(offers: List<Offer>) {
     table {
         for (type in MonetizationTypes.entries) {
@@ -48,7 +46,9 @@ private fun getCountryName(countryCode: String): String = try {
 }
 
 @HtmlTagMarker
-private fun FlowContent.JellyfinTable(jellyfinLink: String) {
+context(jellyfinItems: JellyfinItems)
+private fun FlowContent.JellyfinTable(movie: Movie) {
+    val jellyfinLink = jellyfinItems[movie] ?: return
     h1 { +"Jellyfin" }
     table {
         tr {
@@ -63,7 +63,8 @@ private fun FlowContent.JellyfinTable(jellyfinLink: String) {
 }
 
 @HtmlTagMarker
-suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
+context(jellyfinItems: JellyfinItems)
+suspend fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
         script {
             unsafe {
@@ -75,8 +76,7 @@ suspend fun FlowContent.OfferPage(movie: CachedMovies.Movie, offers: Map<String,
         }
         MovieItem(movie, showOffers = false)
 
-        val jellyfinLink = CachedMovies.getJellyfinLink(movie)
-        jellyfinLink?.let { JellyfinTable(it) }
+        JellyfinTable(movie)
 
         // sort countries by number of flatrate offers descending, prioritize main country
         val sortedOffers =

@@ -1,5 +1,6 @@
 import de.amklee.monomovie.*
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     org.jetbrains.kotlin.multiplatform
@@ -44,4 +45,8 @@ kotlin {
             api(libs.kotlinx.browser)
         }
     }
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions.freeCompilerArgs.add("-Xexplicit-context-arguments")
 }

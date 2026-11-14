@@ -1,6 +1,6 @@
 package de.amklee.monomovie.db
 
-import de.amklee.monomovie.service.remote.MediaEntry
+import de.amklee.monomovie.dto.MediaEntry
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.exists

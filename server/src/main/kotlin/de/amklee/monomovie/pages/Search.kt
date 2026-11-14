@@ -3,6 +3,7 @@ package de.amklee.monomovie.pages
 import de.amklee.monomovie.R
 import de.amklee.monomovie.components.MovieListItem
 import de.amklee.monomovie.components.SearchMovieList
+import de.amklee.monomovie.dto.JellyfinItems
 import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.util.buildULHtml
 import kotlinx.html.*
@@ -43,6 +44,7 @@ suspend fun FlowContent.SearchPage(title: String) {
 data class MoreSearchResultsResponse(val cursor: String, val html: Map<String, String>, val hasNextPage: Boolean)
 
 @HtmlTagMarker
+context(jellyfinItems: JellyfinItems)
 suspend fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSearchResultsResponse {
     if (searchResults.movies.isEmpty()) return MoreSearchResultsResponse("", mapOf(), false)
 

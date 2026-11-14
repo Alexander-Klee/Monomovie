@@ -3,6 +3,7 @@ package de.amklee.monomovie.components
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.service.Event
+import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.util.buildULHtml
 
 suspend fun convertBookmarkSse(event: Event, mode: SseEvent.Mode, kind: SseEvent.Kind): SseEvent? {
@@ -15,10 +16,12 @@ suspend fun convertBookmarkSse(event: Event, mode: SseEvent.Mode, kind: SseEvent
                 kind = kind,
                 body =
                     buildULHtml {
-                        if (mode == SseEvent.Mode.OVERVIEW) {
-                            SelectableMovieListItem(movie)
-                        } else {
-                            MovieListItem(movie)
+                        context(JellyfinClient.getItems()) {
+                            if (mode == SseEvent.Mode.OVERVIEW) {
+                                SelectableMovieListItem(movie)
+                            } else {
+                                MovieListItem(movie)
+                            }
                         }
                     },
                 insert =

@@ -1,20 +1,10 @@
-package de.amklee.monomovie.util
+package de.amklee.monomovie.components
 
-import de.amklee.monomovie.R
+import de.amklee.monomovie.util.custom
 import kotlinx.html.FlowContent
 import kotlinx.html.HtmlTagMarker
 import kotlinx.html.SVG
 import kotlinx.html.svg
-
-@HtmlTagMarker
-fun FlowContent.IncludeSvgTemplates() {
-    consumer.onTagContentUnsafe {
-        for (resource in R.graphics.svgTemplates.index.values) {
-            val resource by resource
-            +resource
-        }
-    }
-}
 
 inline fun FlowContent.templatedSvg(
     href: String,

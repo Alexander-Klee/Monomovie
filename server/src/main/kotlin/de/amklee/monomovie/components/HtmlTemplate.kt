@@ -1,7 +1,6 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.R
-import de.amklee.monomovie.util.IncludeSvgTemplates
 import kotlinx.html.*
 
 @HtmlTagMarker
@@ -54,7 +53,12 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
                     +R.topbuttonJs
                 }
             }
-            IncludeSvgTemplates()
+            consumer.onTagContentUnsafe {
+                for (resource in R.graphics.svgTemplates.index.values) {
+                    val resource by resource
+                    +resource
+                }
+            }
             div(classes = "content") {
                 body()
             }

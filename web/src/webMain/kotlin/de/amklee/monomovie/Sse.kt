@@ -2,13 +2,12 @@ package de.amklee.monomovie
 
 import de.amklee.monomovie.dto.SseEvent
 import io.ktor.client.plugins.sse.*
-import io.ktor.client.request.url
 import kotlinx.browser.document
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
-import org.w3c.dom.*
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.set
 import kotlin.time.Duration.Companion.seconds
 
 object Sse {
