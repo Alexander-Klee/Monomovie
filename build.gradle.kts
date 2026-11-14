@@ -80,7 +80,7 @@ kotlin {
 
 runtime {
     addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
-    addModules("java.logging", "java.net.http")
+    addModules("java.logging", "java.net.http", "java.sql")
     enableCds()
     launcher {
         jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
