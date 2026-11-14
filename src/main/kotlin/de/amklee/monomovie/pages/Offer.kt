@@ -1,12 +1,12 @@
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.CachedMovies
-import de.amklee.monomovie.Offer
 import de.amklee.monomovie.R
 import de.amklee.monomovie.components.JellyfinOfferItem
 import de.amklee.monomovie.components.Mode
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferList
+import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.service.remote.Offer
 import de.amklee.monomovie.util.sseJs
 import java.util.Locale
 import kotlinx.html.*

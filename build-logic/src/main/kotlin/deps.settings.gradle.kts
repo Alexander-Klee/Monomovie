@@ -5,4 +5,5 @@ plugins {
 dependencyResolutionManagement {
     repositories.mavenCentral()
     versionCatalogs.create("ktorLibs").from(Spec.ktorVersionCatalog)
+    versionCatalogs.create("exposedLibs").from(Spec.exposedVersionCatalog)
 }
