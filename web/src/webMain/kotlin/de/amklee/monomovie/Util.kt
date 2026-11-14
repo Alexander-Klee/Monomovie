@@ -1,6 +1,11 @@
 package de.amklee.monomovie
 
 import kotlinx.browser.document
+import kotlinx.html.DIV
+import kotlinx.html.FlowContent
+import kotlinx.html.TagConsumer
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLTemplateElement
 import org.w3c.dom.Node
@@ -28,3 +33,22 @@ fun parseHtmlElement(html: String): Node? {
     }
     return template.content.firstChild
 }
+
+expect val Document.create: TagConsumer<Element>
+expect val HTMLElement.append: TagConsumer<HTMLElement>
+expect val HTMLElement.prepend: TagConsumer<HTMLElement>
+
+fun Document.create(build: FlowContent.() -> Unit) = this.create
+    .apply {
+        DIV(mapOf(), this).build()
+    }.finalize()
+
+fun HTMLElement.append(build: FlowContent.() -> Unit) = this.append
+    .apply {
+        DIV(mapOf(), this).build()
+    }.finalize()
+
+fun HTMLElement.prepend(build: FlowContent.() -> Unit) = this.prepend
+    .apply {
+        DIV(mapOf(), this).build()
+    }.finalize()

@@ -18,16 +18,17 @@ inline fun buildULHtml(build: UL.() -> Unit): String = buildHtml {
     }
 }
 
-class CustomDomElement(tagName: String, consumer: TagConsumer<*>) :
+class CustomDomElement(tagName: String, namespace: String? = null, consumer: TagConsumer<*>) :
     HTMLTag(
         tagName,
         consumer,
         emptyMap(),
+        namespace = namespace,
         inlineTag = true,
         emptyTag = false,
     ),
     HtmlInlineTag
 
-fun FlowContent.custom(tagName: String, block: CustomDomElement.() -> Unit = {}) {
-    CustomDomElement(tagName, consumer).visit(block)
+fun FlowContent.custom(tagName: String, namespace: String? = null, block: CustomDomElement.() -> Unit = {}) {
+    CustomDomElement(tagName, namespace, consumer).visit(block)
 }

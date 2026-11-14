@@ -14,7 +14,7 @@ inline fun FlowContent.templatedSvg(
 ) {
     svg(classes = classes) {
         block()
-        custom("use") {
+        custom("use", namespace = "http://www.w3.org/2000/svg") {
             attributes["href"] = href
         }
     }

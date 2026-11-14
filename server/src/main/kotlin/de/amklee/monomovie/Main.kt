@@ -132,7 +132,6 @@ fun Route.miscRoutes() {
         val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
         Json.encodeToString(serializer, it)
     }) {
-        val mode = call.request.queryParameters["mode"]?.let { SseEvent.Mode.valueOf(it) } ?: SseEvent.Mode.OVERVIEW
         heartbeat {
             period = 5.seconds
             event = ServerSentEvent("heartbeat")
@@ -141,7 +140,7 @@ fun Route.miscRoutes() {
             merge(
                 BookmarksService.eventFlow.map { SseEvent.Kind.BOOKMARK to it },
                 WatchedService.eventFlow.map { SseEvent.Kind.WATCHED to it },
-            ).mapNotNull { (kind, event) -> convertBookmarkSse(event, mode, kind) }
+            ).mapNotNull { (kind, event) -> convertBookmarkSse(event, kind) }
         eventFlow.collect { event ->
             send(event)
         }
@@ -211,6 +210,9 @@ fun Route.miscRoutes() {
     }
     get("/CachedMovies.json") {
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
+    }
+    get("/jellyfinItems") {
+        call.respond(JellyfinClient.getItems())
     }
     get("/qr.svg") {
         call.request.queryParameters["data"]?.let { data ->
