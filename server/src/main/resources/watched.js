@@ -1,4 +1,4 @@
-function deleteWatch(movieId, useElement) {
+window.deleteWatch = function deleteWatch(movieId, useElement) {
     fetch(`/watch/${movieId}`, {
         method: 'DELETE'
     }).catch(error => {
@@ -6,7 +6,7 @@ function deleteWatch(movieId, useElement) {
     });
 }
 
-function setWatch(movieId, useElement) {
+window.setWatch = function setWatch(movieId, useElement) {
     fetch(`/watch/${movieId}`, {
         method: 'POST'
     }).catch(error => {

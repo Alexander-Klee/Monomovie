@@ -172,7 +172,7 @@ fun FlowContent.MovieItem(movie: Movie, showOffers: Boolean = true, extraElement
                     classes = "hidden-movie-action-bar-element eye-button watched-scope",
                 ) {
                     id = "watched-$movieId"
-                    onClick = "dataset.checked == 'true' ? deleteWatch('$movieId') : setWatch('$movieId')"
+                    onClick = "dataset.checked == 'true' ? window.deleteWatch('$movieId') : window.setWatch('$movieId')"
 
                     dataset["checked"] = movie.isWatched.toString()
 
