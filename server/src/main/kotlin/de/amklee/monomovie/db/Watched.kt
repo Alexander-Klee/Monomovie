@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 
 object Watched : IdTable<String>("watched") {
-    override val id = varchar("id", 255).references(Movies.id).entityId()
+    override val id = varchar("id", 255).references(Movies.id).entityId().uniqueIndex()
     override val primaryKey = PrimaryKey(id)
     val watchedAt = timestamp("watched_at")
 

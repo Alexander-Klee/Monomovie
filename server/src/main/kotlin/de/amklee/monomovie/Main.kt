@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.*
@@ -27,7 +25,7 @@ import io.ktor.sse.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.ExperimentalUuidApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge

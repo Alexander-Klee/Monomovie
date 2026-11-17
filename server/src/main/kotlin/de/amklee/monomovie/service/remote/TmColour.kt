@@ -6,6 +6,7 @@ import de.amklee.monomovie.dto.tmdbLink
 import de.amklee.monomovie.service.BookmarksService
 import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.util.error
+import de.amklee.monomovie.util.info
 import de.amklee.monomovie.util.warn
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -18,9 +19,9 @@ object TmColour {
     suspend operator fun get(movie: Movie): String? {
         val bookmark = BookmarksService.getBookmarks().firstOrNull { it.id == movie.mediaEntry.id }
 
-        if (bookmark != null && bookmark.colour != null) {
-            return bookmark.colour
-        }
+        if (bookmark?.colour != null) return bookmark.colour
+
+        log.info { "Fetching colour for movie id ${movie.mediaEntry.id} from TMDB" }
 
         val tmdbLink = movie.mediaEntry.tmdbLink ?: return null
         val cssPhrase: String

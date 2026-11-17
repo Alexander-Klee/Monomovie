@@ -4,6 +4,7 @@ import de.amklee.monomovie.Environment
 import de.amklee.monomovie.dto.JellyfinItems
 import de.amklee.monomovie.util.NIHCache
 import de.amklee.monomovie.util.error
+import de.amklee.monomovie.util.info
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -21,7 +22,7 @@ object JellyfinClient {
 
     private val jellyfin = createJellyfin {
         clientInfo = ClientInfo(name = "monomovie", version = "1.0.0")
-        deviceInfo = DeviceInfo("monomovie", "monomovie")
+        deviceInfo = DeviceInfo("monomovie", "monomovie", emptyList()) // Jelly do not be fine
     }
 
     private val api by lazy {
@@ -34,6 +35,7 @@ object JellyfinClient {
     private val items = NIHCache<JellyfinItems>(3.hours) {
         val api = api ?: return@NIHCache JellyfinItems.EMPTY
         try {
+            log.info { "Fetching items from Jellyfin" }
             val items = api.libraryApi.getItems(
                 recursive = true,
                 fields = setOf(ItemFields.PROVIDER_IDS),

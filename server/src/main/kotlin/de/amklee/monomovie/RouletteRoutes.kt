@@ -21,14 +21,12 @@ import io.ktor.sse.*
 import io.ktor.util.*
 import kotlin.collections.emptyList
 import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 private val LOG = System.getLogger("MMV/RouletteRoutes")
 
-@OptIn(ExperimentalUuidApi::class)
 fun Route.rouletteRoutes() {
     val sharedRouletteSessions =
         SharedSessionContainer<Uuid, SharedRouletteSession>(10.seconds) { SharedRouletteSession() }

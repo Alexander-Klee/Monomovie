@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 
 object Bookmarks : IdTable<String>("bookmarks") {
-    override val id = varchar("id", 255).references(Movies.id).entityId()
+    override val id = varchar("id", 255).references(Movies.id).entityId().uniqueIndex()
     override val primaryKey = PrimaryKey(id)
     val bookmarkedAt = timestamp("bookmarked_at")
     val isBookmarked = bool("is_bookmarked").default(true)
