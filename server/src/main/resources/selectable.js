@@ -1,6 +1,6 @@
 const minSelection = $minSelection$;
 
-function selectedChanged() {
+window.selectedChanged = function selectedChanged() {
     const disabled = document.querySelectorAll(".movie-checkbox:checked").length < minSelection;
 
     document.querySelectorAll(".require-min-selection").forEach(button => {
@@ -8,4 +8,4 @@ function selectedChanged() {
     });
 }
 
-selectedChanged();
+window.selectedChanged();

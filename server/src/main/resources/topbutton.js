@@ -1,4 +1,4 @@
-function gotoTop() {
+window.gotoTop = function gotoTop() {
     main.scrollTo({
         top: 0,
         behavior: 'smooth'

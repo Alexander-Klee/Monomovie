@@ -162,7 +162,7 @@ fun FlowContent.MovieItem(movie: Movie, showOffers: Boolean = true, extraElement
             }
             if (posterUrl.isNullOrBlank()) return@span
             img(classes = "movie-poster-img", src = posterUrl, alt = movieTitle) {
-                onError = "handleImageError(this)"
+                onError = "window.handleImageError(this)"
             }
         }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
@@ -268,7 +268,7 @@ fun UL.SelectableMovieListItem(movie: Movie) {
             checkBoxInput(classes = "movie-checkbox", name = "selected[]") {
                 value = name
                 id = name
-                onClick = "selectedChanged()"
+                onClick = "window.selectedChanged()"
             }
             MovieItem(movie)
         }

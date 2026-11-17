@@ -100,7 +100,7 @@ fun FlowContent.MenuButton() {
 fun FlowContent.TopButton() {
     button(classes = "floating-action-button top-button") {
         id = "top_button"
-        onClick = "gotoTop()"
+        onClick = "window.gotoTop()"
         unsafe { +R.graphics.svg.arrowupSvg }
     }
 }
