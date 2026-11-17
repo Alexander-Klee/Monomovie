@@ -42,6 +42,8 @@ bin/
 .DS_Store
 
 
-bookmarks.json
-watched.json
-cached_movies.json
+/bookmarks.json
+/watched.json
+/cached_movies.json
+/monomovie.mv.db
+/monomovie.trace.db

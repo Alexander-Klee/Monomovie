@@ -11,7 +11,7 @@
  * This code is licensed under the GPL-3.0 License.
  */
 
-package de.amklee.monomovie
+package de.amklee.monomovie.service.remote
 
 import io.ktor.client.*
 import io.ktor.client.call.*

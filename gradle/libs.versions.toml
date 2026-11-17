@@ -1,25 +1,31 @@
 # Use `gradle versionCatalogUpdate` task to update these
 [versions]
-closure-compiler = "v20260831"
+closure-compiler = "v20261104"
+exposed = "1.6.1"
 foojay-resolver-convention = "1.0.0"
 gradle-shadow = "9.6.1"
-jellyfin = "1.8.12"
+h2 = "2.5.252"
+jellyfin = "1.9.4"
 jlink-runtime = "2.0.1"
-kotlin = "2.4.10"
-kotlinpoet = "2.3.0"
+kotlin = "2.4.21"
+kotlinpoet = "2.4.0"
 kotlinx-html = "0.12.0-jf.3"
 ktlint = "1.8.0"
-ktor = "3.5.2"
-slf4j = "2.0.18"
-version-catalog-update = "1.1.1"
+ktor = "3.6.1"
+r2dbc-h2 = "1.1.0.RELEASE"
+slf4j = "2.0.20"
+version-catalog-update = "1.1.2"
 
 [libraries]
 closure-compiler = { module = "com.google.javascript:closure-compiler", version.ref = "closure-compiler" }
+exposed-version-catalog = { module = "org.jetbrains.exposed:exposed-version-catalog", version.ref = "exposed" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
 jellyfin-core = { module = "org.jellyfin.sdk:jellyfin-core", version.ref = "jellyfin" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint" }
 ktor-version-catalog = { module = "io.ktor:ktor-version-catalog", version.ref = "ktor" }
+r2dbc-h2 = { module = "io.r2dbc:r2dbc-h2", version.ref = "r2dbc-h2" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
 
 [plugins]

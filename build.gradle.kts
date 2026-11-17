@@ -35,6 +35,12 @@ repositories {
     }
 }
 
+val migrationTool by configurations.creating
+val migrationsGen by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.main.get().output + migrationTool
+    runtimeClasspath += sourceSets.main.get().runtimeClasspath + sourceSets.main.get().output + migrationTool
+}
+
 dependencies {
     // client for JustWatch API
     implementation(ktorLibs.client.core)
@@ -53,6 +59,16 @@ dependencies {
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.sse)
     implementation(libs.kotlinx.html)
+
+    // Database
+    implementation(exposedLibs.core)
+    implementation(exposedLibs.r2dbc)
+    implementation(exposedLibs.json)
+    implementation(exposedLibs.kotlin.datetime)
+    migrationTool(exposedLibs.migration.core)
+    migrationTool(exposedLibs.migration.r2dbc)
+    implementation(libs.h2)
+    implementation(libs.r2dbc.h2)
 }
 
 tasks.test {
@@ -64,7 +80,7 @@ kotlin {
 
 runtime {
     addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
-    addModules("java.logging", "java.net.http")
+    addModules("java.logging", "java.net.http", "java.sql")
     enableCds()
     launcher {
         jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
@@ -92,6 +108,18 @@ tasks {
         group = "application"
         executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
         environment("MMV_HOSTNAME" to "http://localhost:8080")
+    }
+    val migrationsTmpDir = layout.buildDirectory.file("migrationsgen")
+    register<JavaExec>("generateMigrations") {
+        group = "application"
+        mainClass = "de.amklee.monomovie.GenerateMigrationsKt"
+        classpath(migrationsGen.runtimeClasspath)
+        systemProperty("io.ktor.development", "true")
+        args(migrationsTmpDir.get().asFile.resolve("db").absolutePath)
+        doFirst {
+            migrationsTmpDir.get().asFile.deleteRecursively()
+            migrationsTmpDir.get().asFile.mkdirs()
+        }
     }
 }
 

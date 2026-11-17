@@ -1,4 +1,4 @@
-package de.amklee.monomovie.db
+package de.amklee.monomovie.service
 
 sealed interface Event {
     val id: String
