@@ -20,7 +20,7 @@ object JellyfinClient {
     private val jellyfin =
         createJellyfin {
             clientInfo = ClientInfo(name = "monomovie", version = "1.0.0")
-            deviceInfo = DeviceInfo("monomovie", "monomovie")
+            deviceInfo = DeviceInfo("monomovie", "monomovie", emptyList()) // Jelly do not be fine
         }
 
     private val api by lazy {
