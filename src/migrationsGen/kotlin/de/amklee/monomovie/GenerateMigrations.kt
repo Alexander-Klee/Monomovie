@@ -10,11 +10,14 @@ import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 
 suspend fun main(args: Array<String>) {
-    require(args.size == 1)
+    if (args.size !in 1..2) {
+        println("Usage: GenerateMigrations <database-url> [<migration-script-name>]")
+        return
+    }
     R2dbcDatabase.mmvConnect(args[0])
     monomovieDb.runMigrations()
     suspendTransaction(monomovieDb) {
-        generateMigrationScript()
+        generateMigrationScript(args.getOrNull(1) ?: showScriptNameDialog())
     }
 }
 
@@ -38,7 +41,7 @@ fun showScriptNameDialog(): String {
 }
 
 @OptIn(ExperimentalDatabaseMigrationApi::class)
-suspend fun generateMigrationScript() {
+suspend fun generateMigrationScript(scriptName: String = showScriptNameDialog()) {
     val scriptDirectory = "src/main/resources/db/migration"
     Path(scriptDirectory).createDirectories()
 
@@ -48,6 +51,6 @@ suspend fun generateMigrationScript() {
         Watched,
         Migrations,
         scriptDirectory = scriptDirectory,
-        scriptName = showScriptNameDialog(),
+        scriptName = scriptName,
     )
 }

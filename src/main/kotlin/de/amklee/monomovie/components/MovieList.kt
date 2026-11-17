@@ -7,9 +7,9 @@ import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.util.selectableJs
 import de.amklee.monomovie.util.sseJs
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.time.toJavaInstant
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.html.*
 
 @HtmlTagMarker
@@ -40,12 +40,12 @@ suspend fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList
     R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.sseJs(Mode.WATCHED),
 ) {
     val items = movies
-        .groupBy { LocalDateTime.ofInstant(it.watchedAt.toJavaInstant(), Environment.timezone).toLocalDate() }
+        .groupBy { it.watchedAt.toLocalDateTime(Environment.timezone) }
         .entries
         .sortedByDescending { it.key }
     for ((date, movies) in items) {
         li(classes = "watched-date") {
-            +date.format(dateFormatter)
+            +date.toJavaLocalDateTime().format(dateFormatter)
         }
         for (movie in movies) {
             MovieListItem(movie.item)
