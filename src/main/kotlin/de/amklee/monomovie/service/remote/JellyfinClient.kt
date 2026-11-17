@@ -2,6 +2,7 @@ package de.amklee.monomovie.service.remote
 import de.amklee.monomovie.Environment
 import de.amklee.monomovie.util.NIHCache
 import de.amklee.monomovie.util.error
+import de.amklee.monomovie.util.info
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -34,6 +35,7 @@ object JellyfinClient {
         NIHCache<CacheEntry>(3.hours) {
             val api = api ?: return@NIHCache CacheEntry()
             try {
+                log.info { "Fetching items from Jellyfin" }
                 val items = api.libraryApi.getItems(
                     recursive = true,
                     fields = setOf(ItemFields.PROVIDER_IDS),

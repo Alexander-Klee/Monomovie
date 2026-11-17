@@ -7,7 +7,7 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.json
 
 object Movies : IdTable<String>("movies") {
-    override val id = varchar("id", 255).entityId()
+    override val id = varchar("id", 255).entityId().uniqueIndex()
     override val primaryKey = PrimaryKey(id)
     val mediaEntry = json("media_entry", Json, MediaEntry.serializer()).nullable()
     val cacheDate = timestamp("cache_date")
