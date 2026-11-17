@@ -4,6 +4,7 @@ package de.amklee.monomovie.db
 
 import de.amklee.monomovie.R
 import de.amklee.monomovie.util.Resource
+import de.amklee.monomovie.util.info
 import io.ktor.server.application.*
 import java.security.MessageDigest
 import kotlinx.coroutines.flow.singleOrNull
@@ -16,11 +17,12 @@ import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 
+private val log = System.getLogger("MMV/SQL")
 lateinit var monomovieDb: R2dbcDatabase
 
 fun R2dbcDatabase.Companion.mmvConnect(path: String = "./monomovie") {
     monomovieDb = R2dbcDatabase.connect(
-        url = "r2dbc:h2:file:///$path;DB_CLOSE_DELAY=0",
+        url = "r2dbc:h2:file:///$path;DB_CLOSE_DELAY=10",
         user = "monomovie",
         password = "",
     )
@@ -50,6 +52,7 @@ suspend fun R2dbcDatabase.runMigrations() {
 
         val existing = Migrations[id_]
         if (existing == null) {
+            log.info { "Applying migration $name_" }
             suspendTransaction(this) {
                 exec(content_)
                 Migrations.insert {
@@ -71,6 +74,7 @@ suspend fun R2dbcDatabase.runMigrations() {
 
         val existing = Migrations[id_]
         if (existing == null) {
+            log.info { "Applying legacy migration" }
             suspendTransaction(this) {
                 performLegacyMigration()
                 Migrations.insert {
