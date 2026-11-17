@@ -52,7 +52,7 @@ object CachedMovies {
 
         // try to update cache if missing or older than 15 days
         if (isStale) {
-            log.info { "Refetching movie $id (stale)" }
+            log.info { "Refetching movie $id (missing or stale)" }
             val details = try {
                 justWatch.details(id)
             } catch (e: Exception) {
