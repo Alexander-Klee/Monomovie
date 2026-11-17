@@ -12,6 +12,8 @@ import de.amklee.monomovie.service.remote.MediaEntry
 import de.amklee.monomovie.service.remote.Offer
 import de.amklee.monomovie.service.remote.PageInfo
 import de.amklee.monomovie.util.error
+import de.amklee.monomovie.util.info
+import de.amklee.monomovie.util.warn
 import java.util.Locale
 import kotlin.math.sqrt
 import kotlin.time.Clock
@@ -50,6 +52,7 @@ object CachedMovies {
 
         // try to update cache if missing or older than 15 days
         if (isStale) {
+            log.info { "Refetching movie $id (stale)" }
             val details = try {
                 justWatch.details(id)
             } catch (e: Exception) {
@@ -58,6 +61,7 @@ object CachedMovies {
             }
             if (details?.id == null) {
                 // keep serving the stale or placeholder entry if JustWatch doesn't resolve it
+                log.warn { "Using stale cache for $id" }
                 return cached?.let { createMovie(it) }
             }
             populateCache(details)
