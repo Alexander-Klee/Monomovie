@@ -49,6 +49,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         main {
             id = "main"
             script {
+                type = "module"
                 unsafe {
                     +R.topbuttonJs
                 }

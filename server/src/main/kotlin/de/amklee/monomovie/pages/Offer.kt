@@ -1,21 +1,15 @@
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.R
-import de.amklee.monomovie.components.JellyfinOfferItem
 import de.amklee.monomovie.components.MovieItem
+import de.amklee.monomovie.components.OfferItem
 import de.amklee.monomovie.components.OfferList
-import de.amklee.monomovie.dto.JellyfinItems
-import de.amklee.monomovie.dto.MonetizationTypes
-import de.amklee.monomovie.dto.Movie
-import de.amklee.monomovie.dto.Offer
-import de.amklee.monomovie.dto.SseEvent
-import de.amklee.monomovie.service.CachedMovies
-import de.amklee.monomovie.service.remote.JellyfinClient
+import de.amklee.monomovie.components.invoke
+import de.amklee.monomovie.dto.*
 import de.amklee.monomovie.util.sseJs
-import java.util.Locale
+import java.util.*
 import kotlinx.html.*
 
-context(jellyfinItems: JellyfinItems)
 private fun FlowContent.offerTable(offers: List<Offer>) {
     table {
         for (type in MonetizationTypes.entries) {
@@ -26,7 +20,11 @@ private fun FlowContent.offerTable(offers: List<Offer>) {
                 if (typeOffers.isNotEmpty()) {
                     td(classes = "offerType-td") { +type.type }
                     td(classes = "offer-td") {
-                        OfferList(typeOffers.sortedBy { it.`package`?.clearName })
+                        OfferList(
+                            typeOffers
+                                .sortedBy { it.`package`?.clearName }
+                                .map(::OfferItemUI),
+                        )
                     }
                 }
             }
@@ -55,7 +53,7 @@ private fun FlowContent.JellyfinTable(movie: Movie) {
             td(classes = "offerType-td") { +"Jellyfin" }
             td(classes = "offer-td") {
                 ul(classes = "offer-list") {
-                    JellyfinOfferItem(jellyfinLink)
+                    OfferItem(OfferItemUI.fromJellyfinLink(jellyfinLink, jellyfinItems.logoLink)!!)
                 }
             }
         }
@@ -64,9 +62,10 @@ private fun FlowContent.JellyfinTable(movie: Movie) {
 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
-suspend fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
+fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCountry: String = "DE") {
     div {
         script {
+            type = "module"
             unsafe {
                 +R.imageErrorJs
                 +R.bookmarkJs
@@ -74,7 +73,7 @@ suspend fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>
                 +R.sseJs(SseEvent.Mode.OFFERS)
             }
         }
-        MovieItem(movie, showOffers = false)
+        MovieItem(MovieItemUI(movie), showOffers = false)
 
         JellyfinTable(movie)
 

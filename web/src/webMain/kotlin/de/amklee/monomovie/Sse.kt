@@ -63,7 +63,7 @@ object Sse {
             SseEvent.Mode.WATCHED -> if (event.kind != SseEvent.Kind.WATCHED) return
             SseEvent.Mode.OVERVIEW -> if (event.kind != SseEvent.Kind.BOOKMARK) return
         }
-        println("Prepending new movie to list: ${event.movie.mediaEntry.title} (${event.movie.mediaEntry.id})")
+        println("Prepending new movie to list: ${event.movie.title} (${event.movie.id})")
         context(JellyfinClient.getItems()) {
             bookmarkList.prepend {
                 ful {

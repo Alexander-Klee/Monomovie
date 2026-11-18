@@ -12,4 +12,4 @@ fun R.selectableJs(minSelection: Int) = selectableJs.replace($$"$minSelection$",
 
 fun R.rouletteSharedJs(shareId: Uuid) = rouletteSharedJs.replace($$"$shareId$", shareId.toString())
 
-fun JsCall.toJs(): String = "window.monomovie(${Json.encodeToString(this)})"
+fun JsCall.toJs(): String = "window.monomovie(${Json.encodeToString(this)});"

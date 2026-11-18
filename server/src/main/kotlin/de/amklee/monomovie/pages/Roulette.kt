@@ -7,9 +7,10 @@ import de.amklee.monomovie.R
 import de.amklee.monomovie.components.RouletteMovieList
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.components.SelectableMovieList
+import de.amklee.monomovie.components.invoke
 import de.amklee.monomovie.dto.JellyfinItems
 import de.amklee.monomovie.dto.Movie
-import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.dto.MovieItemUI
 import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.LazyValue
@@ -89,7 +90,7 @@ class SharedRouletteSession {
         id = movie.mediaEntry.id!!,
         body = buildULHtml {
             context(JellyfinClient.getItems()) {
-                RouletteMovieListItem(movie, count)
+                RouletteMovieListItem(MovieItemUI(movie), count)
             }
         },
     )
@@ -107,9 +108,10 @@ infix fun Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
-suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
+fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
         script {
+            type = "module"
             unsafe {
                 +R.rouletteSharedJs(shareId)
             }
@@ -147,7 +149,7 @@ suspend fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, sh
 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
-suspend fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) {
+fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) {
     SearchBar("")
     h1 { +"Shared Roulette:" }
     if (movies.isEmpty()) {
