@@ -13,27 +13,21 @@
 
 package de.amklee.monomovie.service.remote
 
-import de.amklee.monomovie.HttpClient
 import de.amklee.monomovie.dto.DetailsResponse
 import de.amklee.monomovie.dto.MediaEntry
 import de.amklee.monomovie.dto.Offer
 import de.amklee.monomovie.dto.OffersByCountryResponse
 import de.amklee.monomovie.dto.SearchResponse
 import de.amklee.monomovie.dto.SearchTitles
-import io.ktor.client.*
+import de.amklee.monomovie.util.MmvHttpClient
 import io.ktor.client.call.*
-import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import java.net.http.HttpClient.Version as HttpClientVersion
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 class JustWatch(private val country: String = "US", private val language: String = "en") {
-    private val client = HttpClient {
+    private val client = MmvHttpClient {
         defaultRequest {
             url("https://apis.justwatch.com/graphql")
             contentType(ContentType.Application.Json)

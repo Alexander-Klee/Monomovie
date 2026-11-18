@@ -1,4 +1,4 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.util
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -17,7 +17,8 @@ expect object EngineFactory : HttpClientEngineFactory<EngineConfig> {
 
 expect fun HttpClientConfig<EngineConfig>.configureDefaults()
 
-fun HttpClient(block: HttpClientConfig<EngineConfig>.() -> Unit = {}) = HttpClient(EngineFactory) {
+@Suppress("FunctionName")
+fun MmvHttpClient(block: HttpClientConfig<EngineConfig>.() -> Unit = {}) = HttpClient(EngineFactory) {
     configureDefaults()
     engine {
         pipelining = true

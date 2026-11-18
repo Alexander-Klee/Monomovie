@@ -1,4 +1,4 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.util
 
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.js.*

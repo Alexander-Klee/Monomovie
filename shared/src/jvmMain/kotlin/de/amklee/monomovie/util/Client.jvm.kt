@@ -1,6 +1,6 @@
-package de.amklee.monomovie
+package de.amklee.monomovie.util
 
-import io.ktor.client.HttpClientConfig
+import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import java.net.http.HttpClient.Version as HttpClientVersion
 

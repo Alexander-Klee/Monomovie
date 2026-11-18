@@ -1,10 +1,9 @@
 package de.amklee.monomovie.service.remote
 
-import de.amklee.monomovie.HttpClient
 import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.dto.tmdbLink
 import de.amklee.monomovie.service.BookmarksService
-import de.amklee.monomovie.service.CachedMovies
+import de.amklee.monomovie.util.MmvHttpClient
 import de.amklee.monomovie.util.error
 import de.amklee.monomovie.util.info
 import de.amklee.monomovie.util.warn
@@ -14,7 +13,7 @@ import io.ktor.http.*
 
 object TmColour {
     private val log = System.getLogger("MMV/TmColour")
-    private val client = HttpClient()
+    private val client = MmvHttpClient()
 
     suspend operator fun get(movie: Movie): String? {
         val bookmark = BookmarksService.getBookmarks().firstOrNull { it.id == movie.mediaEntry.id }

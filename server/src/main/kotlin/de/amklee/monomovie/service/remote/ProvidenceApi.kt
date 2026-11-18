@@ -1,8 +1,8 @@
 package de.amklee.monomovie.service.remote
 
 import de.amklee.monomovie.Environment
-import de.amklee.monomovie.HttpClient
 import de.amklee.monomovie.pages.RouletteCachedMovie
+import de.amklee.monomovie.util.MmvHttpClient
 import de.amklee.monomovie.util.NIHCache
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
  */
 object ProvidenceApi {
     const val ENDPOINT = "https://providence.jfronny.dev/"
-    private val client = HttpClient()
+    private val client = MmvHttpClient()
 
     @Serializable
     data class WheelOption(val id: String?, val label: String, val weight: Int, val color: String?)
