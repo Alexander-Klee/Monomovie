@@ -6,7 +6,7 @@ import de.amklee.monomovie.components.OfferItem
 import de.amklee.monomovie.components.OfferList
 import de.amklee.monomovie.components.invoke
 import de.amklee.monomovie.dto.*
-import de.amklee.monomovie.util.sseJs
+import de.amklee.monomovie.dto.JsCall.SetupSse
 import java.util.*
 import kotlinx.html.*
 
@@ -70,7 +70,7 @@ fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCo
                 +R.imageErrorJs
                 +R.bookmarkJs
                 +R.watchedJs
-                +R.sseJs(SseEvent.Mode.OFFERS)
+                +SetupSse(SseEvent.Mode.OFFERS).toJsString()
             }
         }
         MovieItem(MovieItemUI(movie), showOffers = false)
