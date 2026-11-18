@@ -71,27 +71,8 @@ runtime {
     }
 }
 
-evaluationDependsOn(":web")
-val libraryDistribution = project(projects.web.path)
-    .tasks
-    .named<Copy>(
-        if (project.hasProperty("isProduction")) "jsBrowserProductionLibraryDistribution"
-        else "jsBrowserDevelopmentLibraryDistribution"
-    )
-sourceSets.main {
-    resources.srcDir(tasks.register("copyWebResources", Copy::class) {
-        group = "build"
-        dependsOn(libraryDistribution)
-        from(libraryDistribution) {
-            into("client")
-        }
-        into(layout.buildDirectory.dir("web/resources"))
-    })
-}
-
 tasks {
     processResources {
-//        dependsOn(webTask)
 //        filesMatching("**/*.js") {
 //            filter(JsFilter::class, mapOf("sourceName" to sourceName))
 //        }
@@ -126,6 +107,22 @@ tasks {
     }
 }
 
+evaluationDependsOn(":web")
+val libraryDistribution = project(projects.web.path)
+    .tasks
+    .named<Copy>(run {
+        val profile = if (project.hasProperty("isProduction")) "Production" else "Development"
+        val kind = if (project.hasProperty("isWasm")) "wasmJs" else "js"
+        "${kind}Browser${profile}LibraryDistribution"
+    })
 kotlin.sourceSets.main {
     kotlin.srcDir(tasks.register("generateResourceIndex", GenerateResourceIndexTask::class))
+    resources.srcDir(tasks.register("copyWebResources", Copy::class) {
+        group = "build"
+        dependsOn(libraryDistribution)
+        from(libraryDistribution) {
+            into("client")
+        }
+        into(layout.buildDirectory.dir("web/resources"))
+    })
 }

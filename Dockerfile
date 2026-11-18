@@ -2,7 +2,7 @@
 FROM gradle:jdk25-alpine AS build
 WORKDIR /app
 COPY . .
-RUN gradle clean :runtime --no-daemon
+RUN gradle clean :runtime --no-daemon -PisProduction=true
 
 # Runtime stage
 FROM alpine:latest
