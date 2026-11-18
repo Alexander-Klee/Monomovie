@@ -31,15 +31,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
             unsafe { +R.styleCss }
         }
 
-        script {
-            type = "importmap"
-            unsafe { +"{\"imports\":{\"monomovie\":\"/client/monomovie-web.mjs\"}}" }
-        }
-
-        script {
-            type = "module"
-            unsafe { +R.libJs }
-        }
+        LoadMmvClient()
     }
     body {
         MenuButton()
@@ -54,12 +46,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
                     +R.topbuttonJs
                 }
             }
-            consumer.onTagContentUnsafe {
-                for (resource in R.graphics.svgTemplates.index.values) {
-                    val resource by resource
-                    +resource
-                }
-            }
+            IncludeSvgTemplates()
             div(classes = "content") {
                 body()
             }
@@ -103,5 +90,28 @@ fun FlowContent.TopButton() {
         id = "top_button"
         onClick = "window.gotoTop()"
         unsafe { +R.graphics.svg.arrowupSvg }
+    }
+}
+
+@HtmlTagMarker
+fun HEAD.LoadMmvClient() {
+    script {
+        type = "importmap"
+        unsafe { +"{\"imports\":{\"monomovie\":\"/client/monomovie-web.mjs\"}}" }
+    }
+
+    script {
+        type = "module"
+        unsafe { +R.libJs }
+    }
+}
+
+@HtmlTagMarker
+fun FlowContent.IncludeSvgTemplates() {
+    consumer.onTagContentUnsafe {
+        for (resource in R.graphics.svgTemplates.index.values) {
+            val resource by resource
+            +resource
+        }
     }
 }
