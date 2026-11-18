@@ -1,7 +1,7 @@
 
-import { Entrypoint } from "monomovie";
+import { entrypoint } from "monomovie";
 
-window.monomovie = new Entrypoint();
+window.monomovie = entrypoint;
 
 document.parseHtmlElement = function(html) {
     const template = document.createElement('template');
