@@ -55,9 +55,6 @@ dependencies {
     implementation(libs.jellyfin.core)
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(25)
 }
@@ -72,6 +69,9 @@ runtime {
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
     processResources {
 //        filesMatching("**/*.js") {
 //            filter(JsFilter::class, mapOf("sourceName" to sourceName))
@@ -86,13 +86,25 @@ tasks {
     shadowJar {
         archiveFileName = "app.jar"
     }
-    register<Exec>("runImage") {
+
+    val runImage = register<Exec>("runImage") {
         description = "Runs the application from the generated runtime image"
         dependsOn(runtime)
         group = "application"
         executable = project.runtime.imageDir.file("bin/monomovie").get().asFile.absolutePath
-        environment("MMV_HOSTNAME" to "http://localhost:8080")
     }
+    listOf(run, runImage, runShadow).forEach { it {
+        val storeFile = prop("mmv.ssl.storeFile", "")
+        environment("MMV_HOSTNAME" to if (storeFile.isBlank()) "http://localhost:8080" else "https://localhost:8443")
+        environment("MMV_SSL_HOST", prop("mmv.ssl.host", ""))
+        environment("MMV_SSL_STOREFILE", storeFile)
+        environment("MMV_SSL_KEYALIAS", prop("mmv.ssl.keyAlias", ""))
+        environment("MMV_SSL_KEYSTORE_PASSWORD", prop("mmv.ssl.keyStorePassword", ""))
+        environment("MMV_SSL_PRIVATEKEY_PASSWORD", prop("mmv.ssl.privateKeyPassword", ""))
+    } }
+
+    register<SetupSelfSignedCertificateTask>("setupSelfSignedCertificate")
+
     val migrationsTmpDir = layout.buildDirectory.file("migrationsgen")
     register<JavaExec>("generateMigrations") {
         group = "application"
@@ -116,8 +128,8 @@ val libraryDistribution = project(projects.web.path)
         "${kind}Browser${profile}LibraryDistribution"
     })
 kotlin.sourceSets.main {
-    kotlin.srcDir(tasks.register("generateResourceIndex", GenerateResourceIndexTask::class))
-    resources.srcDir(tasks.register("copyWebResources", Copy::class) {
+    kotlin.srcDir(tasks.register<GenerateResourceIndexTask>("generateResourceIndex"))
+    resources.srcDir(tasks.register<Copy>("copyWebResources") {
         group = "build"
         dependsOn(libraryDistribution)
         from(libraryDistribution) {

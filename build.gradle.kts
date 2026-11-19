@@ -1,4 +1,5 @@
 plugins {
+    `local-properties`
     alias(libs.plugins.version.catalog.update)
 }
 
