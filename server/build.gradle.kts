@@ -2,6 +2,7 @@ import de.amklee.monomovie.*
 import de.amklee.monomovie.shrunkel.*
 
 plugins {
+    `local-properties`
     org.jetbrains.kotlin.jvm
     ktlint
     application

@@ -2,6 +2,7 @@ import de.amklee.monomovie.*
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
+    `local-properties`
     org.jetbrains.kotlin.multiplatform
     ktlint
     alias(libs.plugins.kotlin.plugin.serialization)
