@@ -237,7 +237,7 @@ fun main() {
                     keyStorePassword = { Environment.ssl.keyStorePassword.toCharArray() },
                     privateKeyPassword = { Environment.ssl.privateKeyPassword.toCharArray() },
                 ) {
-                    host = "localhost"
+                    host = Environment.ssl.host
                     port = 8443
                     keyStorePath = Environment.ssl.storeFile.toFile()
                 }

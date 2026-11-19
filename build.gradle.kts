@@ -110,6 +110,7 @@ tasks {
     listOf(run, runImage, runShadow).forEach { it {
         val storeFile = prop("mmv.ssl.storeFile", "")
         environment("MMV_HOSTNAME" to if (storeFile.isBlank()) "http://localhost:8080" else "https://localhost:8443")
+        environment("MMV_SSL_HOST", prop("mmv.ssl.host", ""))
         environment("MMV_SSL_STOREFILE", storeFile)
         environment("MMV_SSL_KEYALIAS", prop("mmv.ssl.keyAlias", ""))
         environment("MMV_SSL_KEYSTORE_PASSWORD", prop("mmv.ssl.keyStorePassword", ""))

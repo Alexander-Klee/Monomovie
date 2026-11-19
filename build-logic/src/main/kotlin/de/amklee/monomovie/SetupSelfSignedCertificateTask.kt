@@ -53,6 +53,7 @@ abstract class SetupSelfSignedCertificateTask : Exec() {
         localProperties["mmv.ssl.keyAlias"] = keyAlias
         localProperties["mmv.ssl.keyStorePassword"] = keyStorePassword
         localProperties["mmv.ssl.privateKeyPassword"] = keyStorePassword
+        localProperties["mmv.ssl.host"] = "localhost"
 
         localPropertiesFile.outputStream().use { localProperties.store(it, null) }
     }

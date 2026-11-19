@@ -34,6 +34,7 @@ object Environment {
     val jellyfinToken = System.getenv("MMV_JELLYFIN_TOKEN")?.ifBlank { null }
 
     val ssl = run {
+        val host = System.getenv("MMV_SSL_HOST")?.ifBlank { null } ?: "localhost"
         val storeFile = System.getenv("MMV_SSL_STOREFILE")?.ifBlank { null }
         val keyAlias = System.getenv("MMV_SSL_KEYALIAS")?.ifBlank { null }
         val keyStorePassword = System.getenv("MMV_SSL_KEYSTORE_PASSWORD")?.ifBlank { null }
@@ -43,14 +44,20 @@ object Environment {
                 log.warn { "SSL key alias, key store password or private key password not set, SSL will be disabled" }
                 null
             } else {
-                SSL(Path(storeFile), keyAlias, keyStorePassword, privateKeyPassword)
+                SSL(host, Path(storeFile), keyAlias, keyStorePassword, privateKeyPassword)
             }
         } else {
             null
         }
     }
 
-    data class SSL(val storeFile: Path, val keyAlias: String, val keyStorePassword: String, val privateKeyPassword: String)
+    data class SSL(
+        val host: String,
+        val storeFile: Path,
+        val keyAlias: String,
+        val keyStorePassword: String,
+        val privateKeyPassword: String,
+    )
 
     init {
         if (jellyfinHost.isNullOrBlank() || jellyfinToken.isNullOrBlank()) {
