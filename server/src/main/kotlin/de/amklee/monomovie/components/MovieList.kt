@@ -40,7 +40,7 @@ inline fun FlowContent.MovieList(script: String, vararg calls: JsCall, body: UL.
 
 @HtmlTagMarker
 fun FlowContent.SearchMovieList() = MovieList(
-    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.infiniteScrollJs,
+    R.imageErrorJs + R.infiniteScrollJs,
     SetupSse(SseEvent.Mode.SEARCH),
 ) {
     id = "infinite-list"
@@ -52,7 +52,7 @@ private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
-    R.imageErrorJs + R.bookmarkJs + R.watchedJs,
+    R.imageErrorJs,
     SetupSse(SseEvent.Mode.WATCHED),
 ) {
     val items = movies
@@ -72,7 +72,7 @@ fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.SelectableMovieList(movies: List<Movie>, minSelection: Int = 2) = MovieList(
-    R.imageErrorJs + R.bookmarkJs + R.watchedJs + R.selectableJs(minSelection),
+    R.imageErrorJs + R.selectableJs(minSelection),
     SetupSse(SseEvent.Mode.OVERVIEW),
 ) {
     for (movie in movies) {
@@ -83,7 +83,7 @@ fun FlowContent.SelectableMovieList(movies: List<Movie>, minSelection: Int = 2) 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
-    R.imageErrorJs + R.watchedJs,
+    R.imageErrorJs,
     SetupSse(SseEvent.Mode.ROULETTE),
 ) {
     for (movie in movies) {

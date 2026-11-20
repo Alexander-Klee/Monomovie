@@ -10,5 +10,13 @@ sealed interface JsCall {
     @SerialName("setupSse")
     data class SetupSse(val mode: SseEvent.Mode) : JsCall
 
+    @Serializable
+    @SerialName("setBookmarked")
+    data class SetBookmarked(val movieId: String, val bookmark: Boolean) : JsCall
+
+    @Serializable
+    @SerialName("setWatched")
+    data class SetWatched(val movieId: String, val watched: Boolean) : JsCall
+
     fun toJsString(): String = "window.monomovie(${Json.encodeToString(this)});"
 }

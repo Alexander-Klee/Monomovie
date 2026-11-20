@@ -148,29 +148,25 @@ fun FlowContent.MovieItem(movie: MovieItemUI, showOffers: Boolean = true, extraE
         }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
             div(classes = "movie-action-bar hidden-movie-action-bar-element") {
-                button(
-                    type = ButtonType.button,
-                    classes = "hidden-movie-action-bar-element eye-button watched-scope",
+                CustomToggleButton(
+                    classes = "hidden-movie-action-bar-element eye-button",
+                    initialState = movie.isWatched,
+                    checkedBody = { EyeIconSvg() },
+                    checkAction = JsCall.SetWatched(movie.id!!, false),
+                    uncheckedBody = { EyePlusIconSvg() },
+                    uncheckAction = JsCall.SetWatched(movie.id, true),
                 ) {
                     id = "watched-${movie.id}"
-                    onClick = "dataset.checked == 'true' ? window.deleteWatch('${movie.id}') : window.setWatch('${movie.id}')"
-
-                    dataset["checked"] = movie.isWatched.toString()
-
-                    EyeIconSvg("in-watched")
-                    EyePlusIconSvg("in-not-watched")
                 }
-                button(
-                    type = ButtonType.button,
-                    classes = "hidden-movie-action-bar-element eye-button bookmark-scope",
+                CustomToggleButton(
+                    classes = "hidden-movie-action-bar-element eye-button",
+                    initialState = movie.isBookmarked,
+                    checkedBody = { BookmarkIconSvg(classes = "") },
+                    checkAction = JsCall.SetBookmarked(movie.id, false),
+                    uncheckedBody = { BookmarkPlusIconSvg(classes = "") },
+                    uncheckAction = JsCall.SetBookmarked(movie.id, true),
                 ) {
                     id = "bookmark-${movie.id}"
-                    onClick = "dataset.checked == 'true' ? window.deleteBookmark('${movie.id}') : window.setBookmark('${movie.id}')"
-
-                    dataset["checked"] = movie.isBookmarked.toString()
-
-                    BookmarkIconSvg("in-bookmarked")
-                    BookmarkPlusIconSvg("in-not-bookmarked")
                 }
             }
         }

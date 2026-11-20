@@ -148,6 +148,7 @@ a.external::after {
         justify-content: center;
     }
 
+    vertical-align: middle;
     width: 3em;
     height: 3em;
     padding: 0.2em;
@@ -620,31 +621,22 @@ td, th {
     display: block;
 }
 
-.in-bookmarked,
-.in-watched {
+.in-checked {
     display: none;
 }
 
-.bookmark-scope[data-checked="true"] {
-    .in-bookmarked {
-        display: inline-block;
-    }
-
-    .in-not-bookmarked {
-        display: none;
-    }
-    vertical-align: middle;
+.in-unchecked {
+    display: contents;
 }
 
-.watched-scope[data-checked="true"] {
-    .in-watched {
-        display: inline-block;
+.checked-scope[data-checked="true"] {
+    .in-checked {
+        display: contents;
     }
 
-    .in-not-watched {
+    .in-unchecked {
         display: none;
     }
-    vertical-align: middle;
 }
 
 /* For Phones*/

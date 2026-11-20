@@ -99,12 +99,12 @@ fun Route.miscRoutes() {
         }
         call.respond(HttpStatusCode.InternalServerError, "Search failed")
     }
-    post("/bookmark/{movieId}") {
+    put("/bookmark/{movieId}") {
         val movieId = call.parameters["movieId"]
 
         if (movieId == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
-            return@post
+            return@put
         }
 
         CachedMovies.setBookmark(movieId)
@@ -160,12 +160,12 @@ fun Route.miscRoutes() {
             }
         }
     }
-    post("/watch/{movieId}") {
+    put("/watch/{movieId}") {
         val movieId = call.parameters["movieId"]
 
         if (movieId == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing movie ID")
-            return@post
+            return@put
         }
 
         CachedMovies.setWatch(movieId)
