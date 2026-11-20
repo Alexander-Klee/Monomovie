@@ -222,6 +222,9 @@ fun Route.miscRoutes() {
             )
         } ?: call.respond(HttpStatusCode.BadRequest, "Missing data parameter")
     }
+    get("/placeholder.svg") {
+        call.respondText(R.graphics.svg.imagePlaceholderSvg, ContentType.Image.SVG)
+    }
     staticResources("/static", "static")
     staticResources("/client", "client")
 }

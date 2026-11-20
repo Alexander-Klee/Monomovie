@@ -96,11 +96,6 @@ fun FlowContent.TopButton() {
 @HtmlTagMarker
 fun HEAD.LoadMmvClient() {
     script {
-        type = "importmap"
-        unsafe { +"{\"imports\":{\"monomovie\":\"/client/monomovie-web.mjs\"}}" }
-    }
-
-    script {
         type = "module"
         unsafe { +R.libJs }
     }

@@ -639,6 +639,12 @@ td, th {
     }
 }
 
+.img-fallback-placeholder {
+    background-image: url('/placeholder.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
 /* For Phones*/
 .menu-button {
     display: none;

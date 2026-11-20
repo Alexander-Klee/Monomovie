@@ -1,5 +1,4 @@
-
-import { entrypoint } from "monomovie";
+import { entrypoint } from "/client/monomovie-web.mjs";
 
 window.monomovie = entrypoint;
 

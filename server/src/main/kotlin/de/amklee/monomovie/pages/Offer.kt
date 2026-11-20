@@ -67,7 +67,6 @@ fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCo
         script {
             type = "module"
             unsafe {
-                +R.imageErrorJs
                 +SetupSse(SseEvent.Mode.OFFERS).toJsString()
             }
         }

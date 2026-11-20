@@ -19,18 +19,14 @@ fun JsCall.dispatch() {
                 Sse.setup(mode)
             }
 
-            is JsCall.SetBookmarked -> {
-                GlobalScope.launch {
-                    client.request("/bookmark/$movieId") {
-                        method = if (bookmark) HttpMethod.Put else HttpMethod.Delete
-                    }
+            is JsCall.SetBookmarked -> GlobalScope.launch {
+                client.request("/bookmark/$movieId") {
+                    method = if (bookmark) HttpMethod.Put else HttpMethod.Delete
                 }
             }
-            is JsCall.SetWatched -> {
-                GlobalScope.launch {
-                    client.request("/watch/$movieId") {
-                        method = if (watched) HttpMethod.Put else HttpMethod.Delete
-                    }
+            is JsCall.SetWatched -> GlobalScope.launch {
+                client.request("/watch/$movieId") {
+                    method = if (watched) HttpMethod.Put else HttpMethod.Delete
                 }
             }
         }

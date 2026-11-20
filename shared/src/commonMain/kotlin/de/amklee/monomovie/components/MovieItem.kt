@@ -142,8 +142,7 @@ fun FlowContent.MovieItem(movie: MovieItemUI, showOffers: Boolean = true, extraE
                 ImagePlaceholderSvg()
             }
             if (movie.posterUrl.isNullOrBlank()) return@span
-            img(classes = "movie-poster-img", src = movie.posterUrl, alt = movie.title) {
-                onError = "window.handleImageError(this)"
+            img(classes = "movie-poster-img img-fallback-placeholder", src = movie.posterUrl, alt = "") {
             }
         }
         div(classes = "movie-action-container hidden-movie-action-bar-element") {
