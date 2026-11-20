@@ -1,5 +1,4 @@
 packages:
   - "."
-allowBuilds:
-  esbuild: true
-storeDir: /tmp/opencode/pnpm-store
+onlyBuiltDependencies:
+  - esbuild

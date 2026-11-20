@@ -1,4 +1,4 @@
-/* Screenshot helper: captures desktop + mobile shots of each mockup route. */
+// Screenshot helper: captures desktop + mobile shots of each mockup route.
 import { chromium } from "playwright";
 import { mkdirSync } from "fs";
 
@@ -14,41 +14,52 @@ const routes = [
 ];
 
 const browser = await chromium.launch();
-for (const [label, path] of routes) {
-  // desktop
-  let page = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })).newPage();
+
+async function shoot(label, path, { mobile = false, fullPage = false, after } = {}) {
+  const ctx = await browser.newContext(
+    mobile
+      ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true }
+      : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 },
+  );
+  const page = await ctx.newPage();
   await page.goto(BASE + path, { waitUntil: "networkidle" });
-  await page.waitForTimeout(900);
-  await page.screenshot({ path: `${OUT}/${label}-desktop.png`, fullPage: label !== "shortlist" });
-  // mobile
-  page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true })).newPage();
-  await page.goto(BASE + path, { waitUntil: "networkidle" });
-  await page.waitForTimeout(700);
-  await page.screenshot({ path: `${OUT}/${label}-mobile.png`, fullPage: label !== "shortlist" });
+  await page.waitForTimeout(mobile ? 700 : 900);
+  if (after) await after(page);
+  await page.screenshot({ path: `${OUT}/${label}.png`, fullPage });
+  await ctx.close();
 }
+
+for (const [label, path] of routes) {
+  await shoot(`${label}-desktop`, path, { fullPage: label !== "shortlist" });
+  await shoot(`${label}-mobile`, path, { mobile: true, fullPage: label !== "shortlist" });
+}
+
 // hover state on a tile (desktop only)
-const hover = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })).newPage();
-await hover.goto(BASE + "/#/", { waitUntil: "networkidle" });
-await hover.waitForTimeout(800);
-const tile = hover.locator(".tile").nth(2);
-await tile.hover();
-await hover.waitForTimeout(400);
-await hover.screenshot({ path: `${OUT}/tile-hover.png` });
+await shoot("tile-hover", "/#/", {
+  after: async page => {
+    await page.locator(".tile").nth(2).hover();
+    await page.waitForTimeout(400);
+  },
+});
 
 // open search dropdown (desktop only)
-await hover.keyboard.press("/");
-await hover.waitForTimeout(200);
-await hover.keyboard.type("god");
-await hover.waitForTimeout(800);
-await hover.screenshot({ path: `${OUT}/search-open.png` });
+await shoot("search-open", "/#/", {
+  after: async page => {
+    await page.keyboard.press("/");
+    await page.waitForTimeout(200);
+    await page.keyboard.type("god");
+    await page.waitForTimeout(800);
+  },
+});
 
 // roulette: open the shared room
-const roulette = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })).newPage();
-await roulette.goto(BASE + "/#/roulette", { waitUntil: "networkidle" });
-await roulette.waitForTimeout(800);
-await roulette.getByRole("button", { name: /shared room/i }).click();
-await roulette.waitForTimeout(700);
-await roulette.screenshot({ path: `${OUT}/roulette-shared.png`, fullPage: true });
+await shoot("roulette-shared", "/#/roulette", {
+  fullPage: true,
+  after: async page => {
+    await page.getByRole("button", { name: /share/i }).click();
+    await page.waitForTimeout(700);
+  },
+});
 
 await browser.close();
 console.log("shots done");

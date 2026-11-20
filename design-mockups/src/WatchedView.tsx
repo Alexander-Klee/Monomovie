@@ -27,23 +27,17 @@ export default function WatchedView({ watched, toggleWatched, open }: Props) {
   return (
     <section className="view">
       <div className="view-head">
-        <div>
-          <h1>Watched</h1>
-          <p className="view-sub">What got watched, newest first ({watched.size} all time)</p>
-        </div>
+        <h1>Watched</h1>
       </div>
       {groups.length === 0 ? (
         <div className="empty">
-          <h2>Nothing logged yet.</h2>
-          <p>Tap the eye on any shortlist tile once you have seen it, and it lands here.</p>
+          <p>Nothing watched yet.</p>
+          <p className="empty-note">Mark a film watched and it lands here.</p>
         </div>
       ) : (
         groups.map(([month, items]) => (
           <div key={month} className="month">
-            <div className="month-head">
-              <h2 className="month-name">{month}</h2>
-              <span className="month-count">{items.length}</span>
-            </div>
+            <h2 className="month-name">{month}</h2>
             <ul className="ledger">
               {items
                 .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -52,9 +46,9 @@ export default function WatchedView({ watched, toggleWatched, open }: Props) {
                   if (!m) return null;
                   return (
                     <li key={id} className="ledger-row">
-                      <span className="ledger-date" aria-hidden="true">
+                      <span className="ledger-date">
                         {date.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit" })}
-                                              </span>
+                      </span>
                       {m.poster ? (
                         <img className="ledger-poster" src={m.poster} alt="" loading="lazy" />
                       ) : (
@@ -62,12 +56,13 @@ export default function WatchedView({ watched, toggleWatched, open }: Props) {
                       )}
                       <div className="ledger-meta">
                         <button className="ledger-title" onClick={() => open(id)}>{m.title}</button>
-                        <p className="ledger-sub">
-                          {m.type === "show" ? "Series" : "Movie"} · {m.year} · {m.runtime} min
-                        </p>
+                        <p className="ledger-sub">{m.year}{m.runtime ? ` · ${m.runtime} min` : ""}</p>
                       </div>
-                      <button className="icon-btn" onClick={() => toggleWatched(id)} aria-label={`Forgot ${m.title} — remove from history`}>
-                        <Icons.Undo width={14} height={14} />
+                      <button
+                        className="ledger-unwatch" onClick={() => toggleWatched(id)}
+                        aria-label={`Mark ${m.title} unwatched`} title="Mark unwatched"
+                      >
+                        <Icons.Check width={14} height={14} />
                       </button>
                     </li>
                   );

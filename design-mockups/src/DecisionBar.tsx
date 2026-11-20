@@ -1,39 +1,41 @@
 import { type Movie } from "./data";
 import Icons from "./Icons";
 
+/** Persistent "tonight" tray: the picked posters themselves are the count. */
 export default function DecisionBar({ picks, togglePick }: {
   picks: Movie[];
   togglePick: (id: string) => void;
 }) {
   if (picks.length === 0) return null;
+  const ready = picks.length >= 2;
   return (
-    <div className="dbar" role="toolbar" aria-label="Tonight's picks">
-      <div className="dbar-thumbs">
-        {picks.slice(0, 4).map(m => (
-          <span key={m.id} className="dbar-thumb" style={{ ["--swatch" as string]: m.wheel }}>
-            {m.poster && <img src={m.poster} alt={m.title} loading="lazy" />}
+    <div className="dock" role="toolbar" aria-label="Tonight's picks">
+      <div className="dock-thumbs">
+        {picks.slice(0, 5).map(m => (
+          <span key={m.id} className="dock-thumb">
+            {m.poster
+              ? <img src={m.poster} alt={m.title} loading="lazy" />
+              : <span className="dock-thumb-empty" aria-hidden="true" />}
             <button
-              className="dbar-thumb-x"
-              aria-label={`Remove ${m.title} from tonight's picks`}
+              className="dock-x"
+              aria-label={`Remove ${m.title} from tonight`}
+              title={`Remove ${m.title}`}
               onClick={() => togglePick(m.id)}
             >
-              <Icons.X width={10} height={10} />
+              <Icons.X width={9} height={9} />
             </button>
           </span>
         ))}
-        {picks.length > 4 && <span className="dbar-more">+{picks.length - 4}</span>}
+        {picks.length > 5 && <span className="dock-more">+{picks.length - 5}</span>}
       </div>
-      <p className="dbar-copy">
-        <strong>{picks.length} picked</strong>
-        {picks.length < 2 && <span className="dbar-hint"> — add more to spin</span>}
-      </p>
-      <div className="dbar-actions">
-        <a className={`btn btn-primary${picks.length < 2 ? " is-disabled" : ""}`} href={picks.length >= 2 ? "#/roulette" : undefined} aria-disabled={picks.length < 2}>
-          Decide tonight <Icons.Ticket width={15} height={15} />
-        </a>
-      </div>
+      <a
+        className={`btn btn-solid dock-go${ready ? "" : " is-disabled"}`}
+        href={ready ? "#/roulette" : undefined}
+        aria-disabled={!ready}
+        title={ready ? "Set the odds" : "Pick at least two films"}
+      >
+        Decide <Icons.Die width={14} height={14} />
+      </a>
     </div>
   );
 }
-
-export { };

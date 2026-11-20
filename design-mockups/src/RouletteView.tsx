@@ -3,6 +3,10 @@ import { type Movie } from "./data";
 import { mockQr } from "./qr";
 import Icons from "./Icons";
 
+/** Monochrome segment ramp — lightness distinguishes entries, posters carry the colour elsewhere. */
+const SHADES = ["#e8e5de", "#b4b1a9", "#817f78", "#55544f", "#373633"];
+const shade = (i: number) => SHADES[i % SHADES.length];
+
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -23,40 +27,25 @@ function sectorPath(cx: number, cy: number, r0: number, r1: number, a0: number, 
   ].join(" ");
 }
 
-function Wheel({ picks, weights }: {
-  picks: Movie[]; weights: Record<string, number>;
-}) {
-  const on = picks.filter(m => (weights[m.id] ?? 1) > 0);
-  const total = on.reduce((sum, m) => sum + (weights[m.id] ?? 1), 0) || 1;
+function Wheel({ picks, weightOf }: { picks: Movie[]; weightOf: (id: string) => number }) {
+  const on = picks.map((m, i) => ({ m, i, w: weightOf(m.id) })).filter(s => s.w > 0);
+  const total = on.reduce((sum, s) => sum + s.w, 0) || 1;
   let acc = 0;
-  const segments = on.map(m => {
-    const span = ((weights[m.id] ?? 1) / total) * 360;
-    const seg = { m, start: acc, end: acc + span };
+  const segments = on.map(s => {
+    const span = (s.w / total) * 360;
+    const seg = { ...s, start: acc, end: acc + span };
     acc += span;
     return seg;
   });
   return (
-    <svg className="wheel" viewBox="0 0 240 240" role="img" aria-label="Decision wheel preview">
-      <defs>
-        <filter id="wheel-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="3" stdDeviation="6" floodOpacity="0.45" />
-        </filter>
-      </defs>
-      <g>
-        {segments.map(({ m, start, end }) => {
-          const pad = segments.length > 1 ? 1.5 : 0;
-          return (
-            <path
-              key={m.id}
-              d={sectorPath(120, 120, 74, 108, start + pad, end - pad)}
-              fill={m.wheel}
-            />
-          );
-        })}
-      </g>
-      <circle cx="120" cy="120" r="64" fill="rgba(21,19,27,.92)" filter="url(#wheel-shadow)" />
-      <text className="wheel-center" x="120" y="115">Tonight?</text>
-      <text className="wheel-center-sub" x="120" y="133">odds preview</text>
+    <svg className="wheel" viewBox="0 0 240 240" role="img" aria-label="Odds preview">
+      {segments.map(({ m, i, start, end }) => {
+        const pad = segments.length > 1 ? 1.25 : 0;
+        return <path key={m.id} d={sectorPath(120, 120, 76, 110, start + pad, end - pad)} fill={shade(i)} />;
+      })}
+      {segments.length === 0 && (
+        <circle cx="120" cy="120" r="93" fill="none" stroke="var(--line)" strokeWidth="34" />
+      )}
     </svg>
   );
 }
@@ -64,9 +53,13 @@ function Wheel({ picks, weights }: {
 function Stepper({ w, onChange }: { w: number; onChange: (n: number) => void }) {
   return (
     <span className="stepper">
-      <button aria-label="Fewer chances" onClick={() => onChange(w - 1)} disabled={w === 0}>−</button>
+      <button aria-label="Fewer chances" onClick={() => onChange(w - 1)} disabled={w === 0}>
+        <Icons.Minus width={12} height={12} />
+      </button>
       <output className={w === 0 ? "stepper-zero" : ""}>{w}</output>
-      <button aria-label="More chances" onClick={() => onChange(w + 1)}>+</button>
+      <button aria-label="More chances" onClick={() => onChange(w + 1)}>
+        <Icons.Plus width={12} height={12} />
+      </button>
     </span>
   );
 }
@@ -77,11 +70,8 @@ export default function RouletteView({ pickedMovies, weightOf, setWeight, open }
   setWeight: (id: string, w: number) => void;
   open: (id: string) => void;
 }) {
-  const weights = useMemo(() => Object.fromEntries(pickedMovies.map(m => [m.id, weightOf(m.id)])), [pickedMovies, weightOf]);
   const [shared, setShared] = useState(false);
-
-  const weighted = pickedMovies.filter(m => weightOf(m.id) > 0);
-  const totalWeight = weighted.reduce((sum, m) => sum + weightOf(m.id), 0);
+  const totalWeight = pickedMovies.reduce((sum, m) => sum + weightOf(m.id), 0);
   const odds = useMemo(
     () => Object.fromEntries(pickedMovies.map(m => [
       m.id,
@@ -94,8 +84,8 @@ export default function RouletteView({ pickedMovies, weightOf, setWeight, open }
     return (
       <section className="view">
         <div className="empty">
-          <h2>Pick two or more first.</h2>
-          <p>The wheel needs something to spin for. Go back to the <a href="#/">shortlist</a> and pick what you and yours can agree on.</p>
+          <p>Nothing to draw from.</p>
+          <p className="empty-note">Pick films on the <a href="#/">shortlist</a> first.</p>
         </div>
       </section>
     );
@@ -104,59 +94,50 @@ export default function RouletteView({ pickedMovies, weightOf, setWeight, open }
   return (
     <section className="view roulette">
       <div className="view-head">
-        <div>
-          <h1>Tonight</h1>
-          <p className="view-sub">{pickedMovies.length} in the hat · weights set the odds</p>
-        </div>
+        <h1>Roulette</h1>
       </div>
       <div className="roulette-grid">
-        <ul className="roulette-list" aria-label="Movies in the pool">
-          {pickedMovies.map(m => (
-            <li key={m.id} className="roulette-row">
-              <button className="roulette-swatch" style={{ background: m.wheel }} aria-hidden="true" onClick={() => open(m.id)} />
-              <button className="roulette-title" onClick={() => open(m.id)}>{m.title}</button>
-              <span className="roulette-odds" title="Share of the wheel">{odds[m.id]}</span>
-              <Stepper w={weightOf(m.id)} onChange={w => setWeight(m.id, w)} />
-            </li>
-          ))}
+        <ul className="roulette-list" aria-label="Films in the draw">
+          {pickedMovies.map((m, i) => {
+            const w = weightOf(m.id);
+            return (
+              <li key={m.id} className={`roulette-row${w === 0 ? " is-out" : ""}`}>
+                <span
+                  className="roulette-swatch" aria-hidden="true"
+                  style={w > 0 ? { background: shade(i) } : undefined}
+                />
+                <button className="roulette-title" onClick={() => open(m.id)}>{m.title}</button>
+                <span className="roulette-odds">{odds[m.id]}</span>
+                <Stepper w={w} onChange={n => setWeight(m.id, n)} />
+              </li>
+            );
+          })}
         </ul>
         <div className="roulette-stage">
-          <Wheel picks={pickedMovies} weights={weights} />
-          <div className="handoff-card" role="region" aria-label="Continue to the wheel">
-            <p className="handoff-kicker">Odds are set</p>
-            <p className="handoff-sub">
-              These weights build your wheel config — the spin itself stays on Providence,
-              where the draw is as fair as ever.
-            </p>
-            {totalWeight > 0 ? (
-              <a className="btn btn-primary" href="https://providence.jfronny.dev" target="_blank" rel="noreferrer">
-                Continue to the wheel <span className="ext-mark" aria-hidden="true">↗</span>
-              </a>
-            ) : (
-              <p className="handoff-sub handoff-hint">Give at least one film a weight to build the wheel.</p>
-            )}
-          </div>
-          <p className="wheel-note">
-            Weights are per-movie votes — weight 3 means three on the wheel.
-          </p>
+          <Wheel picks={pickedMovies} weightOf={weightOf} />
+          {totalWeight > 0 ? (
+            <a className="btn btn-solid" href="https://providence.jfronny.dev" target="_blank" rel="noreferrer">
+              Open the wheel <Icons.ArrowUpRight width={13} height={13} />
+            </a>
+          ) : (
+            <p className="stage-note">Give at least one film a weight.</p>
+          )}
+          <p className="stage-note">Spins on Providence.</p>
         </div>
       </div>
 
       <div className="share-panel">
-        <div className="share-head">
-          <h2>Deciding together</h2>
-          <p className="muted-note">Scanning opens this pool on their phone. Everyone can add films and veto.</p>
-        </div>
         {!shared ? (
           <button className="btn" onClick={() => setShared(true)}>
-            Open a shared room <Icons.Ticket width={13} height={13} />
+            <Icons.Qr /> Share
           </button>
         ) : (
           <div className="share-open" role="status">
             <div className="share-qr" dangerouslySetInnerHTML={{ __html: mockQr }} />
-            <div>
-              <p className="share-code">mmv.amklee.de/roulette — <strong>TONIGHT-77</strong></p>
-              <p className="muted-note">2 phones connected, weights drift in live.</p>
+            <div className="share-meta">
+              <p className="share-code">TONIGHT-77</p>
+              <p className="share-url">mmv.amklee.de/roulette</p>
+              <p className="share-note">2 joined</p>
             </div>
           </div>
         )}
