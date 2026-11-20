@@ -37,7 +37,7 @@ dependencies {
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.core)
-    implementation(ktorLibs.server.cio)
+    implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.sse)
     implementation(libs.kotlinx.html)
@@ -102,6 +102,7 @@ tasks {
         environment("MMV_SSL_KEYALIAS", prop("mmv.ssl.keyAlias", ""))
         environment("MMV_SSL_KEYSTORE_PASSWORD", prop("mmv.ssl.keyStorePassword", ""))
         environment("MMV_SSL_PRIVATEKEY_PASSWORD", prop("mmv.ssl.privateKeyPassword", ""))
+        workingDirectory = rootProject.layout.projectDirectory
     } }
 
     register<SetupSelfSignedCertificateTask>("setupSelfSignedCertificate")

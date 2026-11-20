@@ -40,9 +40,7 @@ object JellyfinClient {
                 recursive = true,
                 fields = setOf(ItemFields.PROVIDER_IDS),
             )
-            if (items.status !=
-                200
-            ) {
+            if (items.status != 200) {
                 throw IOException("Unexpected return code: ${items.status}")
             }
             JellyfinItems(
