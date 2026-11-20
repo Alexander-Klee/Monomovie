@@ -1,6 +1,4 @@
-plugins {
-    kotlin("jvm")
-}
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 repositories {
     mavenCentral()
@@ -42,6 +40,6 @@ tasks {
         dependsOn(ktlintRun)
     }
 
-    check { dependsOn(lint) }
-    compileKotlin { dependsOn(ktlintFormat) }
+    "check" { dependsOn(lint) }
+    withType<KotlinCompile> { dependsOn(ktlintFormat) }
 }

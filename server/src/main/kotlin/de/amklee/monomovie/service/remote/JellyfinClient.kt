@@ -1,0 +1,71 @@
+package de.amklee.monomovie.service.remote
+
+import de.amklee.monomovie.Environment
+import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.util.NIHCache
+import de.amklee.monomovie.util.error
+import de.amklee.monomovie.util.info
+import java.io.IOException
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import kotlin.time.Duration.Companion.hours
+import org.jellyfin.sdk.api.client.ApiClient
+import org.jellyfin.sdk.api.client.extensions.libraryApi
+import org.jellyfin.sdk.createJellyfin
+import org.jellyfin.sdk.model.ClientInfo
+import org.jellyfin.sdk.model.DeviceInfo
+import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.ItemFields
+
+object JellyfinClient {
+    private val log = System.getLogger("MMV/Jellyfin")
+
+    private val jellyfin = createJellyfin {
+        clientInfo = ClientInfo(name = "monomovie", version = "1.0.0")
+        deviceInfo = DeviceInfo("monomovie", "monomovie", emptyList()) // Jelly do not be fine
+    }
+
+    private val api by lazy {
+        jellyfin.createApi(
+            baseUrl = Environment.jellyfinHost ?: return@lazy null,
+            accessToken = Environment.jellyfinToken ?: return@lazy null,
+        )
+    }
+
+    private val items = NIHCache<JellyfinItems>(3.hours) {
+        val api = api ?: return@NIHCache JellyfinItems.EMPTY
+        try {
+            log.info { "Fetching items from Jellyfin" }
+            val items = api.libraryApi.getItems(
+                recursive = true,
+                fields = setOf(ItemFields.PROVIDER_IDS),
+            )
+            if (items.status != 200) {
+                throw IOException("Unexpected return code: ${items.status}")
+            }
+            JellyfinItems(
+                logoLink = "${api.baseUrl}/web/icon-transparent.baba78f2a106d9baee83.png",
+                tmdb = items.content.items
+                    .mapNotNull {
+                        val id = it.providerIds?.get("Tmdb") ?: return@mapNotNull null
+                        id to api.actualUrl(it)
+                    }.toMap(),
+                imdb = items.content.items
+                    .mapNotNull {
+                        val id = it.providerIds?.get("Imdb") ?: return@mapNotNull null
+                        id to api.actualUrl(it)
+                    }.toMap(),
+            )
+        } catch (e: Throwable) {
+            log.error(e) { "Could not fetch items" }
+            JellyfinItems.EMPTY
+        }
+    }
+
+    suspend fun getItems(): JellyfinItems = items.get()
+
+    private fun ApiClient.actualUrl(item: BaseItemDto): String =
+        "$baseUrl/web/#/details?id=${item.id.toString().urlEncode()}&serverId=${item.serverId?.urlEncode()}"
+
+    private fun String.urlEncode() = URLEncoder.encode(this, StandardCharsets.UTF_8)
+}
