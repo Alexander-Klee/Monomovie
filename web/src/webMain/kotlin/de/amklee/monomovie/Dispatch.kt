@@ -8,6 +8,8 @@ import kotlinx.browser.document
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.get
 
 @OptIn(DelicateCoroutinesApi::class)
 fun JsCall.dispatch() {
@@ -24,6 +26,7 @@ fun JsCall.dispatch() {
                     method = if (bookmark) HttpMethod.Put else HttpMethod.Delete
                 }
             }
+
             is JsCall.SetWatched -> GlobalScope.launch {
                 client.request("/watch/$movieId") {
                     method = if (watched) HttpMethod.Put else HttpMethod.Delete
@@ -32,6 +35,22 @@ fun JsCall.dispatch() {
 
             JsCall.InjectTopButton -> document.addEventListener("DOMContentLoaded") {
                 TopButton.inject()
+            }
+
+            is JsCall.UpdateMovieSelectionCount -> {
+                val selected = document.querySelectorAll(".movie-checkbox:checked").length
+
+                document.querySelectorAll(".require-min-selection").forEach {
+                    if (it !is HTMLInputElement) return@forEach
+                    console.log(it.dataset)
+                    val minSelection = it.dataset["minSelection"]?.toIntOrNull()
+                    if (minSelection == null) {
+                        console.error("Invalid min-selection value")
+                        return@forEach
+                    }
+                    val disabled = selected < minSelection
+                    it.disabled = disabled
+                }
             }
         }
     } catch (e: Exception) {

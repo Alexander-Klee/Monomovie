@@ -22,5 +22,9 @@ sealed interface JsCall {
     @SerialName("scrollToTop")
     object InjectTopButton : JsCall
 
+    @Serializable
+    @SerialName("updateMovieSelectionCount")
+    object UpdateMovieSelectionCount : JsCall
+
     fun toJsString(): String = "window.monomovie(${Json.encodeToString(this)});"
 }

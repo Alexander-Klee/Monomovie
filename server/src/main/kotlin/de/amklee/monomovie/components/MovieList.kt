@@ -5,12 +5,10 @@ import de.amklee.monomovie.R
 import de.amklee.monomovie.db.Watched
 import de.amklee.monomovie.dto.JellyfinItems
 import de.amklee.monomovie.dto.JsCall
-import de.amklee.monomovie.dto.JsCall.SetupSse
 import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.dto.MovieItemUI
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.pages.RouletteCachedMovie
-import de.amklee.monomovie.util.selectableJs
 import java.time.format.DateTimeFormatter
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
@@ -41,7 +39,7 @@ inline fun FlowContent.MovieList(script: String, vararg calls: JsCall, body: UL.
 @HtmlTagMarker
 fun FlowContent.SearchMovieList() = MovieList(
     R.infiniteScrollJs,
-    SetupSse(SseEvent.Mode.SEARCH),
+    JsCall.SetupSse(SseEvent.Mode.SEARCH),
 ) {
     id = "infinite-list"
     MovieListSentinel()
@@ -53,7 +51,7 @@ private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
     "",
-    SetupSse(SseEvent.Mode.WATCHED),
+    JsCall.SetupSse(SseEvent.Mode.WATCHED),
 ) {
     val items = movies
         .groupBy { it.watchedAt.toLocalDateTime(Environment.timezone) }
@@ -71,9 +69,10 @@ fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
-fun FlowContent.SelectableMovieList(movies: List<Movie>, minSelection: Int = 2) = MovieList(
-    R.selectableJs(minSelection),
-    SetupSse(SseEvent.Mode.OVERVIEW),
+fun FlowContent.SelectableMovieList(movies: List<Movie>) = MovieList(
+    "",
+    JsCall.SetupSse(SseEvent.Mode.OVERVIEW),
+    JsCall.UpdateMovieSelectionCount,
 ) {
     for (movie in movies) {
         SelectableMovieListItem(MovieItemUI(movie))
@@ -84,7 +83,7 @@ fun FlowContent.SelectableMovieList(movies: List<Movie>, minSelection: Int = 2) 
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
     "",
-    SetupSse(SseEvent.Mode.ROULETTE),
+    JsCall.SetupSse(SseEvent.Mode.ROULETTE),
 ) {
     for (movie in movies) {
         RouletteMovieListItem(MovieItemUI(movie.movie), movie.votes)

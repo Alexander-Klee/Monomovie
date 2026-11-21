@@ -7,6 +7,7 @@ import de.amklee.monomovie.util.MmvHttpClient
 import de.amklee.monomovie.util.ful
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.*
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.browser.document
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -15,7 +16,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.set
-import kotlin.time.Duration.Companion.seconds
 
 object Sse {
     fun setup(mode: SseEvent.Mode) {
@@ -52,14 +52,15 @@ object Sse {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job = GlobalScope.launch {
-        sse(urlString) {
-            incoming.collect {
-                if (it.data == "heartbeat") return@collect
-                act(Json.decodeFromString<T>(it.data!!))
+    private inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job =
+        GlobalScope.launch {
+            sse(urlString) {
+                incoming.collect {
+                    if (it.data == "heartbeat") return@collect
+                    act(Json.decodeFromString<T>(it.data!!))
+                }
             }
         }
-    }
 
     private suspend fun handleAdd(bookmarkList: HTMLElement, mode: SseEvent.Mode, event: SseEvent.Add) {
         when (mode) {

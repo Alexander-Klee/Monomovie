@@ -242,7 +242,7 @@ fun UL.SelectableMovieListItem(movie: MovieItemUI) {
             checkBoxInput(classes = "movie-checkbox", name = "selected[]") {
                 value = name
                 id = name
-                onClick = "window.selectedChanged()"
+                onClick = JsCall.UpdateMovieSelectionCount.toJsString()
             }
             MovieItem(movie)
         }

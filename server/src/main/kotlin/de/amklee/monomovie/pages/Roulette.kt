@@ -1,13 +1,8 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.Environment
 import de.amklee.monomovie.R
-import de.amklee.monomovie.components.RouletteMovieList
-import de.amklee.monomovie.components.RouletteMovieListItem
-import de.amklee.monomovie.components.SelectableMovieList
-import de.amklee.monomovie.components.invoke
+import de.amklee.monomovie.components.*
 import de.amklee.monomovie.dto.JellyfinItems
 import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.dto.MovieItemUI
@@ -17,7 +12,6 @@ import de.amklee.monomovie.util.LazyValue
 import de.amklee.monomovie.util.buildULHtml
 import de.amklee.monomovie.util.rouletteSharedJs
 import io.ktor.http.*
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -158,11 +152,8 @@ fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) 
     }
     postForm(action = "/roulette?shareId=$shareId", classes = "roulette-form") {
         div(classes = "sticky-action-row") {
-            submitInput(classes = "roulette-button require-min-selection") {
-                disabled = true
-                value = "Add to Roulette"
-            }
+            RouletteSelectionButton(label = "Add to Roulette", minSelection = 1)
         }
-        SelectableMovieList(movies, minSelection = 1)
+        SelectableMovieList(movies)
     }
 }
