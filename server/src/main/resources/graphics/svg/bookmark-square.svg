@@ -1,0 +1,6 @@
+<!-- Based on Google Material Design Icons, Modified (github.com/google/material-design-icons) -->
+<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg" viewBox="200 -840 560 720">
+    <path d="m 200,-120 v -720 h 560 v 720 L 480,-240 Z"
+          fill="currentColor"
+          fill-rule="evenodd" />
+</svg>

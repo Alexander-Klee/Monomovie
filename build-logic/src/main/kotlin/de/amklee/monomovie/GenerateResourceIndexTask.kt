@@ -65,17 +65,12 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
                             if (!stringExtensions.get().contains(entry.extension)) return@forEach
                             val name = entry.asFilePropName()
                             builder.addProperty(
-                                PropertySpec.builder("_$name", resourceClassName, KModifier.PRIVATE)
+                                PropertySpec.builder(name, resourceClassName, KModifier.PUBLIC)
                                     .initializer(
                                         "%T(%S)",
                                         resourceClassName,
                                         origin.relativize(entry).toString(),
                                     )
-                                    .build(),
-                            )
-                            builder.addProperty(
-                                PropertySpec.builder(name, String::class)
-                                    .delegate("%L", "_$name")
                                     .build(),
                             )
                             index.add(name)
@@ -103,7 +98,7 @@ abstract class GenerateResourceIndexTask : DefaultTask() {
                             add("mapOf(\n")
                             indent()
                             for (string in index) {
-                                add("%S to %L,\n", string, "_$string")
+                                add("%S to %L,\n", string, string)
                             }
                             unindent()
                             add(")")

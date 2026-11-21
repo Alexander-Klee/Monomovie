@@ -5,6 +5,7 @@ package de.amklee.monomovie.db
 import de.amklee.monomovie.R
 import de.amklee.monomovie.util.Resource
 import de.amklee.monomovie.util.info
+import de.amklee.monomovie.util.read
 import io.ktor.server.application.*
 import java.security.MessageDigest
 import kotlinx.coroutines.flow.singleOrNull
@@ -47,7 +48,7 @@ suspend fun R2dbcDatabase.runMigrations() {
 
     for ((id_, resource_) in getSortedMigrations()) {
         val name_ = resource_.path.requireAndTrimStart("db/migration/")
-        val content_ = resource_.toString()
+        val content_ = resource_.read()
         val hash_ = content_.md5()
 
         val existing = Migrations[id_]

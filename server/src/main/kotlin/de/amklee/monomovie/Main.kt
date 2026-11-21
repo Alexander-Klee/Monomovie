@@ -223,10 +223,11 @@ fun Route.miscRoutes() {
         } ?: call.respond(HttpStatusCode.BadRequest, "Missing data parameter")
     }
     get("/placeholder.svg") {
-        call.respondText(R.graphics.svg.imagePlaceholderSvg, ContentType.Image.SVG)
+        call.respondText(R.graphics.svg.imagePlaceholderSvg.read(), ContentType.Image.SVG)
     }
     staticResources("/static", "static")
     staticResources("/client", "client")
+    staticResources("/graphics", "graphics")
 }
 
 private val LOG = System.getLogger("MMV/Router")
