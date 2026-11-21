@@ -23,13 +23,6 @@ kotlin {
         useEsModules()
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.library()
-        useEsModules()
-    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(projects.shared)

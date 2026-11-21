@@ -126,8 +126,7 @@ val libraryDistribution = project(projects.web.path)
     .tasks
     .named<Copy>(run {
         val profile = if (project.hasProperty("isProduction")) "Production" else "Development"
-        val kind = if (project.hasProperty("isWasm")) "wasmJs" else "js"
-        "${kind}Browser${profile}LibraryDistribution"
+        "jsBrowser${profile}LibraryDistribution"
     })
 kotlin.sourceSets.main {
     resources.srcDir(tasks.register<Copy>("copyWebResources") {

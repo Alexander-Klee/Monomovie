@@ -25,12 +25,6 @@ kotlin {
         useEsModules()
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        useEsModules()
-    }
-
     sourceSets {
         commonMain.dependencies {
             api(ktorLibs.serialization.kotlinx.json)
@@ -42,7 +36,7 @@ kotlin {
             api(ktorLibs.client.java)
             implementation(libs.slf4j.jdk14)
         }
-        webMain.dependencies {
+        jsMain.dependencies {
             api(ktorLibs.client.js)
             api(libs.kotlinx.browser)
         }
