@@ -10,7 +10,6 @@ import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.dto.MovieItemUI
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.pages.RouletteCachedMovie
-import de.amklee.monomovie.util.read
 import de.amklee.monomovie.util.selectableJs
 import java.time.format.DateTimeFormatter
 import kotlinx.datetime.toJavaLocalDateTime
@@ -41,7 +40,7 @@ inline fun FlowContent.MovieList(script: String, vararg calls: JsCall, body: UL.
 
 @HtmlTagMarker
 fun FlowContent.SearchMovieList() = MovieList(
-    R.infiniteScrollJs.read(),
+    R.infiniteScrollJs,
     SetupSse(SseEvent.Mode.SEARCH),
 ) {
     id = "infinite-list"

@@ -8,7 +8,6 @@ import de.amklee.monomovie.dto.JellyfinItems
 import de.amklee.monomovie.dto.MovieItemUI
 import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.util.buildULHtml
-import de.amklee.monomovie.util.read
 import kotlinx.html.*
 import kotlinx.serialization.Serializable
 
@@ -17,7 +16,7 @@ fun FlowContent.SearchBar(title: String) {
     div(classes = "search-bar") {
         getForm(action = "/search") {
             button(classes = "search-button", type = ButtonType.submit) {
-                unsafe { +R.graphics.svg.searchSvg.read() }
+                unsafe { +R.graphics.svg.searchSvg }
             }
             textInput(name = "title", classes = "search-input") {
                 autoFocus = true

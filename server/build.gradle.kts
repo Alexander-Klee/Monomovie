@@ -129,6 +129,7 @@ val libraryDistribution = project(projects.web.path)
         "jsBrowser${profile}LibraryDistribution"
     })
 kotlin.sourceSets.main {
+    kotlin.srcDir(tasks.register<GenerateResourceIndexTask>("generateResourceIndex"))
     resources.srcDir(tasks.register<Copy>("copyWebResources") {
         group = "build"
         dependsOn(libraryDistribution)

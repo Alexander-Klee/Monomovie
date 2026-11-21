@@ -1,83 +1,91 @@
 package de.amklee.monomovie.components
 
-import de.amklee.monomovie.R
-import de.amklee.monomovie.util.Resource
+import de.amklee.monomovie.util.custom
 import kotlinx.html.FlowContent
 import kotlinx.html.HtmlTagMarker
-import kotlinx.html.IMG
-import kotlinx.html.img
+import kotlinx.html.SVG
+import kotlinx.html.svg
 
-@HtmlTagMarker
-inline fun FlowContent.Svg(resource: Resource, classes: String? = null, block: IMG.() -> Unit = {}) {
-    img(src = "/${resource.path}", alt = "", classes = classes, block = block)
+inline fun FlowContent.templatedSvg(
+    href: String,
+    classes: String = "",
+    block: SVG.() -> Unit = {
+    },
+) {
+    svg(classes = classes) {
+        block()
+        custom("use", namespace = "http://www.w3.org/2000/svg") {
+            attributes["href"] = href
+        }
+    }
 }
 
 @HtmlTagMarker
 inline fun FlowContent.BookmarkIconSvg(
     classes: String = "bookmark-icon",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.bookmarkSvg, classes = classes, block = block)
+) = templatedSvg("#bookmark-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.BookmarkSquareIconSvg(
     classes: String = "bookmark-icon",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.bookmarkSquareSvg, classes = classes, block = block)
+) = templatedSvg("#bookmark-square-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.BookmarkPlusIconSvg(
     classes: String = "bookmark-icon",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.bookmarkPlusSvg, classes = classes, block = block)
+) = templatedSvg("#bookmark-plus-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.EyeIconSvg(
     classes: String = "",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.eyeSvg, classes = classes, block = block)
+) = templatedSvg("#eye-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.EyePlusIconSvg(
     classes: String = "",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.eyePlusSvg, classes = classes, block = block)
+) = templatedSvg("#eye-plus-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.RottenTomatoesSvg(
     classes: String = "rating-logo",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.rottenTomatoesSvg, classes = classes, block = block)
+) = templatedSvg("#rotten-tomatoes-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.TmdbSvg(
     classes: String = "rating-logo tmdb-icon",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.tmdbSvg, classes = classes, block = block)
+) = templatedSvg("#tmdb-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.ImdbSvg(
     classes: String = "rating-logo",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.imdbSvg, classes = classes, block = block)
+) = templatedSvg("#imdb-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.ImagePlaceholderSvg(
     classes: String = "image-placeholder",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.imagePlaceholderSvg, classes = classes, block = block)
+) = templatedSvg("#image-placeholder-icon", classes = classes, block = block)
 
 @HtmlTagMarker
 inline fun FlowContent.ArrowUpSvg(
     classes: String = "arrow-up",
-    block: IMG.() -> Unit = {
+    block: SVG.() -> Unit = {
     },
-) = Svg(R.graphics.svg.arrowUpSvg, classes = classes, block = block)
+) = templatedSvg("#arrow-up-icon", classes = classes, block = block)

@@ -2,7 +2,6 @@ package de.amklee.monomovie.components
 
 import de.amklee.monomovie.R
 import de.amklee.monomovie.dto.JsCall
-import de.amklee.monomovie.util.read
 import kotlinx.html.*
 
 @HtmlTagMarker
@@ -30,7 +29,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         }
 
         style {
-            unsafe { +R.styleCss.read() }
+            unsafe { +R.styleCss }
         }
 
         LoadMmvClient()
@@ -42,6 +41,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
 
         main {
             id = "main"
+            IncludeSvgTemplates()
             div(classes = "content") {
                 body()
             }
@@ -72,7 +72,7 @@ fun FlowContent.MenuButton() {
     }
     label(classes = "menu-button floating-action-button") {
         htmlFor = "menu-toggle"
-        unsafe { +R.graphics.svg.menuSvg.read() }
+        unsafe { +R.graphics.svg.menuSvg }
     }
     label(classes = "menu-overlay") {
         htmlFor = "menu-toggle"
@@ -83,7 +83,7 @@ fun FlowContent.MenuButton() {
 fun HEAD.LoadMmvClient() {
     script {
         type = "module"
-        unsafe { +R.libJs.read() }
+        unsafe { +R.libJs }
     }
 }
 
@@ -93,6 +93,16 @@ fun FlowContent.JsCall(call: JsCall) {
         type = "module"
         unsafe {
             +call.toJsString()
+        }
+    }
+}
+
+@HtmlTagMarker
+fun FlowContent.IncludeSvgTemplates() {
+    consumer.onTagContentUnsafe {
+        for (resource in R.graphics.svgTemplates.index.values) {
+            val resource by resource
+            +resource
         }
     }
 }

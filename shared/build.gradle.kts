@@ -1,5 +1,4 @@
 import de.amklee.monomovie.*
-import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -45,10 +44,4 @@ kotlin {
 
 tasks.withType<KotlinCompile> {
     compilerOptions.freeCompilerArgs.add("-Xexplicit-context-arguments")
-}
-
-kotlin.sourceSets.commonMain {
-    kotlin.srcDir(tasks.register<GenerateResourceIndexTask>("generateResourceIndex") {
-        resourcesDir = projects.server.path.let(::project).layout.projectDirectory.dir("src/main/resources")
-    })
 }
