@@ -1,6 +1,7 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.R
+import de.amklee.monomovie.dto.JsCall
 import de.amklee.monomovie.util.read
 import kotlinx.html.*
 
@@ -36,18 +37,11 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
     }
     body {
         MenuButton()
-        TopButton()
+        JsCall(JsCall.InjectTopButton)
         NavBar()
 
         main {
             id = "main"
-            script {
-                type = "module"
-                unsafe {
-                    +R.topbuttonJs.read()
-                }
-            }
-            IncludeSvgTemplates()
             div(classes = "content") {
                 body()
             }
@@ -94,10 +88,11 @@ fun HEAD.LoadMmvClient() {
 }
 
 @HtmlTagMarker
-fun FlowContent.IncludeSvgTemplates() {
-    consumer.onTagContentUnsafe {
-        for (resource in R.graphics.svgTemplates.index.values) {
-            +resource.read()
+fun FlowContent.JsCall(call: JsCall) {
+    script {
+        type = "module"
+        unsafe {
+            +call.toJsString()
         }
     }
 }

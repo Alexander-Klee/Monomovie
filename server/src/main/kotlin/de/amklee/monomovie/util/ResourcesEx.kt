@@ -2,8 +2,8 @@ package de.amklee.monomovie.util
 
 import de.amklee.monomovie.Environment
 import de.amklee.monomovie.R
-import kotlin.io.path.exists
 import kotlin.io.path.Path
+import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.reflect.KProperty
 import kotlin.uuid.Uuid

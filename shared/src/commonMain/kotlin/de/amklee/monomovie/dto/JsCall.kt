@@ -18,5 +18,9 @@ sealed interface JsCall {
     @SerialName("setWatched")
     data class SetWatched(val movieId: String, val watched: Boolean) : JsCall
 
+    @Serializable
+    @SerialName("scrollToTop")
+    object InjectTopButton : JsCall
+
     fun toJsString(): String = "window.monomovie(${Json.encodeToString(this)});"
 }

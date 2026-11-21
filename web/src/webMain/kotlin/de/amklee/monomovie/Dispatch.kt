@@ -29,9 +29,13 @@ fun JsCall.dispatch() {
                     method = if (watched) HttpMethod.Put else HttpMethod.Delete
                 }
             }
+
+            JsCall.InjectTopButton -> document.addEventListener("DOMContentLoaded") {
+                TopButton.inject()
+            }
         }
     } catch (e: Exception) {
-        println("Error dispatching JsCall: $this")
+        console.error("Error dispatching JsCall: $this", e)
         e.printStackTrace()
         throw e
     }

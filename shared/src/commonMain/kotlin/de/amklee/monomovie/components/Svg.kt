@@ -74,3 +74,10 @@ inline fun FlowContent.ImagePlaceholderSvg(
     block: IMG.() -> Unit = {
     },
 ) = Svg(R.graphics.svg.imagePlaceholderSvg, classes = classes, block = block)
+
+@HtmlTagMarker
+inline fun FlowContent.ArrowUpSvg(
+    classes: String = "arrow-up",
+    block: IMG.() -> Unit = {
+    },
+) = Svg(R.graphics.svg.arrowUpSvg, classes = classes, block = block)
