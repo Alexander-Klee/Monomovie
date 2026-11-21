@@ -23,7 +23,8 @@ object TopButton {
             }
         }
         console.log("Injected top button", scrollTopButton)
-        document.addEventListener("scroll") {
+        document.getElementById("main")!!.addEventListener("scroll") {
+            console.log("Scroll event detected")
             val shown = document.getElementById("main")?.scrollTop?.let { it > 1000 } ?: false
             scrollTopButton.dataset["shown"] = shown.toString()
         }
