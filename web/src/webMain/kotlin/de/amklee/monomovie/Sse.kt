@@ -29,7 +29,7 @@ object Sse {
         val bookmarkList = document.getElementById("movie-list") as HTMLElement?
         client.subscribeSse<SseEvent>("/sse-stream") { event ->
             val elements = document.querySelectorAll("#${event.kind.name.lowercase()}-${event.id}")
-            println("Received SSE event: $event, active elements: ${elements.length}, mode is $mode")
+            console.info("Received SSE event, active elements: ${elements.length}, mode is $mode", event)
 
             if (mode == SseEvent.Mode.ROULETTE && event.kind == SseEvent.Kind.BOOKMARK) return@subscribeSse
 
@@ -67,7 +67,7 @@ object Sse {
             SseEvent.Mode.WATCHED -> if (event.kind != SseEvent.Kind.WATCHED) return
             SseEvent.Mode.OVERVIEW -> if (event.kind != SseEvent.Kind.BOOKMARK) return
         }
-        println("Prepending new movie to list: ${event.movie.title} (${event.movie.id})")
+        console.log("Prepending new movie to list: ${event.movie.title} (${event.movie.id})")
         context(JellyfinClient.getItems()) {
             bookmarkList.prepend {
                 ful {

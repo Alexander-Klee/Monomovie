@@ -28,7 +28,7 @@ fun parseHtmlElement(html: String): Node? {
     val template = document.createElement("template") as HTMLTemplateElement
     template.innerHTML = html.trim()
     if (template.content.childElementCount != 1) {
-        println("Expected exactly one root element in HTML, but found ${template.content.childElementCount}.")
+        console.error("Expected exactly one root element in HTML, but found ${template.content.childElementCount}.")
         return null
     }
     return template.content.firstChild
