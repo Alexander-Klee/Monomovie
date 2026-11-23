@@ -18,7 +18,7 @@ fun JsCall.dispatch() {
     try {
         when (this) {
             is JsCall.SetupSse -> document.addEventListener("DOMContentLoaded") {
-                Sse.setup(mode)
+                Sse(mode).setup()
             }
 
             is JsCall.SetBookmarked -> GlobalScope.launch {
@@ -54,7 +54,11 @@ fun JsCall.dispatch() {
             }
 
             is JsCall.SetupRouletteVoting -> document.addEventListener("DOMContentLoaded") {
-                RouletteVoting.setup(shareId)
+                RouletteVoting(shareId).setup()
+            }
+
+            is JsCall.SetupSearchInfiniteScroll -> document.addEventListener("DOMContentLoaded") {
+                SearchInfiniteScroll(title).setup()
             }
         }
     } catch (e: Exception) {

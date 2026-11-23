@@ -1,15 +1,13 @@
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.R
-import de.amklee.monomovie.components.MovieListItem
 import de.amklee.monomovie.components.SearchMovieList
 import de.amklee.monomovie.components.invoke
 import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.dto.MoreSearchResultsResponse
 import de.amklee.monomovie.dto.MovieItemUI
 import de.amklee.monomovie.service.CachedMovies
-import de.amklee.monomovie.util.buildULHtml
 import kotlinx.html.*
-import kotlinx.serialization.Serializable
 
 @HtmlTagMarker
 fun FlowContent.SearchBar(title: String) {
@@ -39,11 +37,8 @@ fun FlowContent.SearchPage(title: String) {
     h4 {
         +"Search Results:"
     }
-    SearchMovieList()
+    SearchMovieList(title)
 }
-
-@Serializable
-data class MoreSearchResultsResponse(val cursor: String, val html: Map<String, String>, val hasNextPage: Boolean)
 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
@@ -53,7 +48,7 @@ fun MoreSearchResults(searchResults: CachedMovies.SearchResults): MoreSearchResu
     return MoreSearchResultsResponse(
         searchResults.pageInfo.endCursor,
         searchResults.movies.associate {
-            (it.mediaEntry.id ?: "null") to buildULHtml { MovieListItem(MovieItemUI(it)) }
+            (it.mediaEntry.id ?: "null") to MovieItemUI(it)
         },
         searchResults.pageInfo.hasNextPage,
     )

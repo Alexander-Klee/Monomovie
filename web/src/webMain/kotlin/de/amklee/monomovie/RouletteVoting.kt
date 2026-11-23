@@ -8,6 +8,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
 import kotlinx.browser.document
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -16,19 +18,17 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
-import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.Uuid
 
-object RouletteVoting {
-    fun setup(shareId: Uuid) {
-        val client = MmvHttpClient {
-            install(SSE) {
-                maxReconnectionAttempts = 4
-                reconnectionTime = 4.seconds
-            }
+class RouletteVoting(private val shareId: Uuid) {
+    private val client = MmvHttpClient {
+        install(SSE) {
+            maxReconnectionAttempts = 4
+            reconnectionTime = 4.seconds
         }
+    }
 
-        injectUpdateCount(client, shareId, document.body!!)
+    fun setup() {
+        injectUpdateCount(document.body!!)
 
         val bookmarkList = document.getElementById("movie-list") as HTMLElement?
         client.subscribeSse<RouletteSseEvent>("/roulette/shared/$shareId/sse") { event ->
@@ -38,16 +38,20 @@ object RouletteVoting {
             when (event) {
                 is RouletteSseEvent.Add -> {
                     if (elements.length == 0 && bookmarkList != null) {
-                        injectUpdateCount(client, shareId, bookmarkList.append {
-                            ful {
-                                RouletteMovieListItem(movie = event.item, count = event.count)
-                            }
-                        })
+                        injectUpdateCount(
+                            bookmarkList.append {
+                                ful {
+                                    RouletteMovieListItem(movie = event.item, count = event.count)
+                                }
+                            },
+                        )
                     }
                 }
+
                 is RouletteSseEvent.Update -> elements.forEach {
-                        (it as? HTMLInputElement)?.value = event.count.toString()
-                    }
+                    (it as? HTMLInputElement)?.value = event.count.toString()
+                }
+
                 is RouletteSseEvent.Remove -> document.querySelectorAll("#roulette-${event.id}")
                     .forEachElement {
                         it.remove()
@@ -57,7 +61,7 @@ object RouletteVoting {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun injectUpdateCount(client: HttpClient, shareId: Uuid, parent: HTMLElement) {
+    private fun injectUpdateCount(parent: HTMLElement) {
         parent.querySelectorAll(".roulette-weight-input").forEach { element ->
             (element as? HTMLInputElement)?.onchange = {
                 val count = element.value.toIntOrNull() ?: 0

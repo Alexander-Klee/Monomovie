@@ -49,12 +49,11 @@ fun HTMLElement.prepend(build: FlowContent.() -> Unit) = this.prepend
     }.finalize()
 
 @OptIn(DelicateCoroutinesApi::class)
-inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job =
-    GlobalScope.launch {
-        sse(urlString) {
-            incoming.collect {
-                if (it.data == "heartbeat") return@collect
-                act(Json.decodeFromString<T>(it.data!!))
-            }
+inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job = GlobalScope.launch {
+    sse(urlString) {
+        incoming.collect {
+            if (it.data == "heartbeat") return@collect
+            act(Json.decodeFromString<T>(it.data!!))
         }
     }
+}

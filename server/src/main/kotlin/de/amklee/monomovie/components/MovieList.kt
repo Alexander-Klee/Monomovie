@@ -22,11 +22,10 @@ operator fun MovieItemUI.Companion.invoke(movie: Movie) = MovieItemUI(
 )
 
 @HtmlTagMarker
-inline fun FlowContent.MovieList(script: String, vararg calls: JsCall, body: UL.() -> Unit) {
+inline fun FlowContent.MovieList(vararg calls: JsCall, body: UL.() -> Unit) {
     script {
         type = "module"
         unsafe {
-            +script
             for (call in calls) +call.toJsString()
         }
     }
@@ -37,9 +36,9 @@ inline fun FlowContent.MovieList(script: String, vararg calls: JsCall, body: UL.
 }
 
 @HtmlTagMarker
-fun FlowContent.SearchMovieList() = MovieList(
-    R.infiniteScrollJs,
+fun FlowContent.SearchMovieList(title: String) = MovieList(
     JsCall.SetupSse(SseEvent.Mode.SEARCH),
+    JsCall.SetupSearchInfiniteScroll(title),
 ) {
     id = "infinite-list"
     MovieListSentinel()
@@ -50,7 +49,6 @@ private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
-    "",
     JsCall.SetupSse(SseEvent.Mode.WATCHED),
 ) {
     val items = movies
@@ -70,7 +68,6 @@ fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.SelectableMovieList(movies: List<Movie>) = MovieList(
-    "",
     JsCall.SetupSse(SseEvent.Mode.OVERVIEW),
     JsCall.UpdateMovieSelectionCount,
 ) {
@@ -82,7 +79,6 @@ fun FlowContent.SelectableMovieList(movies: List<Movie>) = MovieList(
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
-    "",
     JsCall.SetupSse(SseEvent.Mode.ROULETTE),
 ) {
     for (movie in movies) {

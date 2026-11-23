@@ -6,6 +6,7 @@ plugins {
     org.jetbrains.kotlin.multiplatform
     ktlint
     alias(libs.plugins.kotlin.plugin.serialization)
+    alias(libs.plugins.kotlin.plugin.js.plain.objects)
 }
 
 group = rootProject.group

@@ -31,5 +31,9 @@ sealed interface JsCall {
     @SerialName("setupRouletteVoting")
     data class SetupRouletteVoting(val shareId: Uuid) : JsCall
 
+    @Serializable
+    @SerialName("setupInfiniteScroll")
+    data class SetupSearchInfiniteScroll(val title: String) : JsCall
+
     fun toJsString(): String = "window.monomovie(${Json.encodeToString(this)});"
 }
