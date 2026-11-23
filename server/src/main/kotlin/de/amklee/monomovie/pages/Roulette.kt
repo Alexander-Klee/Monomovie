@@ -1,16 +1,15 @@
 package de.amklee.monomovie.pages
 
 import de.amklee.monomovie.Environment
-import de.amklee.monomovie.R
 import de.amklee.monomovie.components.*
 import de.amklee.monomovie.dto.JellyfinItems
+import de.amklee.monomovie.dto.JsCall
 import de.amklee.monomovie.dto.Movie
 import de.amklee.monomovie.dto.MovieItemUI
+import de.amklee.monomovie.dto.RouletteSseEvent
 import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.LazyValue
-import de.amklee.monomovie.util.buildULHtml
-import de.amklee.monomovie.util.rouletteSharedJs
 import io.ktor.http.*
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,18 +18,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.html.*
-import kotlinx.serialization.Serializable
-
-@Serializable
-sealed interface RouletteSseEvent {
-    val id: String
-
-    @Serializable data class Add(override val id: String, val body: String) : RouletteSseEvent
-
-    @Serializable data class Remove(override val id: String) : RouletteSseEvent
-
-    @Serializable data class Update(override val id: String, val count: Int) : RouletteSseEvent
-}
 
 class SharedRouletteSession {
     val hash = LazyValue { ProvidenceApi.getLatestHash() }
@@ -82,11 +69,8 @@ class SharedRouletteSession {
 
     private suspend fun buildAddEvent(movie: Movie, count: Int): RouletteSseEvent.Add = RouletteSseEvent.Add(
         id = movie.mediaEntry.id!!,
-        body = buildULHtml {
-            context(JellyfinClient.getItems()) {
-                RouletteMovieListItem(MovieItemUI(movie), count)
-            }
-        },
+        item = context(JellyfinClient.getItems()) { MovieItemUI(movie) },
+        count = count,
     )
 
     suspend fun remove(movie: Movie) {
@@ -104,12 +88,7 @@ infix fun Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
-        script {
-            type = "module"
-            unsafe {
-                +R.rouletteSharedJs(shareId)
-            }
-        }
+        JsCall(JsCall.SetupRouletteVoting(shareId))
         val target = "${Environment.hostname}/roulette?shareId=$shareId"
         img(
             classes = "qr-code",

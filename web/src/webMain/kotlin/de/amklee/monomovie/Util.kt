@@ -1,13 +1,18 @@
 package de.amklee.monomovie
 
-import kotlinx.browser.document
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.sse.sse
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.DIV
 import kotlinx.html.FlowContent
 import kotlinx.html.TagConsumer
+import kotlinx.serialization.json.Json
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLTemplateElement
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.w3c.dom.get
@@ -22,16 +27,6 @@ inline fun NodeList.forEachElement(action: (element: HTMLElement) -> Unit) {
     forEach {
         if (it is HTMLElement) action(it)
     }
-}
-
-fun parseHtmlElement(html: String): Node? {
-    val template = document.createElement("template") as HTMLTemplateElement
-    template.innerHTML = html.trim()
-    if (template.content.childElementCount != 1) {
-        console.error("Expected exactly one root element in HTML, but found ${template.content.childElementCount}.")
-        return null
-    }
-    return template.content.firstChild
 }
 
 expect val Document.create: TagConsumer<Element>
@@ -52,3 +47,14 @@ fun HTMLElement.prepend(build: FlowContent.() -> Unit) = this.prepend
     .apply {
         DIV(mapOf(), this).build()
     }.finalize()
+
+@OptIn(DelicateCoroutinesApi::class)
+inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job =
+    GlobalScope.launch {
+        sse(urlString) {
+            incoming.collect {
+                if (it.data == "heartbeat") return@collect
+                act(Json.decodeFromString<T>(it.data!!))
+            }
+        }
+    }

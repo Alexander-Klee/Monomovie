@@ -52,6 +52,10 @@ fun JsCall.dispatch() {
                     it.disabled = disabled
                 }
             }
+
+            is JsCall.SetupRouletteVoting -> document.addEventListener("DOMContentLoaded") {
+                RouletteVoting.setup(shareId)
+            }
         }
     } catch (e: Exception) {
         console.error("Error dispatching JsCall: $this", e)

@@ -51,17 +51,6 @@ object Sse {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job =
-        GlobalScope.launch {
-            sse(urlString) {
-                incoming.collect {
-                    if (it.data == "heartbeat") return@collect
-                    act(Json.decodeFromString<T>(it.data!!))
-                }
-            }
-        }
-
     private suspend fun handleAdd(bookmarkList: HTMLElement, mode: SseEvent.Mode, event: SseEvent.Add) {
         when (mode) {
             SseEvent.Mode.SEARCH, SseEvent.Mode.ROULETTE, SseEvent.Mode.OFFERS -> return

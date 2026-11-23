@@ -83,7 +83,12 @@ fun FlowContent.MenuButton() {
 fun HEAD.LoadMmvClient() {
     script {
         type = "module"
-        unsafe { +R.libJs }
+        unsafe {
+            +"""
+            import { entrypoint } from "/client/monomovie-web.mjs";
+            window.monomovie = entrypoint;
+            """.trimIndent()
+        }
     }
 }
 

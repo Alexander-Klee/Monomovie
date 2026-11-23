@@ -1,5 +1,6 @@
 package de.amklee.monomovie.dto
 
+import kotlin.uuid.Uuid
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -25,6 +26,10 @@ sealed interface JsCall {
     @Serializable
     @SerialName("updateMovieSelectionCount")
     object UpdateMovieSelectionCount : JsCall
+
+    @Serializable
+    @SerialName("setupRouletteVoting")
+    data class SetupRouletteVoting(val shareId: Uuid) : JsCall
 
     fun toJsString(): String = "window.monomovie(${Json.encodeToString(this)});"
 }
