@@ -25,6 +25,7 @@ class SharedRouletteSession {
 
     private val events = MutableSharedFlow<RouletteSseEvent>()
 
+    // Note: this does not contain bookmark events (those are injected in RouletteRoutes)
     fun events(): SharedFlow<RouletteSseEvent> = events.asSharedFlow()
 
     suspend fun addAll(movies: List<Movie>): Collection<RouletteCachedMovie> {
@@ -86,7 +87,6 @@ infix fun Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 context(jellyfinItems: JellyfinItems, resourcesFormat: ResourcesFormat)
 fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
-        JsCall(JsCall.SetupRouletteVoting(shareId))
         img(
             classes = "qr-code",
             src = href(Route.QrSvg(data = hrefFull(Route.Roulette.Shared.Selection(shareId = shareId)))),
@@ -113,7 +113,7 @@ fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: U
                 }
             }
         }
-        RouletteMovieList(movies)
+        RouletteMovieList(movies, shareId)
     }
 }
 

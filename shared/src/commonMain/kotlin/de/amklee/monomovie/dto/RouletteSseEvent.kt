@@ -11,4 +11,8 @@ sealed interface RouletteSseEvent {
     @Serializable data class Remove(override val id: String) : RouletteSseEvent
 
     @Serializable data class Update(override val id: String, val count: Int) : RouletteSseEvent
+
+    @Serializable data class Bookmark(val event: SseEvent) : RouletteSseEvent {
+        override val id get() = event.id
+    }
 }

@@ -1,6 +1,7 @@
 package de.amklee.monomovie
 
 import de.amklee.monomovie.components.HtmlTemplate
+import de.amklee.monomovie.dto.RouletteSseEvent
 import de.amklee.monomovie.pages.RoulettePage
 import de.amklee.monomovie.pages.SharedRouletteSelectionPage
 import de.amklee.monomovie.pages.SharedRouletteSession
@@ -27,6 +28,8 @@ import io.ktor.util.*
 import kotlin.collections.emptyList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 
 private val LOG = System.getLogger("MMV/RouletteRoutes")
 
@@ -139,7 +142,10 @@ fun KtorRoute.rouletteRoutes() {
         }
 
         sharedRouletteSessions.withValueSuspend(r.shareId) { session ->
-            session.events().collect { event ->
+            merge(
+                session.events(),
+                bookmarkAndWatchedSse().map(RouletteSseEvent::Bookmark),
+            ).collect { event ->
                 send(event)
             }
         }

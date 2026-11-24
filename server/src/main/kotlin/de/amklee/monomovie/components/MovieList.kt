@@ -10,6 +10,7 @@ import de.amklee.monomovie.dto.MovieItemUI
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.pages.RouletteCachedMovie
 import java.time.format.DateTimeFormatter
+import kotlin.uuid.Uuid
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.html.*
@@ -78,8 +79,12 @@ fun FlowContent.SelectableMovieList(movies: List<Movie>) = MovieList(
 
 @HtmlTagMarker
 context(jellyfinItems: JellyfinItems)
-fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>) = MovieList(
-    JsCall.SetupSse(SseEvent.Mode.ROULETTE),
+fun FlowContent.RouletteMovieList(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) = MovieList(
+    if (shareId == null) {
+        JsCall.SetupSse(SseEvent.Mode.ROULETTE)
+    } else {
+        JsCall.SetupRouletteVoting(shareId)
+    },
 ) {
     for (movie in movies) {
         RouletteMovieListItem(MovieItemUI(movie.movie), movie.votes)

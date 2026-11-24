@@ -22,25 +22,27 @@ class Sse(private val mode: SseEvent.Mode) {
     fun setup() {
         val bookmarkList = document.getElementById("movie-list") as HTMLElement?
         client.subscribeSse(Route.SseStream()) { event: SseEvent ->
-            val elements = document.querySelectorAll("#${event.kind.name.lowercase()}-${event.id}")
-            console.info("Received SSE event, active elements: ${elements.length}, mode is $mode", event)
+            handle(bookmarkList, event)
+        }
+    }
 
-            if (mode == SseEvent.Mode.ROULETTE && event.kind == SseEvent.Kind.BOOKMARK) return@subscribeSse
+    fun handle(bookmarkList: HTMLElement?, event: SseEvent) {
+        val elements = document.querySelectorAll("#${event.kind.name.lowercase()}-${event.id}")
+        console.info("Received SSE event, active elements: ${elements.length}, mode is $mode", event)
 
-            when (event) {
-                is SseEvent.Add -> {
-                    if (elements.length > 0) {
-                        elements.forEachElement {
-                            it.dataset["checked"] = "true"
-                        }
-                    } else if (bookmarkList != null) {
-                        handleAdd(bookmarkList, event)
+        when (event) {
+            is SseEvent.Add -> {
+                if (elements.length > 0) {
+                    elements.forEachElement {
+                        it.dataset["checked"] = "true"
                     }
+                } else if (bookmarkList != null) {
+                    handleAdd(bookmarkList, event)
                 }
+            }
 
-                is SseEvent.Remove -> {
-                    elements.forEachElement { it.dataset["checked"] = "false" }
-                }
+            is SseEvent.Remove -> {
+                elements.forEachElement { it.dataset["checked"] = "false" }
             }
         }
     }

@@ -43,6 +43,11 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.html.h1
 import kotlinx.html.p
 
+suspend fun bookmarkAndWatchedSse() = merge(
+    BookmarksService.eventFlow.map { SseEvent.Kind.BOOKMARK to it },
+    WatchedService.eventFlow.map { SseEvent.Kind.WATCHED to it },
+).mapNotNull { (kind, event) -> convertBookmarkSse(event, kind) }
+
 context(resourcesFormat: ResourcesFormat)
 fun KtorRoute.miscRoutes() {
     get<Route.Home> { r ->
@@ -127,12 +132,7 @@ fun KtorRoute.miscRoutes() {
             period = 5.seconds
             event = ServerSentEvent("heartbeat")
         }
-        val eventFlow =
-            merge(
-                BookmarksService.eventFlow.map { SseEvent.Kind.BOOKMARK to it },
-                WatchedService.eventFlow.map { SseEvent.Kind.WATCHED to it },
-            ).mapNotNull { (kind, event) -> convertBookmarkSse(event, kind) }
-        eventFlow.collect { event ->
+        bookmarkAndWatchedSse().collect { event ->
             send(event)
         }
     }

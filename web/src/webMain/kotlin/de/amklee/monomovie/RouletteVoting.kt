@@ -2,6 +2,7 @@ package de.amklee.monomovie
 
 import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.dto.RouletteSseEvent
+import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.util.MmvHttpClient
 import de.amklee.monomovie.util.ful
 import io.ktor.client.plugins.resources.post
@@ -22,36 +23,42 @@ class RouletteVoting(private val shareId: Uuid) {
         }
     }
 
+    private val bookmarkSse = Sse(SseEvent.Mode.ROULETTE)
+
     fun setup() {
         injectUpdateCount(document.body!!)
 
         val bookmarkList = document.getElementById("movie-list") as HTMLElement?
         client.subscribeSse(Route.Roulette.Shared.Sse(shareId = shareId)) { event: RouletteSseEvent ->
-            val elements = document.querySelectorAll("#${event.id}")
-            console.info("Received SSE event, active elements: ${elements.length}", event)
+            handle(bookmarkList, event)
+        }
+    }
 
-            when (event) {
-                is RouletteSseEvent.Add -> {
-                    if (elements.length == 0 && bookmarkList != null) {
-                        injectUpdateCount(
-                            bookmarkList.append {
-                                ful {
-                                    RouletteMovieListItem(movie = event.item, count = event.count)
-                                }
-                            },
-                        )
-                    }
+    private fun handle(bookmarkList: HTMLElement?, event: RouletteSseEvent) {
+        val elements = document.querySelectorAll("#${event.id}")
+        console.info("Received SSE event, active elements: ${elements.length}", event)
+
+        when (event) {
+            is RouletteSseEvent.Add -> {
+                if (elements.length == 0 && bookmarkList != null) {
+                    injectUpdateCount(
+                        bookmarkList.append {
+                            ful {
+                                RouletteMovieListItem(movie = event.item, count = event.count)
+                            }
+                        },
+                    )
                 }
-
-                is RouletteSseEvent.Update -> elements.forEach {
-                    (it as? HTMLInputElement)?.value = event.count.toString()
-                }
-
-                is RouletteSseEvent.Remove -> document.querySelectorAll("#roulette-${event.id}")
-                    .forEachElement {
-                        it.remove()
-                    }
             }
+
+            is RouletteSseEvent.Update -> elements.forEach {
+                (it as? HTMLInputElement)?.value = event.count.toString()
+            }
+
+            is RouletteSseEvent.Remove -> document.querySelectorAll("#roulette-${event.id}")
+                .forEachElement(HTMLElement::remove)
+
+            is RouletteSseEvent.Bookmark -> bookmarkSse.handle(bookmarkList, event.event)
         }
     }
 
