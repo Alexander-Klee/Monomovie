@@ -28,6 +28,7 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
             sizes = "96x96"
         }
 
+        link(rel = "stylesheet", href = "/client/bulma.min.css")
         style {
             unsafe { +R.styleCss }
         }
