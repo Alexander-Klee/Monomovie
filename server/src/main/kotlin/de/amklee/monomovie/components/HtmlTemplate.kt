@@ -1,10 +1,14 @@
 package de.amklee.monomovie.components
 
 import de.amklee.monomovie.R
+import de.amklee.monomovie.Route
 import de.amklee.monomovie.dto.JsCall
+import de.amklee.monomovie.util.href
+import io.ktor.resources.serialization.ResourcesFormat
 import kotlinx.html.*
 
 @HtmlTagMarker
+context(resourcesFormat: ResourcesFormat)
 inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
     val title: String = if (title.endsWith("Monomovie")) title else "$title - Monomovie"
     head {
@@ -36,7 +40,6 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         LoadMmvClient()
     }
     body {
-        MenuButton()
         JsCall(JsCall.InjectTopButton)
         NavBar()
 
@@ -50,31 +53,50 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
     }
 }
 
+@OptIn(ExperimentalKotlinxHtmlApi::class)
 @HtmlTagMarker
+context(resourcesFormat: ResourcesFormat)
 fun FlowContent.NavBar() {
     nav(classes = "navbar") {
-        h1 { +"Movies" }
+        role = "navigation"
 
-        ul(classes = "nav-list") {
-            li { a(href = "/") { +"Home" } }
-            li { a(href = "/watched") { +"Watched" } }
-            li { a(href = "https://jellyfin.amklee.de", classes = "external") { +"Jellyfin" } }
-            li { a(href = "https://recipes.amklee.de", classes = "external") { +"Recipes" } }
+        div(classes = "navbar-brand") {
+            a(classes = "navbar-item", href = href(Route.Home())) {
+                unsafe { +R.static.MonomovieLogoSvg }
+            }
+            label(classes = "navbar-burger") {
+                role = "button"
+                htmlFor = "menu-toggle"
+                span { attributes["aria-hidden"] = "true" }
+                span { attributes["aria-hidden"] = "true" }
+                span { attributes["aria-hidden"] = "true" }
+                span { attributes["aria-hidden"] = "true" }
+            }
+
+            checkBoxInput {
+                id = "menu-toggle"
+                attributes["aria-label"] = "Open menu"
+                style = "display:none"
+            }
+        }
+
+        div(classes = "navbar-menu") {
+            div(classes = "navbar-start") {
+                a(classes = "navbar-item", href = "/") { +"Home" }
+                a(classes = "navbar-item", href = "/watched") { +"Watched" }
+
+                div(classes = "navbar-item has-dropdown is-hoverable") {
+                    a(classes = "navbar-link") { +"More" }
+
+                    div(classes = "navbar-dropdown") {
+                        a(classes = "navbar-item external", href = "https://jellyfin.amklee.de") { +"Jellyfin" }
+                        a(classes = "navbar-item external", href = "https://recipes.amklee.de") { +"Recipes" }
+                    }
+                }
+            }
         }
     }
-}
 
-@HtmlTagMarker
-fun FlowContent.MenuButton() {
-    checkBoxInput(name = "menu-toggle", classes = "menu-toggle") {
-        id = "menu-toggle"
-        attributes["aria-label"] = "Open menu"
-        style = "display:none"
-    }
-    label(classes = "menu-button floating-action-button") {
-        htmlFor = "menu-toggle"
-        unsafe { +R.graphics.svg.menuSvg }
-    }
     label(classes = "menu-overlay") {
         htmlFor = "menu-toggle"
     }

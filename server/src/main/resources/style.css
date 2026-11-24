@@ -41,20 +41,7 @@ input {
     font: inherit; /* Some browsers like to use a different font here. Avoid that. */
 }
 
-body {
-    display: flex;
-    min-height: 100vh;
-    box-sizing: border-box;
-    justify-content: center;
-    overflow: hidden;
-}
-
 main {
-    --main-padding: 1em;
-    margin: 0 auto;
-    padding: var(--main-padding);
-    background: var(--primary-color);
-    overflow: auto;
     flex: auto;
     justify-content: center;
     display: flex;
@@ -70,7 +57,6 @@ main {
 .content:has(.movie-list) {
     width: 100%;
 }
-
 
 h1 {
     font-size: 1.8rem;
@@ -464,51 +450,6 @@ td, th {
 }
 
 
-/* NAV BAR */
-.navbar {
-    display: flex;
-    flex: 0 0 auto;
-    flex-direction: column;
-    z-index: 100;
-    top: 0;
-    left: 0;
-    background: var(--secondary-color);
-    border-right: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 1em;
-    margin: 0;
-    overflow: hidden; /* Prevent scrolling inside nav */
-}
-
-.nav-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-}
-
-.nav-list li {
-    margin: 0;
-    width: 100%;
-}
-
-.nav-list a {
-    display: block;
-    color: var(--text-color);
-    text-decoration: none;
-    padding: 0.5rem 1.25rem;
-    transition: background 0.2s;
-    width: 100%;
-}
-
-.nav-list a:hover {
-    text-decoration: underline;
-}
-
-.menu-toggle, .menu-button {
-    display: none;
-}
-
 .floating-action-button {
     position: fixed;
     background: var(--secondary-color);
@@ -579,41 +520,15 @@ td, th {
 }
 
 /* Menu Bar Collapse */
-@media (max-width: 900px) {
-    .navbar {
-        position: fixed;
-        height: 100vh;
-        background: var(--secondary-color);
-        display: block;
-        pointer-events: none;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-        opacity: 0.98;
-        z-index: 100;
-    }
+@media screen and (max-width: 1023px) {
+    .navbar:has(#menu-toggle:checked) {
+        .navbar-menu {
+            display: block;
+        }
 
-    #menu-toggle:checked ~ .navbar {
-        transform: translateX(0);
-        pointer-events: auto;
-        box-shadow: 2px 0 16px rgba(0,0,0,0.18);
-    }
-
-    #menu-toggle:checked ~ .menu-overlay {
-        visibility: visible;
-    }
-
-    #menu-toggle:checked ~ .menu-button {
-        visibility: hidden;
-    }
-
-    .menu-button {
-        display: block;
-    }
-    main {
-        margin-left: 0;
-        margin-top: 0;
-        padding: 0.5rem 0.5rem;
-        max-width: 100%;
+        ~ .menu-overlay {
+            visibility: visible;
+        }
     }
 }
 
