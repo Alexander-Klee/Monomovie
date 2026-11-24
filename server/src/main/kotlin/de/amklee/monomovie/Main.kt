@@ -1,6 +1,8 @@
 package de.amklee.monomovie
 
-import de.amklee.monomovie.components.*
+import de.amklee.monomovie.components.HtmlTemplate
+import de.amklee.monomovie.components.WatchedMovieList
+import de.amklee.monomovie.components.convertBookmarkSse
 import de.amklee.monomovie.db.configureDatabases
 import de.amklee.monomovie.dto.SseEvent
 import de.amklee.monomovie.pages.*
@@ -10,6 +12,7 @@ import de.amklee.monomovie.service.WatchedService
 import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.util.*
 import io.ktor.http.*
+import io.ktor.resources.serialization.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -18,8 +21,14 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
+import io.ktor.server.resources.Resources
+import io.ktor.server.resources.delete
+import io.ktor.server.resources.get
+import io.ktor.server.resources.post
+import io.ktor.server.resources.put
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.routing.Route as KtorRoute
+import io.ktor.server.routing.routing
 import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.cio.*
@@ -33,57 +42,46 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.html.h1
 import kotlinx.html.p
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
-fun Route.miscRoutes() {
-    get("/") {
-        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
-        val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
-
+context(resourcesFormat: ResourcesFormat)
+fun KtorRoute.miscRoutes() {
+    get<Route.Home> { r ->
         call.respondHtml {
             context(JellyfinClient.getItems()) {
                 HtmlTemplate("Monomovie") {
                     HomePage(
                         CachedMovies.getBookmarkedMovies(
-                            displayHidden = displayHidden,
-                            displayWatched = displayWatched,
+                            displayHidden = r.hidden,
+                            displayWatched = r.watched,
                         ),
                     )
                 }
             }
         }
     }
-    get("/search") {
-        val title = call.request.queryParameters["title"]
-
+    get<Route.Search> { r ->
         call.respondHtml {
-            val empty = title.isNullOrBlank()
-            HtmlTemplate(if (empty) "Search" else "$title Search") {
+            val empty = r.title.isBlank()
+            HtmlTemplate(if (empty) "Search" else "$r.title Search") {
                 if (empty) {
                     EmptySearchPage()
                 } else {
-                    SearchPage(title)
+                    SearchPage(r.title)
                 }
             }
         }
     }
-    post("/search/results") {
+    post<Route.Search.Results> { r ->
         // TODO implement circuit breaker in JS to prevent spamming this
-        val title = call.request.queryParameters["title"]
-        val cursor = call.request.queryParameters["cursor"]
-
-        if (title.isNullOrBlank()) {
+        if (r.parent.title.isBlank()) {
             call.respond(HttpStatusCode.BadRequest, "Missing title parameter")
             return@post
         }
 
         val searchResults = CachedMovies.search(
-            title,
-            cursor,
-            numResults = if (cursor ==
-                null
-            ) {
+            r.parent.title,
+            r.cursor,
+            numResults = if (r.cursor.isBlank()) {
                 8
             } else {
                 4
@@ -99,39 +97,32 @@ fun Route.miscRoutes() {
         }
         call.respond(HttpStatusCode.InternalServerError, "Search failed")
     }
-    put("/bookmark/{movieId}") {
-        val movieId = call.parameters["movieId"]
-
-        if (movieId == null) {
-            call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
-            return@put
-        }
-
-        CachedMovies.setBookmark(movieId)
-        call.respond(HttpStatusCode.OK)
-    }
-    delete("/bookmark/{movieId}") {
-        val movieId = call.parameters["movieId"]
-
-        if (movieId == null) {
+    delete<Route.Bookmarks.One> { r ->
+        if (r.movieId.isBlank()) {
             call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
             return@delete
         }
 
-        CachedMovies.deleteBookmark(movieId)
+        CachedMovies.deleteBookmark(r.movieId)
         call.respond(HttpStatusCode.OK)
     }
-    get("/bookmarks") {
+    put<Route.Bookmarks.One> { r ->
+        if (r.movieId.isBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
+            return@put
+        }
+
+        CachedMovies.setBookmark(r.movieId)
+        call.respond(HttpStatusCode.OK)
+    }
+    get<Route.Bookmarks> { r ->
         call.respondRedirect(permanent = true) {
             // query parameters get included implicitly with this,
             // but not with respondRedirect("/", true)
-            path("/")
+            path(href(Route.Home))
         }
     }
-    sse("/sse-stream", serialize = { typeInfo, it ->
-        val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
-        Json.encodeToString(serializer, it)
-    }) {
+    sse<Route.SseStream> { r ->
         heartbeat {
             period = 5.seconds
             event = ServerSentEvent("heartbeat")
@@ -145,7 +136,7 @@ fun Route.miscRoutes() {
             send(event)
         }
     }
-    get("/watched") {
+    get<Route.Watched> { r ->
         val watchedMovies = CachedMovies.getWatchedMovies()
         call.respondHtml {
             context(JellyfinClient.getItems()) {
@@ -160,37 +151,31 @@ fun Route.miscRoutes() {
             }
         }
     }
-    put("/watch/{movieId}") {
-        val movieId = call.parameters["movieId"]
-
-        if (movieId == null) {
+    put<Route.Watched.One> { r ->
+        if (r.movieId.isBlank()) {
             call.respond(HttpStatusCode.BadRequest, "Missing movie ID")
             return@put
         }
 
-        CachedMovies.setWatch(movieId)
+        CachedMovies.setWatch(r.movieId)
         call.respond(HttpStatusCode.OK)
     }
-    delete("/watch/{movieId}") {
-        val movieId = call.parameters["movieId"]
-
-        if (movieId == null) {
-            call.respond(HttpStatusCode.BadRequest, "Missing bookmark ID")
+    delete<Route.Watched.One> { r ->
+        if (r.movieId.isBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Missing movie ID")
             return@delete
         }
 
-        CachedMovies.deleteWatch(movieId)
+        CachedMovies.deleteWatch(r.movieId)
         call.respond(HttpStatusCode.OK)
     }
-    get("/offers/{movieId}") {
-        val movieId = call.parameters["movieId"]
-
-        if (movieId == null) {
+    get<Route.Offers> { r ->
+        if (r.movieId.isBlank()) {
             call.respond(HttpStatusCode.BadRequest, "Missing movie ID")
             return@get
         }
 
-        val movie = CachedMovies.get(movieId)
+        val movie = CachedMovies.get(r.movieId)
         if (movie == null) {
             call.respond(HttpStatusCode.NotFound, "Movie not found")
             return@get
@@ -205,24 +190,22 @@ fun Route.miscRoutes() {
             }
         }
     }
-    route("/roulette") {
-        rouletteRoutes()
-    }
-    get("/CachedMovies.json") {
+    rouletteRoutes()
+    get<Route.CachedMovies> { r ->
         call.respondText(CachedMovies.statusJson(), ContentType.Application.Json)
     }
-    get("/jellyfinItems") {
+    get<Route.JellyfinItems> { r ->
         call.respond(JellyfinClient.getItems())
     }
-    get("/qr.svg") {
-        call.request.queryParameters["data"]?.let { data ->
+    get<Route.QrSvg> { r ->
+        r.data.ifBlank { null }?.let { data ->
             call.respondText(
                 QrCodeRenderer.renderSVG(QrCode.encodeText(data, ecl = QrCode.Ecc.HIGH)),
                 contentType = ContentType.Image.SVG,
             )
         } ?: call.respond(HttpStatusCode.BadRequest, "Missing data parameter")
     }
-    get("/placeholder.svg") {
+    get<Route.PlaceholderSvg> { r ->
         call.respondText(R.graphics.svg.imagePlaceholderSvg, ContentType.Image.SVG)
     }
     staticResources("/static", "static")
@@ -277,8 +260,11 @@ fun main() {
             json()
         }
         install(SSE)
+        install(Resources)
         routing {
-            miscRoutes()
+            context(plugin(Resources).resourcesFormat) {
+                miscRoutes()
+            }
         }
         install(StatusPages) {
             exception<ClosedWriteChannelException> { _, _ ->

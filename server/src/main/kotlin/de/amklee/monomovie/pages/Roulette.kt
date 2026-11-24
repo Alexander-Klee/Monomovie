@@ -1,16 +1,14 @@
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.Environment
+import de.amklee.monomovie.Route
 import de.amklee.monomovie.components.*
-import de.amklee.monomovie.dto.JellyfinItems
-import de.amklee.monomovie.dto.JsCall
-import de.amklee.monomovie.dto.Movie
-import de.amklee.monomovie.dto.MovieItemUI
-import de.amklee.monomovie.dto.RouletteSseEvent
+import de.amklee.monomovie.dto.*
 import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.LazyValue
-import io.ktor.http.*
+import de.amklee.monomovie.util.href
+import de.amklee.monomovie.util.hrefFull
+import io.ktor.resources.serialization.*
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -85,18 +83,17 @@ data class RouletteCachedMovie(val movie: Movie, var votes: Int)
 infix fun Movie.withVotes(votes: Int) = RouletteCachedMovie(this, votes)
 
 @HtmlTagMarker
-context(jellyfinItems: JellyfinItems)
+context(jellyfinItems: JellyfinItems, resourcesFormat: ResourcesFormat)
 fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: Uuid?) {
     if (shareId != null) {
         JsCall(JsCall.SetupRouletteVoting(shareId))
-        val target = "${Environment.hostname}/roulette?shareId=$shareId"
         img(
             classes = "qr-code",
-            src = "/qr.svg?data=${target.encodeURLParameter()}",
+            src = href(Route.QrSvg(data = hrefFull(Route.Roulette.Shared.Selection(shareId = shareId)))),
             alt = "QR Code",
         )
     }
-    postForm("/roulette/submit" + if (shareId == null) "" else "?shareId=$shareId") {
+    postForm(href(Route.Roulette.Submit(shareId = shareId))) {
         div(classes = "sticky-action-row") {
             submitInput(classes = "roulette-button") {
                 value = "Start Roulette"
@@ -104,11 +101,11 @@ fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: U
             if (shareId == null) {
                 submitInput(classes = "roulette-button") {
                     value = "Share"
-                    formAction = "/roulette/share"
+                    formAction = href(Route.Roulette.Shared())
                 }
             } else {
                 a(
-                    href = "/roulette/shared/$shareId",
+                    href = href(Route.Roulette.Shared.Selection(shareId = shareId)),
                     target = "_blank",
                     classes = "roulette-button",
                 ) {
@@ -121,7 +118,7 @@ fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: U
 }
 
 @HtmlTagMarker
-context(jellyfinItems: JellyfinItems)
+context(jellyfinItems: JellyfinItems, resourcesFormat: ResourcesFormat)
 fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) {
     SearchBar("")
     h1 { +"Shared Roulette:" }
@@ -129,7 +126,7 @@ fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) 
         p { +"No bookmarked movies found" }
         return
     }
-    postForm(action = "/roulette?shareId=$shareId", classes = "roulette-form") {
+    postForm(action = href(Route.Roulette.Voting(shareId = shareId)), classes = "roulette-form") {
         div(classes = "sticky-action-row") {
             RouletteSelectionButton(label = "Add to Roulette", minSelection = 1)
         }

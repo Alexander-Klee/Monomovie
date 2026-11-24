@@ -2,7 +2,7 @@ package de.amklee.monomovie
 
 import de.amklee.monomovie.dto.JsCall
 import de.amklee.monomovie.util.MmvHttpClient
-import io.ktor.client.request.*
+import io.ktor.client.plugins.resources.request
 import io.ktor.http.*
 import kotlinx.browser.document
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -22,13 +22,13 @@ fun JsCall.dispatch() {
             }
 
             is JsCall.SetBookmarked -> GlobalScope.launch {
-                client.request("/bookmark/$movieId") {
+                client.request(Route.Bookmarks.One(movieId = movieId)) {
                     method = if (bookmark) HttpMethod.Put else HttpMethod.Delete
                 }
             }
 
             is JsCall.SetWatched -> GlobalScope.launch {
-                client.request("/watch/$movieId") {
+                client.request(Route.Watched.One(movieId = movieId)) {
                     method = if (watched) HttpMethod.Put else HttpMethod.Delete
                 }
             }

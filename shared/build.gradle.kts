@@ -30,6 +30,7 @@ kotlin {
             api(libs.kotlinx.html)
             api(ktorLibs.client.core)
             api(ktorLibs.client.contentNegotiation)
+            api(ktorLibs.client.resources)
         }
         jvmMain.dependencies {
             api(ktorLibs.client.java)

@@ -1,7 +1,11 @@
 package de.amklee.monomovie
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.pluginOrNull
+import io.ktor.client.plugins.resources.RESOURCE
+import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.sse.sse
+import io.ktor.resources.href
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -49,8 +53,12 @@ fun HTMLElement.prepend(build: FlowContent.() -> Unit) = this.prepend
     }.finalize()
 
 @OptIn(DelicateCoroutinesApi::class)
-inline fun <reified T> HttpClient.subscribeSse(urlString: String, crossinline act: suspend (T) -> Unit): Job = GlobalScope.launch {
-    sse(urlString) {
+inline fun <reified R : Any, reified T> HttpClient.subscribeSse(route: R, crossinline act: suspend (T) -> Unit): Job = GlobalScope.launch {
+    val resources = pluginOrNull(Resources) ?: throw IllegalStateException("No Resources plugin found")
+    sse(request = {
+        attributes.put(RESOURCE, route)
+        href(resources.resourcesFormat, route, url)
+    }) {
         incoming.collect {
             if (it.data == "heartbeat") return@collect
             act(Json.decodeFromString<T>(it.data!!))

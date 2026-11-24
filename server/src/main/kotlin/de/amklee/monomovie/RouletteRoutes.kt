@@ -9,34 +9,33 @@ import de.amklee.monomovie.service.CachedMovies
 import de.amklee.monomovie.service.remote.JellyfinClient
 import de.amklee.monomovie.service.remote.ProvidenceApi
 import de.amklee.monomovie.util.SharedSessionContainer
+import de.amklee.monomovie.util.href
 import de.amklee.monomovie.util.respondHtml
+import de.amklee.monomovie.util.sse
 import de.amklee.monomovie.util.warn
 import io.ktor.http.*
-import io.ktor.server.application.*
+import io.ktor.resources.serialization.ResourcesFormat
 import io.ktor.server.request.*
+import io.ktor.server.resources.delete
+import io.ktor.server.resources.get
+import io.ktor.server.resources.post
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.routing.Route as KtorRoute
 import io.ktor.server.sse.*
 import io.ktor.sse.*
 import io.ktor.util.*
 import kotlin.collections.emptyList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 private val LOG = System.getLogger("MMV/RouletteRoutes")
 
-fun Route.rouletteRoutes() {
+context(resourcesFormat: ResourcesFormat)
+fun KtorRoute.rouletteRoutes() {
     val sharedRouletteSessions =
         SharedSessionContainer<Uuid, SharedRouletteSession>(10.seconds) { SharedRouletteSession() }
-    post {
-        val shareId = call.request.queryParameters["shareId"]?.let {
-            Uuid.parseOrNull(it) ?: run {
-                call.respond(HttpStatusCode.BadRequest, "Invalid shareId parameter")
-                return@post
-            }
-        }
+    post<Route.Roulette.Voting> { r ->
+        val shareId = r.shareId
 
         val items = call.receiveParameters()
         val selectedMovies = items
@@ -52,7 +51,7 @@ fun Route.rouletteRoutes() {
             selectedMovies.map { it withVotes 1 }
         }
 
-        if (votedMovies.isEmpty() || votedMovies.size < 2) {
+        if (votedMovies.size < if (shareId == null) 2 else 1) {
             call.respond(HttpStatusCode.BadRequest, "Not enough movies selected for roulette")
             return@post
         }
@@ -65,13 +64,8 @@ fun Route.rouletteRoutes() {
             }
         }
     }
-    get {
-        val shareId = call.request.queryParameters["shareId"]?.let {
-            Uuid.parseOrNull(it) ?: run {
-                call.respond(HttpStatusCode.BadRequest, "Invalid shareId parameter")
-                return@get
-            }
-        } ?: run {
+    get<Route.Roulette.Voting> { r ->
+        val shareId = r.shareId ?: run {
             call.respond(HttpStatusCode.BadRequest, "Missing shareId parameter")
             return@get
         }
@@ -94,50 +88,30 @@ fun Route.rouletteRoutes() {
         }
     }
 
-    suspend fun ApplicationCall.getShareId(): Uuid? = parameters["shareId"]?.let {
-        Uuid.parseOrNull(it) ?: run {
-            respond(HttpStatusCode.BadRequest, "Invalid shareId parameter")
-            null
-        }
-    } ?: run {
-        respond(HttpStatusCode.BadRequest, "Missing shareId parameter")
-        null
-    }
-    get("/shared/{shareId}") {
-        // select new movies for vote
-        val shareId = call.getShareId() ?: return@get
-
-        sharedRouletteSessions.reheat(shareId)
-
-        val displayHidden = call.request.queryParameters["hidden"]?.toBoolean() ?: false
-        val displayWatched = call.request.queryParameters["watched"]?.toBoolean() ?: false
+    get<Route.Roulette.Shared.Selection> { r ->
+        sharedRouletteSessions.reheat(r.shareId)
 
         call.respondHtml {
             context(JellyfinClient.getItems()) {
                 HtmlTemplate("Shared Roulette") {
                     // TODO pre-select or hide movies that are already in the session
                     SharedRouletteSelectionPage(
-                        CachedMovies.getBookmarkedMovies(displayHidden, displayWatched),
-                        shareId,
+                        CachedMovies.getBookmarkedMovies(displayHidden = r.hidden, displayWatched = r.watched),
+                        r.shareId,
                     )
                 }
             }
         }
     }
-    post("/shared/{shareId}/{movieId}") {
+    post<Route.Roulette.Shared.Movie> { r ->
         // update number of votes
-        val shareId = call.getShareId() ?: return@post
-        val movieId = call.parameters["movieId"] ?: run {
-            call.respond(HttpStatusCode.BadRequest, "Missing movieId")
-            return@post
-        }
-        val movie = CachedMovies.get(movieId) ?: run {
+        val movie = CachedMovies.get(r.movieId) ?: run {
             call.respond(HttpStatusCode.BadRequest, "Invalid movieId")
             return@post
         }
         val count = call.receiveText().toIntOrNull()
 
-        sharedRouletteSessions.withValueSuspend(shareId) {
+        sharedRouletteSessions.withValueSuspend(r.shareId) {
             it.add(movie)
             if (count != null) {
                 it.updateCount(movie, count)
@@ -146,42 +120,31 @@ fun Route.rouletteRoutes() {
 
         call.respond(HttpStatusCode.OK)
     }
-    delete("/shared/{shareId}/{movieId}") {
-        // delete movie from shared voting list
-        val shareId = call.getShareId() ?: return@delete
-        val movieId = call.parameters["movieId"] ?: run {
+    delete<Route.Roulette.Shared.Movie> { r ->
+        val movie = CachedMovies.get(r.movieId) ?: run {
             call.respond(HttpStatusCode.BadRequest, "Missing movieId")
             return@delete
         }
-        val movie = CachedMovies.get(movieId) ?: run {
-            call.respond(HttpStatusCode.BadRequest, "Invalid movieId")
-            return@delete
-        }
 
-        sharedRouletteSessions.withValueSuspend(shareId) {
+        sharedRouletteSessions.withValueSuspend(r.shareId) {
             it.remove(movie)
         }
 
         call.respond(HttpStatusCode.OK)
     }
-    sse("/shared/{shareId}/sse", serialize = { typeInfo, it ->
-        val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
-        Json.encodeToString(serializer, it)
-    }) {
-        val shareId = call.getShareId() ?: return@sse
-
+    sse<Route.Roulette.Shared.Sse> { r ->
         heartbeat {
             period = 5.seconds
             event = ServerSentEvent("heartbeat")
         }
 
-        sharedRouletteSessions.withValueSuspend(shareId) { session ->
+        sharedRouletteSessions.withValueSuspend(r.shareId) { session ->
             session.events().collect { event ->
                 send(event)
             }
         }
     }
-    post("/share") {
+    post<Route.Roulette.Shared> {
         // create a new shared vote
         val parameters = call.receiveParameters().toMap()
         val selectedMovies =
@@ -201,23 +164,16 @@ fun Route.rouletteRoutes() {
             }
         }
 
-        call.respondRedirect("/roulette?shareId=$shareId")
+        call.respondRedirect(href(Route.Roulette.Voting(shareId = shareId)))
     }
-    post("/submit") {
+    post<Route.Roulette.Submit> { r ->
         // go to roulette
         val selectedMovies = call.receiveParameters().toMap().mapNotNull { (id, count) ->
             CachedMovies.get(id)?.let { it withVotes count.sumOf { it.toIntOrNull() ?: 0 } }
         }
 
         // maybe retrieve hash
-        val shareId = call.request.queryParameters["shareId"]?.let {
-            Uuid.parseOrNull(it) ?: run {
-                call.respond(HttpStatusCode.BadRequest, "Invalid shareId parameter")
-                return@post
-            }
-        }
-
-        val (movies, hash) = shareId?.let {
+        val (movies, hash) = r.shareId?.let {
             sharedRouletteSessions.withValueSuspend(it) {
                 for ((movie, count) in selectedMovies) {
                     it.updateCount(movie, count)

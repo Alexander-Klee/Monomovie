@@ -21,7 +21,7 @@ class Sse(private val mode: SseEvent.Mode) {
 
     fun setup() {
         val bookmarkList = document.getElementById("movie-list") as HTMLElement?
-        client.subscribeSse<SseEvent>("/sse-stream") { event ->
+        client.subscribeSse(Route.SseStream()) { event: SseEvent ->
             val elements = document.querySelectorAll("#${event.kind.name.lowercase()}-${event.id}")
             console.info("Received SSE event, active elements: ${elements.length}, mode is $mode", event)
 
@@ -45,21 +45,19 @@ class Sse(private val mode: SseEvent.Mode) {
         }
     }
 
-    private suspend fun handleAdd(bookmarkList: HTMLElement, event: SseEvent.Add) {
+    private fun handleAdd(bookmarkList: HTMLElement, event: SseEvent.Add) {
         when (mode) {
             SseEvent.Mode.SEARCH, SseEvent.Mode.ROULETTE, SseEvent.Mode.OFFERS -> return
             SseEvent.Mode.WATCHED -> if (event.kind != SseEvent.Kind.WATCHED) return
             SseEvent.Mode.OVERVIEW -> if (event.kind != SseEvent.Kind.BOOKMARK) return
         }
         console.log("Prepending new movie to list: ${event.movie.title} (${event.movie.id})")
-        context(JellyfinClient.getItems()) {
-            bookmarkList.prepend {
-                ful {
-                    if (mode == SseEvent.Mode.OVERVIEW) {
-                        SelectableMovieListItem(event.movie)
-                    } else {
-                        MovieListItem(event.movie)
-                    }
+        bookmarkList.prepend {
+            ful {
+                if (mode == SseEvent.Mode.OVERVIEW) {
+                    SelectableMovieListItem(event.movie)
+                } else {
+                    MovieListItem(event.movie)
                 }
             }
         }

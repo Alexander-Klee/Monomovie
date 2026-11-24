@@ -7,6 +7,10 @@ import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.resources.Resources
+import io.ktor.http.URLBuilder
+import io.ktor.resources.href
+import io.ktor.resources.serialization.ResourcesFormat
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -31,6 +35,7 @@ fun MmvHttpClient(block: HttpClientConfig<EngineConfig>.() -> Unit = {}) = HttpC
             },
         )
     }
+    install(Resources)
     install(HttpTimeout) {
         requestTimeoutMillis = 10000 // Set a timeout for requests
         socketTimeoutMillis = 10000 // Set a timeout for sockets
@@ -38,3 +43,9 @@ fun MmvHttpClient(block: HttpClientConfig<EngineConfig>.() -> Unit = {}) = HttpC
     }
     block()
 }
+
+context(resourcesFormat: ResourcesFormat)
+inline fun <reified T> href(resource: T) = href(resourcesFormat, resource)
+
+context(resourcesFormat: ResourcesFormat)
+inline fun <reified T> href(resource: T, urlBuilder: URLBuilder) = href(resourcesFormat, resource, urlBuilder)

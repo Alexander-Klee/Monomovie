@@ -116,7 +116,7 @@ object CachedMovies {
 
     suspend fun search(title: String, cursor: String? = null, numResults: Int = 4): SearchResults? {
         val response = try {
-            justWatch.search(title = title, cursor = cursor, count = numResults) ?: return null
+            justWatch.search(title = title, cursor = cursor?.ifBlank { null }, count = numResults) ?: return null
         } catch (e: Exception) {
             log.error(e) { "Unable to search for $title" }
             return null

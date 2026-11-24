@@ -40,6 +40,7 @@ dependencies {
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.sse)
+    implementation(ktorLibs.server.resources)
     implementation(libs.kotlinx.html)
 
     // Database

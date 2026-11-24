@@ -1,12 +1,14 @@
 package de.amklee.monomovie.service.remote
 
-import de.amklee.monomovie.Environment
+import de.amklee.monomovie.Route
 import de.amklee.monomovie.pages.RouletteCachedMovie
 import de.amklee.monomovie.util.MmvHttpClient
 import de.amklee.monomovie.util.NIHCache
+import de.amklee.monomovie.util.hrefFull
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.resources.serialization.*
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -62,6 +64,7 @@ object ProvidenceApi {
 
     suspend fun getLatestHash(): String = latestHash.get()
 
+    context(resourcesFormat: ResourcesFormat)
     suspend fun createWheel(entries: List<RouletteCachedMovie>, hash: String?): Url = coroutineScope {
         val config =
             WheelConfig(
@@ -82,7 +85,7 @@ object ProvidenceApi {
                         }.awaitAll(),
                 actions =
                     listOf(
-                        WheelAction("View Offers", "${Environment.hostname}/offers/{id}"),
+                        WheelAction("View Offers", hrefFull(Route.Offers(movieId = "{id}")).replace("%7Bid%7D", "{id}")),
                     ),
             )
         return@coroutineScope URLBuilder(ENDPOINT)

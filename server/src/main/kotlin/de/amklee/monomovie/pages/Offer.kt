@@ -1,6 +1,5 @@
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.R
 import de.amklee.monomovie.components.MovieItem
 import de.amklee.monomovie.components.OfferItem
 import de.amklee.monomovie.components.OfferList

@@ -12,7 +12,7 @@ class Resource(val path: String) {
         Resource::class.java.getResource("/$path")?.readText()
             ?: throw FileNotFoundException("$path not found in resources")
     }
-    private val resourceFile = Path("src/main/resources/$path").takeIf {
+    private val resourceFile = Path("server/src/main/resources/$path").takeIf {
         Environment.isDevelopment &&
             it.exists()
     }

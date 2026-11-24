@@ -4,18 +4,13 @@ import de.amklee.monomovie.components.RouletteMovieListItem
 import de.amklee.monomovie.dto.RouletteSseEvent
 import de.amklee.monomovie.util.MmvHttpClient
 import de.amklee.monomovie.util.ful
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.sse.SSE
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
+import io.ktor.client.plugins.resources.post
+import io.ktor.client.plugins.sse.*
+import io.ktor.client.request.*
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.browser.document
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 
@@ -31,7 +26,7 @@ class RouletteVoting(private val shareId: Uuid) {
         injectUpdateCount(document.body!!)
 
         val bookmarkList = document.getElementById("movie-list") as HTMLElement?
-        client.subscribeSse<RouletteSseEvent>("/roulette/shared/$shareId/sse") { event ->
+        client.subscribeSse(Route.Roulette.Shared.Sse(shareId = shareId)) { event: RouletteSseEvent ->
             val elements = document.querySelectorAll("#${event.id}")
             console.info("Received SSE event, active elements: ${elements.length}", event)
 
@@ -67,7 +62,7 @@ class RouletteVoting(private val shareId: Uuid) {
                 val count = element.value.toIntOrNull() ?: 0
                 GlobalScope.launch {
                     try {
-                        client.post("/roulette/shared/$shareId/${element.id}") {
+                        client.post(Route.Roulette.Shared.Movie(shareId = shareId, movieId = element.id)) {
                             setBody(count.toString())
                         }
                     } catch (e: Exception) {
