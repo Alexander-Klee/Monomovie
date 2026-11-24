@@ -89,3 +89,7 @@ inline fun FlowContent.ArrowUpSvg(
     block: SVG.() -> Unit = {
     },
 ) = templatedSvg("#arrow-up-icon", classes = classes, block = block)
+
+@HtmlTagMarker
+inline fun FlowContent.SearchIconSvg(classes: String = "search-icon", block: SVG.() -> Unit = {}) =
+    templatedSvg("#search-icon", classes = classes, block = block)

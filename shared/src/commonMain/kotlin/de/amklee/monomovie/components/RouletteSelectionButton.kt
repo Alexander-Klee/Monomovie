@@ -8,7 +8,7 @@ import kotlinx.html.submitInput
 @Suppress("FunctionName")
 @OptIn(ExperimentalKotlinxHtmlApi::class)
 fun FlowContent.RouletteSelectionButton(label: String = "Roulette", minSelection: Int = 2) {
-    submitInput(classes = "roulette-button require-min-selection") {
+    submitInput(classes = "button require-min-selection") {
         disabled = true
         dataset["min-selection"] = minSelection.toString()
         value = label

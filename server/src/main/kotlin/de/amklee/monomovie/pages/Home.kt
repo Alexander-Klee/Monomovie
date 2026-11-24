@@ -21,7 +21,7 @@ fun FlowContent.HomePage(movies: List<Movie>) {
     postForm(action = href(Route.Roulette.Voting()), classes = "roulette-form") {
         div(classes = "sticky-action-row") {
             RouletteSelectionButton()
-            submitInput(classes = "roulette-button") {
+            submitInput(classes = "button") {
                 value = "Shared Roulette"
                 formAction = href(Route.Roulette.Shared())
             }

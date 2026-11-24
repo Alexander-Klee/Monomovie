@@ -1,7 +1,7 @@
 package de.amklee.monomovie.pages
 
-import de.amklee.monomovie.R
 import de.amklee.monomovie.Route
+import de.amklee.monomovie.components.SearchIconSvg
 import de.amklee.monomovie.components.SearchMovieList
 import de.amklee.monomovie.components.invoke
 import de.amklee.monomovie.dto.JellyfinItems
@@ -15,15 +15,15 @@ import kotlinx.html.*
 @HtmlTagMarker
 context(resourcesFormat: ResourcesFormat)
 fun FlowContent.SearchBar(title: String) {
-    div(classes = "search-bar") {
-        getForm(action = href(Route.Search())) {
-            button(classes = "search-button", type = ButtonType.submit) {
-                unsafe { +R.graphics.svg.searchSvg }
-            }
-            textInput(name = "title", classes = "search-input") {
+    div(classes = "field") {
+        getForm(action = href(Route.Search()), classes = "control has-icons-left") {
+            textInput(name = "title", classes = "input") {
                 autoFocus = true
                 placeholder = "Search for a movie…"
                 value = title
+            }
+            button(classes = "icon is-small is-left", type = ButtonType.submit) {
+                SearchIconSvg()
             }
         }
     }

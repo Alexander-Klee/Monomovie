@@ -412,35 +412,11 @@ td, th {
     color: var(--text-color);
 }
 
+.search-icon {
+    width: 1.5em;
+}
+
 /* ROULETTE */
-
-.roulette-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color-primary);
-    border-radius: 12px;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.roulette-button:hover {
-    background-color: var(--secondary-highlight-color);
-}
-
-.roulette-button:disabled {
-    background-color: var(--secondary-color);
-    color: var(--text-color-disabled);
-    border: 1px solid var(--border-color);
-    cursor: not-allowed;
-}
 
 .roulette-weight-container {
     display: flex;
@@ -485,66 +461,6 @@ td, th {
 
 .qrCodePath {
     fill: black;
-}
-
-/* SEARCH BAR*/
-
-.search-bar {
-    padding-top: 1em;
-    display: flex;
-    justify-content: center;
-}
-
-.search-bar form {
-    display: flex;
-    align-items: center;
-    background-color: var();
-    border: 1px solid var(--border-color);
-    border-radius: 50px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-    padding: 0 1rem;
-    width: 100%;
-    max-width: 500px;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.search-bar form:focus-within {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--border-color-primary);
-}
-
-
-.search-bar button {
-    background: none;
-    border: none;
-    padding: 0;
-    margin-right: 0.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.3s ease;
-}
-
-.search-button svg {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
-}
-
-.search-button:hover {
-    color: var(--text-color);
-}
-
-.search-bar input[type="text"] {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 1rem;
-    padding: 0.5rem;
-    background: transparent;
-    color: var(--text-color);
 }
 
 

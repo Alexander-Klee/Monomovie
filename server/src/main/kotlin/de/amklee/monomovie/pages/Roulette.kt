@@ -95,11 +95,11 @@ fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: U
     }
     postForm(href(Route.Roulette.Submit(shareId = shareId))) {
         div(classes = "sticky-action-row") {
-            submitInput(classes = "roulette-button") {
+            submitInput(classes = "button") {
                 value = "Start Roulette"
             }
             if (shareId == null) {
-                submitInput(classes = "roulette-button") {
+                submitInput(classes = "button") {
                     value = "Share"
                     formAction = href(Route.Roulette.Shared())
                 }
@@ -107,7 +107,7 @@ fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: U
                 a(
                     href = href(Route.Roulette.Shared.Selection(shareId = shareId)),
                     target = "_blank",
-                    classes = "roulette-button",
+                    classes = "button",
                 ) {
                     +"Add More Movies"
                 }
