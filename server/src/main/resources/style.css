@@ -1,40 +1,23 @@
 :root {
-    --primary-color: #fff;
-    --secondary-color: #f4f4f4;
-    --secondary-highlight-color: #e0e0e0;
-    --text-color: #333;
-    --text-color-light: #555;
-    --text-color-disabled: #bbb;
-    --border-color: #ddd;
-    --border-color-primary: #aaa;
-    --border-color-highlight: rgba(255, 20, 0, 0.8);
+    --primary-color: var(--bulma-scheme-main);
+    --secondary-color: var(--bulma-scheme-main-bis);
+    --secondary-highlight-color: var(--bulma-scheme-main-ter);
+    --text-color: var(--bulma-text);
+    --text-color-light: var(--bulma-text-weak);
+    --text-color-disabled: var(--bulma-text-weak);
+    --border-color: var(--bulma-border-weak);
+    --border-color-primary: var(--bulma-border);
+    --border-color-highlight: var(--bulma-danger);
 
     --border-radius: 12px;
     --border-width: 1px;
-
     --movie-action-bar-offset: 3.5em;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary-color: #121212;
-        --secondary-color: #1e1e1e;
-        --secondary-highlight-color: #2c2c2c;
-        --text-color: #fff;
-        --text-color-light: #bbb;
-        --text-color-disabled: #555;
-        --border-color: #444;
-        --border-color-primary: #fff;
-        --border-color-highlight: rgba(255, 20, 0, 0.5);
-    }
 }
 
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: var(--primary-color);
-    font-family: "Segoe UI", sans-serif;
 }
 
 input {
