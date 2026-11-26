@@ -8,7 +8,9 @@ import kotlinx.browser.document
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.w3c.dom.DocumentReadyState
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.LOADING
 import org.w3c.dom.get
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -17,7 +19,7 @@ fun JsCall.dispatch() {
 
     try {
         when (this) {
-            is JsCall.SetupSse -> document.addEventListener("DOMContentLoaded") {
+            is JsCall.SetupSse -> ensureLoaded {
                 Sse(mode).setup()
             }
 
@@ -33,7 +35,7 @@ fun JsCall.dispatch() {
                 }
             }
 
-            JsCall.InjectTopButton -> document.addEventListener("DOMContentLoaded") {
+            JsCall.InjectTopButton -> ensureLoaded {
                 TopButton.inject()
             }
 
@@ -53,11 +55,11 @@ fun JsCall.dispatch() {
                 }
             }
 
-            is JsCall.SetupRouletteVoting -> document.addEventListener("DOMContentLoaded") {
+            is JsCall.SetupRouletteVoting -> ensureLoaded {
                 RouletteVoting(shareId).setup()
             }
 
-            is JsCall.SetupSearchInfiniteScroll -> document.addEventListener("DOMContentLoaded") {
+            is JsCall.SetupSearchInfiniteScroll -> ensureLoaded {
                 SearchInfiniteScroll(title).setup()
             }
         }
@@ -65,5 +67,16 @@ fun JsCall.dispatch() {
         console.error("Error dispatching JsCall: $this", e)
         e.printStackTrace()
         throw e
+    }
+}
+
+
+private fun ensureLoaded(callback: () -> Unit) {
+    if (document.readyState == DocumentReadyState.LOADING) {
+        document.addEventListener("DOMContentLoaded") {
+            callback()
+        }
+    } else {
+        callback()
     }
 }
