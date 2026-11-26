@@ -51,6 +51,7 @@ private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
     JsCall.SetupSse(SseEvent.Mode.WATCHED),
+    classes = "movie-list movie-grid grid is-auto-fill",
 ) {
     val items = movies
         .groupBy { it.watchedAt.toLocalDateTime(Environment.timezone) }
@@ -71,6 +72,7 @@ context(jellyfinItems: JellyfinItems)
 fun FlowContent.SelectableMovieList(movies: List<Movie>) = MovieList(
     JsCall.SetupSse(SseEvent.Mode.OVERVIEW),
     JsCall.UpdateMovieSelectionCount,
+    classes = "movie-list movie-grid grid is-auto-fill",
 ) {
     for (movie in movies) {
         SelectableMovieListItem(MovieItemUI(movie))

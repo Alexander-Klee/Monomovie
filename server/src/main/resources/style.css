@@ -56,7 +56,106 @@ a.external::after {
     list-style: none;
     margin: 0;
     padding: 0 0 1em;
-    /*max-width: 50em;*/
+}
+
+/* Poster-card grid for the bookmark and watched lists. */
+.movie-grid {
+    --bulma-grid-column-min: 9rem;
+    --bulma-grid-gap: 1.25rem;
+}
+
+.movie-grid > .movie-list-item {
+    display: block;
+    min-height: 0;
+    max-width: none;
+}
+
+.movie-grid > .movie-list-item > label {
+    display: block;
+    height: 100%;
+}
+
+.movie-grid .movie-item {
+    flex-direction: column;
+    height: 100%;
+    margin-bottom: 0;
+    overflow: hidden;
+}
+
+.movie-grid .movie-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    --poster-clip: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.movie-grid .movie-poster-img {
+    height: 100%;
+    margin: 0;
+}
+
+.movie-grid .movie-action-container {
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    height: auto;
+    width: auto;
+    margin-top: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.movie-grid .movie-action-bar {
+    flex-direction: row;
+}
+
+.movie-grid .eye-button {
+    width: 2.25em;
+    height: 2.25em;
+}
+
+.movie-grid .bookmark-icon {
+    right: 0.5rem;
+    width: 1.5em;
+    height: calc(1.5em * 720/560);
+    margin-left: 0;
+}
+
+.movie-grid .movie-details {
+    margin: 0;
+    padding: 0.75rem 0.75rem 0.25rem;
+}
+
+.movie-grid .movie-title-bar {
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.movie-grid .movie-title {
+    font-size: 1rem;
+}
+
+.movie-grid .movie-rating-container {
+    justify-content: flex-start;
+    gap: 0.5rem;
+}
+
+.movie-grid .movie-short-description {
+    display: none;
+}
+
+.movie-grid .movie-offers {
+    max-width: none;
+    margin: auto 0 0;
+    padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.movie-grid .offer-icon {
+    width: 28px;
+}
+
+.movie-grid .watched-date {
+    grid-column: 1 / -1;
+    margin: 1rem 0 0;
 }
 
 .hidden-movie-action-bar-element {
