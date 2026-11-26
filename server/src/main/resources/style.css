@@ -25,26 +25,7 @@ input {
 }
 
 main {
-    flex: auto;
-    justify-content: center;
-    display: flex;
-}
-
-.content {
-    display: flex;
-    flex-direction: column;
-    width: fit-content;
-    max-width: min(60em, 85%);
-}
-
-.content:has(.movie-list) {
-    width: 100%;
-}
-
-h1 {
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-    color: var(--text-color);
+    --main-padding: 1.5rem;
 }
 
 .sticky-action-row {
@@ -496,9 +477,6 @@ a.external::after {
 
 /* Vertical Movie List */
 @media (max-width: 600px) {
-    .content {
-        max-width: 100%;
-    }
     .roulette-weight-container {
         display: flex;
         flex-direction: row;

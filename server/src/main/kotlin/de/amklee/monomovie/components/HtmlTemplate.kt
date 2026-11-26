@@ -43,10 +43,10 @@ inline fun HTML.HtmlTemplate(title: String, body: FlowContent.() -> Unit) {
         JsCall(JsCall.InjectTopButton)
         NavBar()
 
-        main {
+        main(classes = "section") {
             id = "main"
             IncludeSvgTemplates()
-            div(classes = "content") {
+            div(classes = "container") {
                 body()
             }
         }
