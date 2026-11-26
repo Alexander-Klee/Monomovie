@@ -16,9 +16,11 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.r2dbc.selectAll
@@ -54,18 +56,25 @@ object CachedMovies {
             }
             populateCache(details)
         }
-        return Movies[id]?.let { createMovie(it) }
+        val joinedMovieRow = suspendTransaction(monomovieDb) {
+            Movies.join(Bookmarks, JoinType.LEFT, additionalConstraint = { Bookmarks.id eq Movies.id })
+                .join(Watched, JoinType.LEFT, additionalConstraint = { Watched.id eq Movies.id })
+                .selectAll().where { Movies.id eq id }
+                .singleOrNull()
+        }
+        return joinedMovieRow?.let { createMovie(it) }
     }
 
     private suspend fun createMovie(row: ResultRow): Movie? {
         val mediaEntry = row[Movies.mediaEntry] ?: return null
-        val id = row[Movies.id].value
-        return Movie(
-            mediaEntry = mediaEntry,
-            isBookmarked = BookmarksService.isBookmarked(id),
-            isWatched = WatchedService.contains(id),
-            cacheDate = row[Movies.cacheDate],
-        )
+        return suspendTransaction(monomovieDb) {
+            Movie(
+                mediaEntry = mediaEntry,
+                isBookmarked = row.getOrNull(Bookmarks.isBookmarked) ?: false,
+                isWatched = row.getOrNull(Watched.watchedAt) != null,
+                cacheDate = row[Movies.cacheDate],
+            )
+        }
     }
 
     private suspend fun populateCache(mediaEntry: MediaEntry) {
