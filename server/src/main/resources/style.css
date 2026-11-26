@@ -1,4 +1,17 @@
 :root {
+    --bulma-primary-h: 223deg;
+    --bulma-primary-l: 88%;
+    --bulma-success-s: 88%;
+    --bulma-danger-l: 68%;
+    --bulma-scheme-h: 55;
+    --bulma-scheme-s: 0%;
+    --bulma-light-l: 100%;
+    --border-color-highlight: var(--bulma-text) !important;
+
+    --bulma-radius: 0.25rem;
+    --bulma-radius-medium: 0.35em;
+    --bulma-radius-large: 0.5rem;
+
     --primary-color: var(--bulma-scheme-main);
     --secondary-color: var(--bulma-scheme-main-bis);
     --secondary-highlight-color: var(--bulma-scheme-main-ter);
@@ -60,7 +73,7 @@ a.external::after {
 
 /* Poster-card grid for the bookmark and watched lists. */
 .movie-grid {
-    --bulma-grid-column-min: 9rem;
+    --bulma-grid-column-min: 12.0rem;
     --bulma-grid-gap: 1.25rem;
 }
 
@@ -575,7 +588,7 @@ a.external::after {
 }
 
 /* Vertical Movie List */
-@media (max-width: 600px) {
+@media (max-width: 900px) {
     .roulette-weight-container {
         display: flex;
         flex-direction: row;
