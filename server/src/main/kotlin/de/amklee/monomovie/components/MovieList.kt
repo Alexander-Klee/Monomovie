@@ -23,14 +23,14 @@ operator fun MovieItemUI.Companion.invoke(movie: Movie) = MovieItemUI(
 )
 
 @HtmlTagMarker
-inline fun FlowContent.MovieList(vararg calls: JsCall, body: UL.() -> Unit) {
+inline fun FlowContent.MovieList(vararg calls: JsCall, classes: String = "movie-list", body: UL.() -> Unit) {
     script {
         type = "module"
         unsafe {
             for (call in calls) +call.toJsString()
         }
     }
-    ul(classes = "movie-list") {
+    ul(classes = classes) {
         id = "movie-list"
         body()
     }
@@ -51,6 +51,7 @@ private val dateFormatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
 context(jellyfinItems: JellyfinItems)
 fun FlowContent.WatchedMovieList(movies: List<Watched.Item>) = MovieList(
     JsCall.SetupSse(SseEvent.Mode.WATCHED),
+    classes = "movie-list movie-grid grid is-auto-fill",
 ) {
     val items = movies
         .groupBy { it.watchedAt.toLocalDateTime(Environment.timezone) }
@@ -71,6 +72,7 @@ context(jellyfinItems: JellyfinItems)
 fun FlowContent.SelectableMovieList(movies: List<Movie>) = MovieList(
     JsCall.SetupSse(SseEvent.Mode.OVERVIEW),
     JsCall.UpdateMovieSelectionCount,
+    classes = "movie-list movie-grid grid is-auto-fill",
 ) {
     for (movie in movies) {
         SelectableMovieListItem(MovieItemUI(movie))

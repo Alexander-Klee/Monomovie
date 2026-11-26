@@ -6,7 +6,7 @@ import kotlin.uuid.Uuid
 @Resource("/")
 class Route {
     @Resource("/")
-    class Home(val parent: Route, val hidden: Boolean = false, val watched: Boolean = false)
+    class Home(val parent: Route = Route(), val hidden: Boolean = false, val watched: Boolean = false)
 
     @Resource("/sse-stream")
     data class SseStream(val parent: Route = Route())

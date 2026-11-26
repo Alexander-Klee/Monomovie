@@ -142,9 +142,9 @@ fun KtorRoute.miscRoutes() {
             context(JellyfinClient.getItems()) {
                 HtmlTemplate("Watched Movies") {
                     if (watchedMovies.isEmpty()) {
-                        p { +"No watched movies found" }
+                        p(classes = "notification") { +"No watched movies found" }
                     } else {
-                        h1 { +"Watched Movies:" }
+                        h1(classes = "title is-3") { +"Watched Movies:" }
                         WatchedMovieList(watchedMovies)
                     }
                 }

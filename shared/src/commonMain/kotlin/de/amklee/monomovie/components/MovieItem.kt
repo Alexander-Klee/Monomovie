@@ -129,7 +129,7 @@ fun FlowContent.YearDurationInfo(movie: MovieItemUI) {
 @OptIn(ExperimentalKotlinxHtmlApi::class)
 @HtmlTagMarker
 fun FlowContent.MovieItem(movie: MovieItemUI, showOffers: Boolean = true, extraElements: FlowContent.() -> Unit = {}) {
-    div(classes = "movie-item bookmark-container") {
+    div(classes = "movie-item bookmark-container card") {
         id = "movie-item-${movie.id}"
         BookmarkSquareIconSvg("bookmark-icon") {
             id = "bookmark-${movie.id}"

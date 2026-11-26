@@ -30,6 +30,8 @@ val migrationsGen = sourceSets.create("migrationsGen") {
     runtimeClasspath += sourceSets.main.get().runtimeClasspath + sourceSets.main.get().output + migrationTool
 }
 
+val webJars = configurations.create("webJars")
+
 dependencies {
     implementation(projects.shared)
 
@@ -42,6 +44,8 @@ dependencies {
     implementation(ktorLibs.server.sse)
     implementation(ktorLibs.server.resources)
     implementation(libs.kotlinx.html)
+
+    webJars(libs.bulma)
 
     // Database
     implementation(exposedLibs.core)
@@ -138,5 +142,14 @@ kotlin.sourceSets.main {
             into("client")
         }
         into(layout.buildDirectory.dir("web/resources"))
+    })
+    resources.srcDir(tasks.register<Copy>("copyWebJars") {
+        group = "build"
+        from(webJars.map { zipTree(it) }) {
+            include("META-INF/resources/webjars/bulma/1.0.4/css/bulma.min.css")
+            eachFile { path = "client/$name" }
+        }
+        includeEmptyDirs = false
+        into(layout.buildDirectory.dir("web/webjars"))
     })
 }
