@@ -121,9 +121,9 @@ fun FlowContent.RoulettePage(movies: Collection<RouletteCachedMovie>, shareId: U
 context(jellyfinItems: JellyfinItems, resourcesFormat: ResourcesFormat)
 fun FlowContent.SharedRouletteSelectionPage(movies: List<Movie>, shareId: Uuid) {
     SearchBar("")
-    h1 { +"Shared Roulette:" }
+    h1(classes = "title is-3") { +"Shared Roulette:" }
     if (movies.isEmpty()) {
-        p { +"No bookmarked movies found" }
+        p(classes = "notification") { +"No bookmarked movies found" }
         return
     }
     postForm(action = href(Route.Roulette.Voting(shareId = shareId)), classes = "roulette-form") {

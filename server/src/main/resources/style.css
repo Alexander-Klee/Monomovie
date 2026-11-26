@@ -351,27 +351,13 @@ a.external::after {
 }
 
 
-table, th, td {
-    padding: 0.5rem;
-}
-table {
-    /*border-collapse: collapse;*/
-    width: 100%;
-}
-
 .offer-td {
     display: flex;
 }
 
 .offerType-td {
     width: 1em;
-    padding: 1em 1em;
-}
-
-td, th {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    text-align: left;
+    white-space: nowrap;
 }
 
 
@@ -485,13 +471,6 @@ td, th {
     background-size: contain;
 }
 
-/* For Phones*/
-.menu-button {
-    display: none;
-    top: 0.5rem;
-    left: 0.5rem;
-}
-
 .menu-overlay {
     position: fixed;
     background: rgba(0,0,0,0.5);
@@ -573,22 +552,10 @@ td, th {
         align-self: center;
         margin-bottom: 0.5em;
     }
-    h1 {
-        font-size: 1.2rem;
-    }
     .movie-title {
         font-size: 1rem;
     }
     .movie-short-description {
         font-size: 0.85rem;
-    }
-    .search-bar {
-        padding-top: 0;
-        justify-content: flex-end;
-    }
-    .search-bar form {
-        max-width: 80%;
-        align-self: flex-end;
-        padding: 0 0.5rem;
     }
 }

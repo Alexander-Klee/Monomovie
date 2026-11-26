@@ -13,9 +13,9 @@ import kotlinx.html.*
 context(jellyfinItems: JellyfinItems, resourcesFormat: ResourcesFormat)
 fun FlowContent.HomePage(movies: List<Movie>) {
     SearchBar("")
-    h1 { +"Bookmarked Movies:" }
+    h1(classes = "title is-3") { +"Bookmarked Movies:" }
     if (movies.isEmpty()) {
-        p { +"No bookmarked movies found" }
+        p(classes = "notification") { +"No bookmarked movies found" }
         return
     }
     postForm(action = href(Route.Roulette.Voting()), classes = "roulette-form") {

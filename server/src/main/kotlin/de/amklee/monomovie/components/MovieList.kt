@@ -23,14 +23,14 @@ operator fun MovieItemUI.Companion.invoke(movie: Movie) = MovieItemUI(
 )
 
 @HtmlTagMarker
-inline fun FlowContent.MovieList(vararg calls: JsCall, body: UL.() -> Unit) {
+inline fun FlowContent.MovieList(vararg calls: JsCall, classes: String = "movie-list", body: UL.() -> Unit) {
     script {
         type = "module"
         unsafe {
             for (call in calls) +call.toJsString()
         }
     }
-    ul(classes = "movie-list") {
+    ul(classes = classes) {
         id = "movie-list"
         body()
     }

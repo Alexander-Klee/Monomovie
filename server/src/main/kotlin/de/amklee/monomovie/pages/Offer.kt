@@ -10,20 +10,24 @@ import java.util.*
 import kotlinx.html.*
 
 private fun FlowContent.offerTable(offers: List<Offer>) {
-    table {
-        for (type in MonetizationTypes.entries) {
-            tr {
-                val typeOffers = offers.filter {
-                    it.monetizationType.equals(type.name, ignoreCase = true)
-                }
-                if (typeOffers.isNotEmpty()) {
-                    td(classes = "offerType-td") { +type.type }
-                    td(classes = "offer-td") {
-                        OfferList(
-                            typeOffers
-                                .sortedBy { it.`package`?.clearName }
-                                .map(::OfferItemUI),
-                        )
+    div(classes = "table-container") {
+        table(classes = "table is-fullwidth is-striped is-hoverable") {
+            tbody {
+                for (type in MonetizationTypes.entries) {
+                    val typeOffers = offers.filter {
+                        it.monetizationType.equals(type.name, ignoreCase = true)
+                    }
+                    if (typeOffers.isNotEmpty()) {
+                        tr {
+                            th(classes = "offerType-td") { +type.type }
+                            td(classes = "offer-td") {
+                                OfferList(
+                                    typeOffers
+                                        .sortedBy { it.`package`?.clearName }
+                                        .map(::OfferItemUI),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -46,13 +50,17 @@ private fun getCountryName(countryCode: String): String = try {
 context(jellyfinItems: JellyfinItems)
 private fun FlowContent.JellyfinTable(movie: Movie) {
     val jellyfinLink = jellyfinItems[movie] ?: return
-    h1 { +"Jellyfin" }
-    table {
-        tr {
-            td(classes = "offerType-td") { +"Jellyfin" }
-            td(classes = "offer-td") {
-                ul(classes = "offer-list") {
-                    OfferItem(OfferItemUI.fromJellyfinLink(jellyfinLink, jellyfinItems.logoLink)!!)
+    h2(classes = "title is-4") { +"Jellyfin" }
+    div(classes = "table-container") {
+        table(classes = "table is-fullwidth is-striped is-hoverable") {
+            tbody {
+                tr {
+                    th(classes = "offerType-td") { +"Jellyfin" }
+                    td(classes = "offer-td") {
+                        ul(classes = "offer-list") {
+                            OfferItem(OfferItemUI.fromJellyfinLink(jellyfinLink, jellyfinItems.logoLink)!!)
+                        }
+                    }
                 }
             }
         }
@@ -88,7 +96,7 @@ fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCo
 
         // countries with offers
         for ((country, offers) in sortedOffers.filter { it.second.isNotEmpty() }) {
-            h1 {
+            h2(classes = "title is-4") {
                 +country
                 +" - "
                 +getCountryName(country)
@@ -98,7 +106,7 @@ fun FlowContent.OfferPage(movie: Movie, offers: Map<String, List<Offer>>, mainCo
 
         val countriesWithoutOffers = offers.filter { it.value.isEmpty() }.keys.sorted()
         if (countriesWithoutOffers.isNotEmpty()) {
-            h1 { +"No offers for:" }
+            h2(classes = "title is-4") { +"No offers for:" }
             p { +countriesWithoutOffers.joinToString(", ") }
         }
     }

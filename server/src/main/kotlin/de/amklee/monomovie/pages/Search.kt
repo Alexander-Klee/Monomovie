@@ -33,14 +33,14 @@ fun FlowContent.SearchBar(title: String) {
 context(resourcesFormat: ResourcesFormat)
 fun FlowContent.EmptySearchPage() {
     SearchBar("")
-    p { +"Please enter a title to search for." }
+    p(classes = "notification") { +"Please enter a title to search for." }
 }
 
 @HtmlTagMarker
 context(resourcesFormat: ResourcesFormat)
 fun FlowContent.SearchPage(title: String) {
     SearchBar(title)
-    h4 {
+    h4(classes = "title is-4") {
         +"Search Results:"
     }
     SearchMovieList(title)
